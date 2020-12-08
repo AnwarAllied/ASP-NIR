@@ -1,0 +1,17 @@
+
+sudo apt-get install git
+ssh-keygen -t rsa -b 4096 -C "AFallatah@alliedscientificpro.com"
+cat ~/.ssh/id_rsa.pub
+git config --global user.name "anwar"
+git config --global user.email "AFallatah@alliedscientificpro.com"
+git clone git@github.com:AnwarAllied/ASP-NIR.git
+
+pip install pipenv
+pipenv --three
+pipenv shell
+pipenv install Django
+https://docs.djangoproject.com/en/3.1/intro/tutorial01/
+python -m django --version
+django-admin startproject ASP_NIR
+python manage.py runserver
+python manage.py startapp polls
