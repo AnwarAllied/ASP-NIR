@@ -59,6 +59,7 @@ python manage.py migrate
 ```
 #### reference:
 * https://docs.djangoproject.com/en/3.1/intro/tutorial01/
+* https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/Models
 
 ## Startting the Core App:
 ### Copy Admn Site format for the App:

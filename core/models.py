@@ -1,6 +1,7 @@
 from django.db.models.signals import post_save
 from django.conf import settings
 from django.db import models
+import numpy as np
 # from django.db.models import Sum
 # from django.shortcuts import reverse
 # from django_countries.fields import CountryField
@@ -16,61 +17,82 @@ SCRIPT_CHOICES = (
     ('U', 'Sup-feature'),
 )
 
-LABEL_CHOICES = (
-    ('P', 'primary'),
-    ('S', 'secondary'),
-    ('D', 'danger')
+CONTENT_CHOICES = (
+    ('S', 'Single spectrum'),
+    ('G', 'Group spectra'),
+    ('R', 'Reference')
 )
 
-ADDRESS_CHOICES = (
-    ('B', 'Billing'),
-    ('S', 'Shipping'),
+NIR_TYPE_CHOICES = (
+    ('N', 'Not mentioned'),
+    ('U', 'Unknown'),
+    ('A', 'Type A'),
+    ('B', 'Type B'),
 )
 
 
-class UserProfile(models.Model):
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    stripe_customer_id = models.CharField(max_length=50, blank=True, null=True)
-    one_click_purchasing = models.BooleanField(default=False)
+# class UserProfile(models.Model):
+#     user = models.OneToOneField(
+#         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+#     stripe_customer_id = models.CharField(max_length=50, blank=True, null=True)
+#     one_click_purchasing = models.BooleanField(default=False)
+
+#     def __str__(self):
+#         return self.user.username
+
+
+class Spectrum(models.Model):
+    origin = models.CharField(max_length=60)
+    code = models.CharField(max_length=60)
+    y_axis = models.TextField()
+    x_range_max = models.FloatField(blank=True, null=True)
+    x_range_min = models.FloatField(blank=True, null=True)
+    nir_profile = models.ForeignKey(
+        'NirProfile', on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self):
-        return self.user.username
+        return self.origin
 
+    def slug(self):
+        return '_'joine(self.origin.split())
 
-class Item(models.Model):
-    title = models.CharField(max_length=100)
-    price = models.FloatField()
-    discount_price = models.FloatField(blank=True, null=True)
-    category = models.CharField(choices=CATEGORY_CHOICES, max_length=2)
-    label = models.CharField(choices=LABEL_CHOICES, max_length=1)
-    slug = models.SlugField()
-    description = models.TextField()
-    image = models.ImageField()
+    def x_axis(self):
+        return np.linspace(self.x_range_min, self.x_range_max, num=np.shape(self.y_axis)[1])
 
-    def __str__(self):
-        return self.title
-
+    def y_axis(self):
+        return np.array(exec("["+y_axis+"]"))
+        
     def get_absolute_url(self):
-        return reverse("core:product", kwargs={
-            'slug': self.slug
+        return reverse("core:spectrum", kwargs={
+            'slug': self.slug()
         })
 
-    def get_add_to_cart_url(self):
-        return reverse("core:add-to-cart", kwargs={
-            'slug': self.slug
+    def get_add_to_graph_url(self):
+        return reverse("core:add-to-graph", kwargs={
+            'slug': self.slug()
         })
 
-    def get_remove_from_cart_url(self):
-        return reverse("core:remove-from-cart", kwargs={
-            'slug': self.slug
+    def get_remove_from_graph_url(self):
+        return reverse("core:remove-from-graph", kwargs={
+            'slug': self.slug()
         })
+        
+    class Meta:
+        verbose_name_plural = "Spectra"
 
 
-class OrderItem(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL,
-                             on_delete=models.CASCADE)
-    ordered = models.BooleanField(default=False)
+class NirProfile(models.Model):
+    # spectrum = models.ForeignKey('spectrum', on_delete=models.CASCADE)
+    title = models.CharField(max_length=100)
+
+    nir_type = models.CharField(max_length=1, choices=NIR_TYPE_CHOICES, default="N")
+    nir_method = models.TextField(blank=True, null=True)
+    nir_configuration = models.TextField(blank=True, null=True)
+
+    figure_id = models.CharField(max_length=10)
+
+
+    
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
 
