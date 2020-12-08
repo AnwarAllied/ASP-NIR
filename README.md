@@ -11,6 +11,9 @@ sudo apt-get install git
 git config --global user.name "anwar"
 git config --global user.email "AFallatah@alliedscientificpro.com"
 git clone git@github.com:AnwarAllied/ASP-NIR.git
+eval $(ssh-agent)
+ssh-add 
+git pull
 ```
 
 #### reference:
@@ -38,9 +41,11 @@ pip install pipenv
 pipenv --three
 pipenv shell
 pipenv install Django
+pipenv run pip freeze
 ```
 #### reference:
 * https://pipenv-fork.readthedocs.io/en/latest/install.html
+* https://pipenv-fork.readthedocs.io/en/latest/basics.html
 
 ### Setting up Django:
 
@@ -50,6 +55,13 @@ python -m django --version
 django-admin startproject ASP_NIR
 python manage.py runserver
 python manage.py startapp core
+python manage.py migrate
 ```
 #### reference:
 * https://docs.djangoproject.com/en/3.1/intro/tutorial01/
+
+## Startting the Core App:
+### Copy Admn Site format for the App:
+#### Command:
+#### referance:
+* https://docs.djangoproject.com/en/3.1/ref/contrib/admin/#admin-overriding-templates
