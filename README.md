@@ -60,6 +60,7 @@ python manage.py runserver
 python manage.py startapp core
 python manage.py makemigrations
 python manage.py migrate
+python3 manage.py createsuperuser
 ```
 #### reference:
 * https://docs.djangoproject.com/en/3.1/intro/tutorial01/
@@ -68,6 +69,11 @@ python manage.py migrate
 ## Startting the Core App:
 ### Copy Admn Site format for the App:
 #### Command:
+
+```
+admin.site._registry
+```
+
 #### referance:
 * https://docs.djangoproject.com/en/3.1/ref/contrib/admin/#admin-overriding-templates
 
