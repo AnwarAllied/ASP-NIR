@@ -1,0 +1,46 @@
+[
+    {
+      "model": "core.nirprofile",
+      "pk": 1,
+      "fields": {
+        "title": "Narcotic Materil",
+        "nir_type": "N",
+        "nir_method": "MicroNIR 1700, X-bag and 99% reflectance panel on top",
+        "nir_configuration": "Spectrum averaging refers to the number of single scans averaged together to represent a single spectrum acquisition",
+        "figure_id": "4",
+        "figure_title": "",
+        "figure_caption": "Untreated absorbance spectral dataset",
+        "x_label": "Wavelength (nm)",
+        "y_label": "Absorbance",
+        "x_min": 900,
+        "x_max": 1700,
+        "y_min": -0.25,
+        "y_max": 0.70,
+        "reference_type": "L",
+        "reference_title": "Pocket-Size Near-Infrared Spectrometer for Narcotic Materials Identification",
+        "reference_link": "https://doi.org/10.1117/12.2050019"
+        }
+    },
+    {
+      "model": "core.nirprofile",
+      "pk": 2,
+      "fields": {
+        "title": "Wheat with different protein levels for Alan Ames",
+        "nir_type": "A",
+        "nir_method": "NIRvaScan 1700, grinded wheat measured in forward and revers orientation",
+        "nir_configuration": "Labeled by: sample#, box#, measurment#, orientation#",
+        "figure_id": "2",
+        "figure_title": "Wheat spectra with different protein levels",
+        "figure_caption": "Untreated absorbance spectral dataset",
+        "x_label": "Wavelength (nm)",
+        "y_label": "Absorbance",
+        "x_min": 901,
+        "x_max": 1700,
+        "y_min": 0.21,
+        "y_max": 4.75,
+        "reference_type": "A",
+        "reference_title": "Riz taken measurments",
+        "reference_link": ""
+      }
+    }
+  ]

@@ -14,12 +14,15 @@ git clone git@github.com:AnwarAllied/ASP-NIR.git
 eval $(ssh-agent)
 ssh-add 
 git pull
+touch .gitignore
+git rm --cached Pipfile.lock
 ```
 
 #### reference:
 * [Atlassian](https://www.atlassian.com/git/tutorials/setting-up-a-repository)
 * https://docs.gitlab.com/ee/gitlab-basics/start-using-git.html
 * https://guides.github.com/features/mastering-markdown/
+* https://www.pluralsight.com/guides/how-to-use-gitignore-file
 
 ### Setting up SSH:
 #### Commands:
@@ -55,6 +58,7 @@ python -m django --version
 django-admin startproject ASP_NIR
 python manage.py runserver
 python manage.py startapp core
+python manage.py makemigrations
 python manage.py migrate
 ```
 #### reference:
@@ -66,3 +70,11 @@ python manage.py migrate
 #### Command:
 #### referance:
 * https://docs.djangoproject.com/en/3.1/ref/contrib/admin/#admin-overriding-templates
+
+### upload initial data to the db:
+#### Command:
+```
+python manage.py loaddata core/fixtures.json
+```
+#### referance:
+* https://docs.djangoproject.com/en/3.1/howto/initial-data/
