@@ -3,6 +3,9 @@ from django.conf import settings
 from django.db import models
 import numpy as np
 from django.shortcuts import reverse
+from django_matplotlib import MatplotlibFigureField as ma
+import matplotlib.pyplot as plt
+import hashlib
 # from django.db.models import Sum
 # from django_countries.fields import CountryField
 
@@ -51,6 +54,10 @@ class Spectrum(models.Model):
     nir_profile = models.ForeignKey(
         'NirProfile', on_delete=models.SET_NULL, blank=True, null=True)
 
+    figure = ma(figure='figure_1',verbose_name='figure', silent=True)
+
+    # spectra = models.Manager()
+
     def __str__(self):
         return self.origin
 
@@ -58,10 +65,10 @@ class Spectrum(models.Model):
         return '_'.join(self.origin.split())
 
     def x(self):
-        return np.linspace(self.x_range_min, self.x_range_max, num=np.shape(self.y_axis)[1])
+        return np.linspace(int(self.x_range_min), int(self.x_range_max), num=np.shape(self.y_axis)[1])
 
     def y(self):
-        return np.array(exec("["+self.y_axis+"]"))
+        return np.array(eval("["+self.y_axis+"]"))
         
     def get_absolute_url(self):
         return reverse("core:spectrum", kwargs={
@@ -77,10 +84,12 @@ class Spectrum(models.Model):
         return reverse("core:remove-from-graph", kwargs={
             'slug': self.slug()
         })
+
+    def fig(self):
+        return ma(figure='figure_'+str(self.pk),verbose_name='figure', silent=True)
         
     class Meta:
         verbose_name_plural = "Spectra"
-
 
 class NirProfile(models.Model):
     title = models.CharField(max_length=100)

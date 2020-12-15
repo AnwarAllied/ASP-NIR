@@ -76,6 +76,11 @@ admin.site._registry
 
 #### referance:
 * https://docs.djangoproject.com/en/3.1/ref/contrib/admin/#admin-overriding-templates
+* https://docs.djangoproject.com/en/3.1/ref/contrib/admin/actions/
+* https://django-matplotlib.readthedocs.io/en/latest/
+* https://medium.com/@MicroPyramid/how-to-customize-the-admin-actions-in-list-pages-of-django-admin-f858f326f0ee
+* https://github.com/scidam/django_matplotlib/blob/master/django_matplotlib/fields.py
+
 
 ### upload initial data to the db:
 #### Command:
@@ -84,3 +89,7 @@ python manage.py loaddata core/fixtures.json
 ```
 #### referance:
 * https://docs.djangoproject.com/en/3.1/howto/initial-data/
+class test:  
+    #@staticmethod
+    def square(x):  
+        test.result = x*x 
