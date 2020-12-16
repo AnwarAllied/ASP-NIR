@@ -1,7 +1,10 @@
 {% extends "admin/base_site.html" %}
 {% load i18n static %}
 
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}">{% endblock %}
+{% block extrastyle %}
+{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}">
+
+{% endblock %}
 
 {% block coltype %}colMS{% endblock %}
 
@@ -12,9 +15,47 @@
 {% block nav-sidebar %}{% endblock %}
 
 {% block content %}
-<div id="content-main">
-  <img src="data: imge/svg;base64,{{ data }}" alt="" height="250", width="250">
+
+<div class="chart-container" style="width:80vw">
+    <h1>{{ Spectra }}</h1>
+    <h1>{{ s1 }}</h1>
+    <ul>
+        {% for spectrum in Spectra %}
+            <li>{{ spectrum.origin }}</li>
+            <li>{{ spectrum.y_axis }}</li>
+        {% endfor %}
+    </ul>
+    <h1>Spectra of Material A</h1>
+    <canvas id="myChart"></canvas>
 </div>
+
+
+
+
+<script src="http://code.jquery.com/jquery-1.10.0.min.js"></script>
+<script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
+<script>
+
+    $.get('{% url "line_chart_json" %}', function(data) {
+        var ctx = $("#myChart").get(0).getContext("2d");
+        new Chart(ctx, {
+            type: 'line', data: data,
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            suggestedMin: 0,
+                            suggestedMax: 20,
+                            max: 20,
+                            min: 0,
+                        }
+                    }]
+                }
+            }
+        });
+    });
+
+</script>
 {% endblock %}
 
 {% block sidebar %}

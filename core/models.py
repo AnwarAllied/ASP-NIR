@@ -54,7 +54,7 @@ class Spectrum(models.Model):
     nir_profile = models.ForeignKey(
         'NirProfile', on_delete=models.SET_NULL, blank=True, null=True)
 
-    figure = ma(figure='figure_1',verbose_name='figure', silent=True)
+    figure = ma(figure='figure_1',verbose_name='figure', silent=True) # output_format='svg'
 
     # spectra = models.Manager()
 
@@ -65,7 +65,7 @@ class Spectrum(models.Model):
         return '_'.join(self.origin.split())
 
     def x(self):
-        return np.linspace(int(self.x_range_min), int(self.x_range_max), num=np.shape(self.y_axis)[1])
+        return np.linspace(int(self.x_range_min), int(self.x_range_max), num=np.shape(self.y())[0])
 
     def y(self):
         return np.array(eval("["+self.y_axis+"]"))
