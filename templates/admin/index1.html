@@ -36,7 +36,7 @@
 <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
 <script>
 
-    $.get('{% url "line_chart_json" model=Spectrum ids=2,1 %}', function(data) {
+    $.get('{% url "line_chart_json" %}?model={{ model }}&ids={{ ids }}', function(data) {
         var ctx = $("#myChart").get(0).getContext("2d");
         new Chart(ctx, {
             type: 'line', data: data,
@@ -45,8 +45,8 @@
                     yAxes: [{
                         ticks: {
                             suggestedMin: 0,
-                            suggestedMax: 20,
-                            max: 20,
+                            suggestedMax: 15,
+                            max: 15,
                             min: 0,
                         }
                     }]
