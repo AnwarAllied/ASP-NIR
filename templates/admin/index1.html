@@ -16,47 +16,10 @@
 
 {% block content %}
 
-<div class="chart-container" style="width:80vw">
-    <h1>{{ Spectra }}</h1>
-    <h1>{{ s1 }}</h1>
-    <ul>
-        {% for spectrum in Spectra %}
-            <li>{{ spectrum.origin }}</li>
-            <li>{{ spectrum.y_axis }}</li>
-        {% endfor %}
-    </ul>
-    <h1>Spectra of Material A</h1>
-    <canvas id="myChart"></canvas>
-</div>
+    {% include "admin/chartjs_index.html" %}
 
-
-
-
-<script src="http://code.jquery.com/jquery-1.10.0.min.js"></script>
-<script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
-<script>
-
-    $.get('{% url "line_chart_json" %}?model={{ model }}&ids={{ ids }}', function(data) {
-        var ctx = $("#myChart").get(0).getContext("2d");
-        new Chart(ctx, {
-            type: 'line', data: data,
-            options: {
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            suggestedMin: 0,
-                            suggestedMax: 15,
-                            max: 15,
-                            min: 0,
-                        }
-                    }]
-                }
-            }
-        });
-    });
-
-</script>
 {% endblock %}
+
 
 {% block sidebar %}
 <div id="content-related">
