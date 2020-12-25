@@ -1,12 +1,15 @@
 from django.contrib import admin
 from .models import Spectrum, NirProfile
+from .forms import NirProfileForm
 from django.contrib.auth.models import Group ,User
 from django.core import serializers
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.db.models import Q
 
+
 class NirProfileAdmin(admin.ModelAdmin):
+    form = NirProfileForm
     fieldsets = (
         (None, {
             'fields': ('title',) 
@@ -21,10 +24,10 @@ class NirProfileAdmin(admin.ModelAdmin):
         ('Reference', {
             'fields': ('reference_type', 'reference_title', 'reference_link')
         }),
-        # ('Included Spectra', {
-        #     # 'classes': ('collapse',),
-        #     'fields': (None,),
-        # }),
+        ('Included Spectra', {
+            'classes': ('collapse',),
+            'fields': ("adv",),
+        }),
     )
 
 
