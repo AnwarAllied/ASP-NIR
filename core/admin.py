@@ -6,7 +6,8 @@ from django.core import serializers
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.db.models import Q
-
+from .dataHandeller import datasheet2spec
+import pickle
 
 class NirProfileAdmin(admin.ModelAdmin):
     form = NirProfileForm
@@ -26,9 +27,31 @@ class NirProfileAdmin(admin.ModelAdmin):
         }),
         ('Included Spectra', {
             'classes': ('collapse',),
-            'fields': ("adv",),
+            'fields': ("upload_dataset",),
         }),
     )
+
+    def response_change(self, request, obj, **kwargs):
+        # print('pk',obj.pk)
+        # print(dir(request))
+        # print('post:',request.POST.items)
+        # print(request.FILES['upload_dataset'].file)
+        # print(dir(request.FILES['upload_dataset']))
+        # print('file:',request.FILES['upload_dataset'])
+        # print(kwargs)
+
+        dsFile=request.FILES['upload_dataset'].file
+        dsFile.seek(0)
+        message=datasheet2spec(file=dsFile, pk=obj.pk, filename=str(request.FILES['upload_dataset']) )
+        print(message)
+        # with open('company_data.pkl', 'wb') as output:
+        #     # company1 = Company('banana', 40)
+        #     pickle.dump(request.FILES['upload_dataset'].file, output, pickle.HIGHEST_PROTOCOL)
+
+        # with open('company_data.pkl', 'rb') as input:
+        #     company1 = pickle.load(input)
+        # pd.read_excel(request.FILES['upload_dataset'].file, index_col=False, error_bad_lines=False, encoding='utf-8')
+        return super().response_change(request, obj, **kwargs)
 
 
 class MyAdminSite(admin.AdminSite):
