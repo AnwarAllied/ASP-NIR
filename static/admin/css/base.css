@@ -760,7 +760,9 @@ table#change-history tbody th {
 }
 
 .dashboard #content {
-    width: 600px;
+    width: revert;
+    padding-right: 10px;
+    margin-right: 250px;
 }
 
 #content-main {
@@ -771,8 +773,11 @@ table#change-history tbody th {
 #content-related {
     float: right;
     width: 260px;
-    position: relative;
+    position: revert;
     margin-right: -300px;
+    padding-left: 10px;
+    margin-left: 10px;
+}
 }
 
 #footer {

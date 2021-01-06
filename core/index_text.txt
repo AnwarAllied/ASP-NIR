@@ -1,0 +1,3 @@
+Building a library of a large collection of spectra and its relevant information need a proper structure and database protocol to facilitate proper data management and to deliver efficient service for customers. Toward this, we have this cloud-based service that is accessible for our team to upload, display and analyze spectroscopy spectroscopic contents.
+Right now, this service is hosted at a local server allowing for the basic spectra management of uploading, downloading and displaying contents.
+Thank you for your contributions to make this work successful. 

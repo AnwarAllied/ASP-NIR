@@ -1,7 +1,7 @@
 {% load static %}
 
-<div class="chart-container" style="width:80vw">
-    <h1>Spectra of Material:</h1>
+<div class="chart-container" style="width:70vw">
+    <h1>{{ figure_header }}</h1>
     <canvas id="myChart"></canvas>
 </div>
 
@@ -18,9 +18,20 @@
                     yAxes: [{
                         ticks: {
                             suggestedMin: 0,
-                            suggestedMax: 15,
-                            max: 15,
+                            suggestedMax: 5,
+                            max: 5,
                             min: 0,
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Absorption'
+                        }
+                    }],
+                    xAxes: [{
+                        
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Wavelength (nm)'
                         }
                     }]
                 }

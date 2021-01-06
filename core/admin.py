@@ -39,11 +39,11 @@ class NirProfileAdmin(admin.ModelAdmin):
         # print(dir(request.FILES['upload_dataset']))
         # print('file:',request.FILES['upload_dataset'])
         # print(kwargs)
-
-        dsFile=request.FILES['upload_dataset'].file
-        dsFile.seek(0)
-        message=datasheet2spec(file=dsFile, pk=obj.pk, filename=str(request.FILES['upload_dataset']) )
-        print(message)
+        if 'upload_dataset' in request.FILES.values():
+            dsFile=request.FILES['upload_dataset'].file
+            dsFile.seek(0)
+            message=datasheet2spec(file=dsFile, pk=obj.pk, filename=str(request.FILES['upload_dataset']) )
+            print(message)
         # with open('company_data.pkl', 'wb') as output:
         #     # company1 = Company('banana', 40)
         #     pickle.dump(request.FILES['upload_dataset'].file, output, pickle.HIGHEST_PROTOCOL)
@@ -68,10 +68,12 @@ class MyAdminSite(admin.AdminSite):
         return response
 
     def export_selected_objects(self, request, queryset):
+        model=queryset.model.__name__
         selected = queryset.values_list('pk', flat=True)
-        ct = Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in selected)))
+        ct =eval(model+".objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in selected)))")
+        
         return HttpResponseRedirect('/plot/?model=%s&ids=%s' % (
-            ct.model.__name__, ','.join(str(pk) for pk in selected),
+            model, ','.join(str(pk) for pk in selected),
         ))
 
     def plot_spectra(self, request, queryset):

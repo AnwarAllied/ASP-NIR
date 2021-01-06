@@ -5,7 +5,7 @@ from .models import Spectrum, NirProfile
 from chartjs.colors import next_color
 
 def datasheet2spec(file,pk,filename):
-    # print(kwargs)
+    print("kwargs")
     profile=NirProfile.objects.get(pk=pk)
     filetype=filename.split('.')[-1]
     if filetype in ['xlsx','xls']:

@@ -10,7 +10,7 @@ def validate_file_extension(value):
 
 # Create the form class.
 class NirProfileForm(forms.ModelForm):
-    upload_dataset = forms.FileField(validators=[validate_file_extension])
+    upload_dataset = forms.FileField(validators=[validate_file_extension], required=False)
     upload_dataset.widget.attrs.update({'accept':".xls,.xlsx"})
     class Meta:
         model = NirProfile

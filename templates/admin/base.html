@@ -8,7 +8,47 @@
   <link rel="stylesheet" type="text/css" href="{% static "admin/css/nav_sidebar.css" %}">
   <script src="{% static 'admin/js/nav_sidebar.js' %}" defer></script>
 {% endif %}
-{% block extrastyle %}{% endblock %}
+{% block extrastyle %}
+<style>
+
+.header-right {
+  float: right;
+}
+
+
+.dashboard #content {
+  width: revert;
+  padding-right: 10px;
+  margin-right: 250px;
+}
+
+#content-main {
+  float: left;
+  width: 100%;
+}
+
+#content-related {
+  float: right;
+  width: 260px;
+  position: revert;
+  margin-right: -300px;
+  padding-left: 10px;
+  margin-left: 10px;
+}
+
+.site-footer
+{
+  text-align:center;
+  background-color:#417690;
+  padding:45px 0 20px;
+  font-size:15px;
+  line-height:24px;
+  color:#ffc;
+}
+
+</style>
+
+{% endblock %}
 {% if LANGUAGE_BIDI %}<link rel="stylesheet" type="text/css" href="{% block stylesheet_rtl %}{% static "admin/css/rtl.css" %}{% endblock %}">{% endif %}
 {% block extrahead %}{% endblock %}
 {% block responsive %}
@@ -55,6 +95,10 @@
                 <a href="{% url 'admin:logout' %}">{% translate 'Log out' %}</a>
             {% endblock %}
         </div>
+        {% else %}
+        <div class="header-right">
+          <a href="{% url "admin:login" %}">Signin</a>
+          </div>
         {% endif %}
         {% endblock %}
         {% block nav-global %}{% endblock %}
@@ -86,15 +130,16 @@
         <div id="content" class="{% block coltype %}colM{% endblock %}">
           {% block pretitle %}{% endblock %}
           {% block content_title %}{% if title %}<h1>{{ title }}</h1>{% endif %}{% endblock %}
+          {% block sidebar %}{% endblock %}
           {% block content %}
             {% block object-tools %}{% endblock %}
             {{ content }}
           {% endblock %}
-          {% block sidebar %}{% endblock %}
+          
           <br class="clear">
         </div>
         <!-- END Content -->
-        {% block footer %}<div id="footer"></div>{% endblock %}
+        {% block footer %}{% endblock %}
       </div>
     </div>
 </div>

@@ -1,0 +1,46 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}">
+
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label=app_label %}">{{ verbose_name }}</a>
+    &rsaquo; {{ verbose_name_plural|capfirst }}
+    </div>
+{% endblock %}
+
+{% block nav-sidebar %}{% endblock %}
+
+
+{% block content %}
+    {# include "change_list.html" #}
+    {% include "admin/chartjs_index.html" %}
+{% endblock %}
+
+
+{% block sidebar %}
+<div id="content-related">
+    <div class="module" id="recent-actions-module">
+        <h2>Figure Actions</h2>
+        <h3>My figure action</h3>
+            <p>{% translate 'None available' %}</p>
+            
+        
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+<div id="footer" class="site-footer">       
+    <p> Copyright &copy; 2021 All rights reserved by AlliedScientificPro </p>
+</div>
+{% endblock %}

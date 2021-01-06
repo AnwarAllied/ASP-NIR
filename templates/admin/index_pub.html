@@ -16,6 +16,11 @@
 
 {% block content %}
 
+    <div class="chart-container" style="width:70vw">
+        <h1>{{ welcome }}</h1>
+        <p>{{ index_text }}</p>
+    </div>
+
     {% include "admin/chartjs_index.html" %}
 
 {% endblock %}
@@ -50,5 +55,11 @@
             </ul>
             {% endif %}
     </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+<div id="footer" class="site-footer">       
+    <p> Copyright &copy; 2021 All rights reserved by AlliedScientificPro </p>
 </div>
 {% endblock %}
