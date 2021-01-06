@@ -1,6 +1,33 @@
 # Django website for ASP-NIR
 Website for ASP NIR Analysis.
 
+## Setting up the local server for this project (in a development mode):
+This section is for setting up a new local server envirnment for this project in Linux.
+1. Make sure python 3 is installed by typing "python" or "python3".
+2. Install pipenv for the virtual envirnment:
+```
+pip install pipenv
+```
+3. Install and configurate git for github.
+4. clone the project:
+```
+git clone git@github.com:AnwarAllied/ASP-NIR.git
+```
+5. lunch the virtual envirnment using pipenv (make sure you are in the main ptoject directory where requirements.txt):
+```
+pipenv shell
+```
+6. Make sure requirements.txt are instuled.
+7. lunch the project:
+```
+python manage.py runserver
+```
+8. Test the server on the PC (http://127.0.0.1:8000/).
+9. reLunch the project to the local host:
+```
+python manage.py runserver 0.0.0.0:8000
+```
+
 ## Setting up the envirnment:
 This section is for setting up a new envirnment for this project in Linux.
 
