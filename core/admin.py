@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.db.models import Q
 from .dataHandeller import datasheet2spec
+from django.contrib import messages
 import pickle
 
 class NirProfileAdmin(admin.ModelAdmin):
@@ -32,6 +33,14 @@ class NirProfileAdmin(admin.ModelAdmin):
     )
 
     def response_change(self, request, obj, **kwargs):
+        if 'upload_dataset' in request.FILES.keys():
+            dsFile=request.FILES['upload_dataset'].file
+            dsFile.seek(0)
+            uploaded,msg=datasheet2spec(file=dsFile, pk=obj.pk, filename=str(request.FILES['upload_dataset']) )
+            print(msg)
+            if not uploaded:
+                messages.error(request, 'Sorry, the uploaded file is not formated properly.')
+
         # print('pk',obj.pk)
         # print(dir(request))
         # print('post:',request.POST.items)
@@ -39,11 +48,6 @@ class NirProfileAdmin(admin.ModelAdmin):
         # print(dir(request.FILES['upload_dataset']))
         # print('file:',request.FILES['upload_dataset'])
         # print(kwargs)
-        if 'upload_dataset' in request.FILES.values():
-            dsFile=request.FILES['upload_dataset'].file
-            dsFile.seek(0)
-            message=datasheet2spec(file=dsFile, pk=obj.pk, filename=str(request.FILES['upload_dataset']) )
-            print(message)
         # with open('company_data.pkl', 'wb') as output:
         #     # company1 = Company('banana', 40)
         #     pickle.dump(request.FILES['upload_dataset'].file, output, pickle.HIGHEST_PROTOCOL)

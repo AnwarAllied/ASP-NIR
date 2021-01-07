@@ -4,14 +4,16 @@
     <h1>{{ figure_header }}</h1>
     <canvas id="myChart"></canvas>
 </div>
-
+<button onclick="reset_data(this)" class="">Reset</button>
+<button onclick="reverse(this)" class="">Reverse</button>
 <script src="http://code.jquery.com/jquery-1.10.0.min.js"></script>
 <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
 <script>
 
     $.get('{% url "line_chart_json" %}?model={{ model }}&ids={{ ids }}', function(data) {
+        Gdata = data
         var ctx = $("#myChart").get(0).getContext("2d");
-        new Chart(ctx, {
+        chart = new Chart(ctx, {
             type: 'line', data: data,
             options: {
                 scales: {
@@ -30,7 +32,30 @@
                 }
             }
         });
+        // eslint-disable-next-line no-unused-vars
+
     });
+
+    function reset_data() {
+        $.get('{% url "line_chart_json" %}?model={{ model }}&ids={{ ids }}', function(data) {
+            Gdata = data
+            chart.data.datasets.forEach(function(dataset, index) {
+                dataset.data = Gdata['datasets'][index]["data"];
+            });
+            chart.update();
+        });
+
+    };
+            
+    function reverse() {
+            // var ds = JSON.parse(Gdata['datasets'])
+			chart.data.datasets.forEach(function(dataset, index) {
+                const u=[];
+                // Gdata['datasets'][index]["data"].forEach( function (val){u.push(val*val)});
+                dataset.data = Gdata['datasets'][index]["data"].reverse();
+			});
+			chart.update();
+		}
 
 </script>
 
