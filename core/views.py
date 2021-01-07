@@ -52,24 +52,35 @@ class plot(TemplateView):
 
 class LineChartJSONView(BaseLineChartView):
 
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     context.updat({})
+    #     return context
+        
+    def get_dataset_options(self, index, color):
+        default_opt = super().get_dataset_options(index, color)
+        default_opt.update({"fill": "false"})
+        return default_opt
+
+
     def spect2context(self, **kwargs):
         # self.dic ={"view": "<core.views.LineChartJSONView object at 0x000002F8626AE940>", "labels": ["January", "February", "March", "April", "May", "June", "July"], "datasets": [{"data": [75, 44, 92, 11, 44, 95, 35], "backgroundColor": "rgba(202, 201, 197, 0.5)", "borderColor": "rgba(202, 201, 197, 1)", "pointBackgroundColor": "rgba(202, 201, 197, 1)", "pointBorderColor": "#fff", "label": "Central", "name": "Central"}, {"data": [41, 92, 18, 3, 73, 87, 92], "backgroundColor": "rgba(171, 9, 0, 0.5)", "borderColor": "rgba(171, 9, 0, 1)", "pointBackgroundColor": "rgba(171, 9, 0, 1)", "pointBorderColor": "#fff", "label": "Eastside", "name": "Eastside"}, {"data": [87, 21, 94, 3, 90, 13, 65], "backgroundColor": "rgba(166, 78, 46, 0.5)", "borderColor": "rgba(166, 78, 46, 1)", "pointBackgroundColor": "rgba(166, 78, 46, 1)", "pointBorderColor": "#fff", "label": "Westside", "name": "Westside"}]}
         # dic = self.dic
         model=self.request.GET.get('model','')
         ids=list(map(int,self.request.GET.get('ids','').split(',')))
-        print('spct2con:',model,ids)
+        # print('spct2con:',model,ids)
         context=super(BaseLineChartView, self).get_context_data(**kwargs)
-        # if model == "NirProfile":  #nir_profile=np.objects.get(id=4))
-        #     nirprofiles=NirProfile.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
-        #     print([i for i in nirprofiles])
-        #     spectra=[]
-        #     for obj in nirprofiles:
-        #         spectra.append(Spectrum.objects.filter(nir_profile= obj))
-        #     spectra=list(chain(*spectra))
-        #     print("spectra:")
-        # elif model == 'Spectrum':
-        spectra=Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
+        if model == "NirProfile":  #nir_profile=np.objects.get(id=4))
+            nirprofiles=NirProfile.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
+            context.update({'max': nirprofiles[0].y_max,})
+            spectra=Spectrum.objects.filter(nir_profile= nirprofiles[0])
+            for obj in nirprofiles[1:]:
+                spectra |=Spectrum.objects.filter(nir_profile= obj)
 
+        elif model == 'Spectrum':
+            spectra=Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
+            
+        # print("spectra:",spectra)
         context.update({'Spectra': spectra})
         # context.update({'dic': dic})
         return context
@@ -77,13 +88,15 @@ class LineChartJSONView(BaseLineChartView):
     def get_labels(self):
         self.cont=self.spect2context()
         x=list(map(int,self.cont['Spectra'].first().x()))
-        return x+[]
+        x= [x[i] for i in range(0,len(x),10)]
+        return x
 
     def get_providers(self):
         return [i.origin for i in self.cont['Spectra']]
 
     def get_data(self):
-        return [i.y().tolist() for i in self.cont['Spectra']]
+        # self.limits={'max','min'}
+        return [i.y().tolist()[0:-1:10] for i in self.cont['Spectra']]
 
 
 
