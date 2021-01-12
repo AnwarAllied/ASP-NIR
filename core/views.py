@@ -40,7 +40,12 @@ class plot(TemplateView):
         # print(dir(self.request.user))
         data["model"]=model
         data["ids"]=ids
-        data["figure_header"]= "Spectra of {}:".format(Spectrum.objects.get(id=int(ids.split(',')[0])).origin.split(' ')[0])
+        print(model,ids)
+        if model == 'Spectrum':
+            data["figure_header"]= "Spectra of {}:".format(Spectrum.objects.get(id=int(ids.split(',')[0])).origin.split(' ')[0])
+        elif model == 'NirProfile':
+            data["figure_header"]= "Spectra of {}:".format(NirProfile.objects.get(id=int(ids.split(',')[0])).title)
+            
         data["has_permission"]= self.request.user.is_authenticated
         data["app_label"]='core'
         data["verbose_name"]='Spectra'
