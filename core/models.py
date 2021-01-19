@@ -4,11 +4,6 @@ from django.db import models
 import numpy as np
 from django.shortcuts import reverse
 from django_matplotlib import MatplotlibFigureField as ma
-# import matplotlib.pyplot as plt
-import hashlib
-# from django.db.models import Sum
-# from django_countries.fields import CountryField
-
 
 SCRIPT_CHOICES = (
     ('A', 'Apout'),
@@ -54,10 +49,6 @@ class Spectrum(models.Model):
     nir_profile = models.ForeignKey(
         'NirProfile', on_delete=models.SET_NULL, blank=True, null=True)
 
-    # figure = ma(figure='figure_1',verbose_name='figure', silent=True) # output_format='svg'
-
-    # spectra = models.Manager()
-
     def __str__(self):
         return self.origin
 
@@ -84,9 +75,6 @@ class Spectrum(models.Model):
         return reverse("core:remove-from-graph", kwargs={
             'slug': self.slug()
         })
-
-    # def fig(self):
-    #     return ma(figure='figure_'+str(self.pk),verbose_name='figure', silent=True)
         
     class Meta:
         verbose_name_plural = "Spectra"

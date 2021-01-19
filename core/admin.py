@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Spectrum, NirProfile
+from spectraModelling.models import Poly
 from .forms import NirProfileForm
 from django.contrib.auth.models import Group ,User
 from django.core import serializers
@@ -96,4 +97,5 @@ admin_site.register(Group)
 admin_site.register(User)
 admin_site.register(Spectrum)
 admin_site.register(NirProfile,NirProfileAdmin)
+# admin_site.register(Poly)
 # admin_site.register(NirProfileAdmin)

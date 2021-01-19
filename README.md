@@ -43,6 +43,7 @@ ssh-add
 git pull
 touch .gitignore
 git rm --cached Pipfile.lock
+git checkout -b "spectra_modeling"
 ```
 
 #### reference:
@@ -76,6 +77,37 @@ pipenv run pip freeze
 #### reference:
 * https://pipenv-fork.readthedocs.io/en/latest/install.html
 * https://pipenv-fork.readthedocs.io/en/latest/basics.html
+
+### Setting up Heroku:
+* create new account in Heroku: nirvascan
+* for installing Heroku in WSL  (Windows with Linux):
+```
+curl https://cli-assets.heroku.com/install.sh | sh
+```
+* add Procfile file with:
+```
+web: gunicorn ASP_NIR.wsgi
+```
+* add the following to the top & buttom of settings.py:
+```
+import django_heroku
+.
+.
+.
+django_heroku.settings(locals())
+```
+#### Commands:
+```
+heroku login
+pipenv install gunicorn
+sudo apt-get install -y libpq-dev
+pipenv install django-heroku
+heroku git:remote -a nirvascan
+
+```
+#### reference:
+* https://dev.to/wrightdotclick/heroku-cli-on-wsl-26fp
+
 
 ### Setting up Django:
 
