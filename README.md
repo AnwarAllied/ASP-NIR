@@ -88,6 +88,10 @@ curl https://cli-assets.heroku.com/install.sh | sh
 ```
 web: gunicorn ASP_NIR.wsgi
 ```
+* add runtime.txt file with:
+```
+python-3.8.3
+```
 * add the following to the top & buttom of settings.py:
 ```
 import django_heroku
@@ -107,7 +111,8 @@ heroku git:remote -a nirvascan
 ```
 #### reference:
 * https://dev.to/wrightdotclick/heroku-cli-on-wsl-26fp
-
+* https://devcenter.heroku.com/categories/python-support
+* https://devcenter.heroku.com/articles/git
 
 ### Setting up Django:
 
