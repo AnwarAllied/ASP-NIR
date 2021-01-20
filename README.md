@@ -111,6 +111,7 @@ git push heroku spectra_modeling:master
 heroku buildpacks
 ```
 #### reference:
+* https://www.analyticsvidhya.com/blog/2020/10/step-by-step-guide-for-deploying-a-django-application-using-heroku-for-free/
 * https://dev.to/wrightdotclick/heroku-cli-on-wsl-26fp
 * https://devcenter.heroku.com/categories/python-support
 * https://devcenter.heroku.com/articles/git
@@ -125,7 +126,7 @@ python manage.py runserver
 python manage.py startapp core
 python manage.py makemigrations
 python manage.py migrate
-python3 manage.py createsuperuser
+python manage.py createsuperuser
 ```
 #### reference:
 * https://docs.djangoproject.com/en/3.1/intro/tutorial01/
