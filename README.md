@@ -107,7 +107,8 @@ pipenv install gunicorn
 sudo apt-get install -y libpq-dev
 pipenv install django-heroku
 heroku git:remote -a nirvascan
-
+git push heroku spectra_modeling:master
+heroku buildpacks
 ```
 #### reference:
 * https://dev.to/wrightdotclick/heroku-cli-on-wsl-26fp

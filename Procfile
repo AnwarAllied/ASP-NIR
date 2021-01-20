@@ -1,1 +1,1 @@
-web: gunicorn myproject.wsgi
+web: gunicorn ASP_NIR.wsgi
