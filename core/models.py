@@ -60,7 +60,10 @@ class Spectrum(models.Model):
 
     def y(self):
         return np.array(eval("["+self.y_axis+"]"))
-        
+
+    def label(self):
+        return self.origin
+
     def get_absolute_url(self):
         return reverse("core:spectrum", kwargs={
             'slug': self.slug()

@@ -28,6 +28,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'django.contrib.flatpages',
     'django_matplotlib',
     'chartjs',
     'spectraModelling'
@@ -117,3 +119,5 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 django_heroku.settings(locals())
+
+SITE_ID = 1

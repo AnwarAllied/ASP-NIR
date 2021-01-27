@@ -10,7 +10,7 @@
 <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
 <script>
 
-    $.get('{% url "line_chart_json" %}?model={{ model }}&ids={{ ids }}', function(data) {
+    $.get('{% url "line_chart_json" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}', function(data) {
         Gdata = data
         var ctx = $("#myChart").get(0).getContext("2d");
         chart = new Chart(ctx, {

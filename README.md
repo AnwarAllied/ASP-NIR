@@ -127,6 +127,7 @@ python manage.py startapp core
 python manage.py makemigrations
 python manage.py migrate
 python manage.py createsuperuser
+from django.contrib.auth.models import User
 ```
 #### reference:
 * https://docs.djangoproject.com/en/3.1/intro/tutorial01/
