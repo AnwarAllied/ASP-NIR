@@ -65,7 +65,7 @@ class Poly(models.Model):
     def obtain(self):
         ms=1;pm=50
         df=pm-ms;ordr=4
-        yn=to_wavelength_length_norm(self.y())
+        yn=to_wavelength_length_norm(self.spectrum.y())
         x=x_poly  #  self.spectrum.x()
         while True:  #(df > 1e-8) and ms>.005:
             if (df < 1e-8) and (ms<.005 or ordr>18):
@@ -78,10 +78,10 @@ class Poly(models.Model):
             ordr+=1
             pm=ms.copy()
 
-        self.order=ordr
-        self.mse=ms
-        self.parameter=str(param.tolist())[1:-1]
-        self.y_axis=str(ft.tolist())[1:-1]
+            self.order=ordr
+            self.mse=ms
+            self.parameter=str(param.tolist())[1:-1]
+            self.y_axis=str(ft.tolist())[1:-1]
 
     def update_similar(self):
         param=self.param()
@@ -165,7 +165,9 @@ class Match(models.Model):
 
 # auto create and save poly whenever Spectrum created.
 def poly_receiver(sender, instance, created, *args, **kwargs):
-    if created:
+    print(instance.y_axis[:70])
+    
+    if created and instance.y_axis:
         poly = Poly(spectrum = instance)
         poly.obtain()
         poly.save()
@@ -220,6 +222,11 @@ def to_wavelength_length_norm(y):
 #     return np.array(((y-mi)/(mx-mi)).tolist())
 
 # from spectraModelling.models import Poly, Match, poly_for_all, to_wavelength_length_norm, wavelength_length
+# from core.models import Spectrum
+# import numpy as np
+# from matplotlib import pyplot as plt
+# s=Spectrum.objects.last()
+# q=Spectrum.objects.filter(nir_profile=Spectrum.objects.last().nir_profile)
 # po=Poly.objects.all()[22]
 # y=po.spectrum.y_axis
 # m=Match(y_axis=y)
