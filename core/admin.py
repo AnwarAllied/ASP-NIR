@@ -17,6 +17,7 @@ import pickle
 
 # Define a new FlatPageAdmin
 class myFlatPageAdmin(FlatPageAdmin):
+    view_on_site = False
     fieldsets = (
         (None, {'fields': ('url', 'title', 'content', 'sites')}),
         (_('Advanced options'), {
@@ -33,6 +34,7 @@ class myFlatPageAdmin(FlatPageAdmin):
         return remove_action(super().changelist_view(request))
 
 class NirProfileAdmin(admin.ModelAdmin):
+    view_on_site = False
     form = NirProfileForm
     fieldsets = (
         (None, {
@@ -84,7 +86,8 @@ class MyAdminSite(admin.AdminSite):
     default_site = 'myproject.admin.MyAdminSite'
     site_header = 'NIRvaScan - Allied Scientific Pro'
     site_title = 'NIR spectra'
-
+    view_on_site = False
+    
     def export_as_json(self, request, queryset):
         response = HttpResponse(content_type="application/json")
         print(dir(response),'\n',response.content)
@@ -109,6 +112,8 @@ class MyAdminSite(admin.AdminSite):
     actions = [di1['Poly']]+[('delete_selected', dict(admin.AdminSite().actions)['delete_selected'])]
 
 class NoPlot(admin.ModelAdmin):
+    view_on_site = False
+
     # to remove action plot:
     def changelist_view(self, request):
         return remove_action(super().changelist_view(request))

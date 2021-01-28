@@ -3,7 +3,7 @@ from spectraModelling.models import Poly, Match
 # Register your models here.
 
 class myMatchAdmin(admin.ModelAdmin):
-
+    view_on_site = False
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
         obj = Match.objects.get(id=object_id)
@@ -20,7 +20,7 @@ class myMatchAdmin(admin.ModelAdmin):
 
 
 class myPolyAdmin(admin.ModelAdmin):
-
+    view_on_site = False
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
         obj = Poly.objects.get(pk=object_id)

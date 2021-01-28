@@ -19,8 +19,9 @@ def match(request):
         'index_text' : flat_page.content,
         'form' : MatchForm,
         'figure_header': "Matching result:",
+        'plot_mode': 'detail',
         'model':'Match',
-        'ids': '8'
+        'ids': '13'
     }
     return HttpResponse(template.render(context, request))
 
