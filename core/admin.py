@@ -17,9 +17,15 @@ import re
 # import pickle
 
 
+# class FlatInline(admin.TabularInline):
+#     model = FlatPage
+#     verbose_name = "Static page"
+
 # Define a new FlatPageAdmin
 class myFlatPageAdmin(FlatPageAdmin):
     view_on_site = False
+    # inlines = [FlatInline, ]
+    verbose_name = "Static page"
     fieldsets = (
         (None, {'fields': ('url', 'title', 'content', 'sites')}),
         (_('Advanced options'), {

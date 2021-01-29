@@ -12,7 +12,7 @@ from .admin import myMatchAdmin
 
 def match(request):
     template = loader.get_template('admin/match.html')
-    flat_page=FlatPage.objects.get(pk=2)
+    flat_page=FlatPage.objects.get(url= '/match/')
     context = {
         'has_permission': request.user.is_authenticated,
         'title': flat_page.title,

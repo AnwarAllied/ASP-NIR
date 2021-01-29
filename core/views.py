@@ -21,10 +21,10 @@ from numpy import round
 
 def index(request):
     template = loader.get_template('admin/index_pub.html')
-    flat_page=FlatPage.objects.get(pk=1)
+    flat_page=FlatPage.objects.get(url= '/welcome/')
     context = {
         'has_permission': request.user.is_authenticated,
-        'page': flat_page.url[1:-1],
+        'page': 'welcome',
         'title': flat_page.title,
         'index_text' : flat_page.content,
         'figure_header': "Example of interactive plotting:",
@@ -121,7 +121,6 @@ class LineChartJSONView(BaseLineChartView):
             x=self.cont['Spectra'].x()
         else:
             x=self.cont['Spectra'].first().x()
-
         x= [int(round(x[i]/10)*10) for i in range(0,len(x),10)]
         return x
 
