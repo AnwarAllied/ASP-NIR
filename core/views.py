@@ -12,6 +12,7 @@ from chartjs.views.lines import BaseLineChartView
 from .models import Spectrum, NirProfile
 from spectraModelling.models import Poly, Match
 from itertools import chain
+from numpy import round
 
 
 # def index(request):
@@ -121,7 +122,7 @@ class LineChartJSONView(BaseLineChartView):
         else:
             x=self.cont['Spectra'].first().x()
 
-        x= [int(x[i]) for i in range(0,len(x),10)]
+        x= [int(round(x[i]/10)*10) for i in range(0,len(x),10)]
         return x
 
     def get_providers(self):

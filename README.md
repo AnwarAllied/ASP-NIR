@@ -108,7 +108,10 @@ sudo apt-get install -y libpq-dev
 pipenv install django-heroku
 heroku git:remote -a nirvascan
 git push heroku spectra_modeling:master
+heroku run python manage.py migrate
 heroku buildpacks
+heroku ps
+
 ```
 #### reference:
 * https://www.analyticsvidhya.com/blog/2020/10/step-by-step-guide-for-deploying-a-django-application-using-heroku-for-free/
