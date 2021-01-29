@@ -2,7 +2,7 @@
 {% load i18n static %}
 
 {% block extrastyle %}
-{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}">
+{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static 'admin/css/dashboard.css' %}">
 
 {% endblock %}
 
@@ -16,7 +16,7 @@
 
 {% block content %}
 
-    <div class="chart-container" style="width:70vw">
+    <div class="chart-container">
         <h1>{{ welcome }}</h1>
         <p>{{ index_text }}</p>
     </div>
