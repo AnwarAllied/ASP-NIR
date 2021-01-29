@@ -35,7 +35,7 @@
         {% block usertools %}
         
         {% if has_permission %}
-        <div> <a href="{% url "spectraModelling:match" %}">Match</a> </div>
+        <div> <a href="{% url 'spectraModelling:match' %}">Match</a> </div>
         <div id="user-tools">
             {% block welcome-msg %}
                 {% translate 'Welcome,' %}
