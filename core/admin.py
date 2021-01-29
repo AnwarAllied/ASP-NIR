@@ -1,5 +1,7 @@
 from django.contrib import admin
 from .models import Spectrum, NirProfile
+from spectraModelling.models import Poly, Match
+from spectraModelling.admin import myMatchAdmin, myPolyAdmin
 from .forms import NirProfileForm
 from django.contrib.auth.models import Group ,User
 from django.core import serializers
@@ -8,9 +10,31 @@ from django.http import HttpResponseRedirect
 from django.db.models import Q
 from .dataHandeller import datasheet2spec
 from django.contrib import messages
+from django.contrib.flatpages.models import FlatPage
+from django.contrib.flatpages.admin import FlatPageAdmin
+from django.utils.translation import gettext_lazy as _
 import pickle
 
+# Define a new FlatPageAdmin
+class myFlatPageAdmin(FlatPageAdmin):
+    view_on_site = False
+    fieldsets = (
+        (None, {'fields': ('url', 'title', 'content', 'sites')}),
+        (_('Advanced options'), {
+            'classes': ('collapse',),
+            'fields': (
+                'enable_comments',
+                'registration_required',
+                'template_name',
+            ),
+        }),
+    )
+    # to remove action plot:
+    def changelist_view(self, request):
+        return remove_action(super().changelist_view(request))
+
 class NirProfileAdmin(admin.ModelAdmin):
+    view_on_site = False
     form = NirProfileForm
     fieldsets = (
         (None, {
@@ -62,7 +86,7 @@ class MyAdminSite(admin.AdminSite):
     default_site = 'myproject.admin.MyAdminSite'
     site_header = 'NIRvaScan - Allied Scientific Pro'
     site_title = 'NIR spectra'
-
+    view_on_site = False
     
     def export_as_json(self, request, queryset):
         response = HttpResponse(content_type="application/json")
@@ -74,26 +98,43 @@ class MyAdminSite(admin.AdminSite):
     def export_selected_objects(self, request, queryset):
         model=queryset.model.__name__
         selected = queryset.values_list('pk', flat=True)
-        ct =eval(model+".objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in selected)))")
+        ct =eval(model+".objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in selected)))")
         
         return HttpResponseRedirect('/plot/?model=%s&ids=%s' % (
             model, ','.join(str(pk) for pk in selected),
         ))
 
     def plot_spectra(self, request, queryset):
-        # queryset.update(x_range_min='600')
-        pass
+        short_description = "Plot selected spectra"
 
-    plot_spectra.short_description = "Plot selected spectra"
+    # plot_spectra.short_description = "Plot selected spectra"
+    di1={'Poly':('plot_spectra',export_selected_objects)}
+    actions = [di1['Poly']]+[('delete_selected', dict(admin.AdminSite().actions)['delete_selected'])]
 
-    actions = [('plot_spectra',export_selected_objects),('delete_selected', dict(admin.AdminSite().actions)['delete_selected'])]
+class NoPlot(admin.ModelAdmin):
+    view_on_site = False
 
-admin.site.register(Spectrum)
-admin.site.register(NirProfile,NirProfileAdmin)
+    # to remove action plot:
+    def changelist_view(self, request):
+        return remove_action(super().changelist_view(request))
+
+# to remove action plot:
+def remove_action(response,remove = 'plot_spectra'):
+    # response=super().changelist_view(request)
+    if 'action_form' in response.context_data.keys():
+        action_choices=response.context_data['action_form'].fields['action'].choices
+        action_choices=[i for i in action_choices if i[0] != remove ]
+        response.context_data['action_form'].fields['action'].choices = action_choices
+    return response
 
 admin_site = MyAdminSite(name='myadmin')
-admin_site.register(Group)
-admin_site.register(User)
+# Re-register FlatPageAdmin
+# admin_site.unregister(FlatPage)
+admin_site.register(FlatPage, myFlatPageAdmin)
+admin_site.register(Group,NoPlot)
+admin_site.register(User,NoPlot)
 admin_site.register(Spectrum)
 admin_site.register(NirProfile,NirProfileAdmin)
+admin_site.register(Poly,myPolyAdmin)
+admin_site.register(Match,myMatchAdmin)
 # admin_site.register(NirProfileAdmin)

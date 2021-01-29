@@ -1,0 +1,1 @@
+web: gunicorn ASP_NIR.wsgi

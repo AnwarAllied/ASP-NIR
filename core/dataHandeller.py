@@ -20,7 +20,7 @@ def datasheet2spec(file,pk,filename):
             xmax=max(x_axis)
             for i in range(len(dataset)):
                 S = Spectrum(
-                    origin = '%s %s %s %s' % (filename.split(' ')[0],label1[i],list(sh1)[0], 'C'),
+                    origin = '%s %s %s %s' % (filename.split('-')[0],label1[i],list(sh1)[0],filename.split('-')[-1].split('.')[0]),
                     code = 'WM%dV%dX%dN%d' % (np.mean(dataset[i]),np.var(dataset[i]),np.max(dataset[i]),np.min(dataset[i])),
                     color = '#%02X%02X%02X' % tuple(next(color_generator)),
                     y_axis = str(dataset[i].tolist())[1:-1],

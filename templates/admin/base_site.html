@@ -3,7 +3,7 @@
 {% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
 
 {% block branding %}
-<h1 id="site-name"><a href="{% if welcome %}{% url 'admin:index' %}{% else %}/{% endif %}">NIRvaScan - Allied Scientific Pro</a> {{ context }} </h1>
+<h1 id="site-name"><a href="{% if page == 'welcome' %}{% url 'admin:index' %}{% else %}/{% endif %}">NIRvaScan - Allied Scientific Pro</a> {{ context }}  </h1>
 {% endblock %}
 
 {% block nav-global %}{% endblock %}

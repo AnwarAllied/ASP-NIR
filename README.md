@@ -43,6 +43,7 @@ ssh-add
 git pull
 touch .gitignore
 git rm --cached Pipfile.lock
+git checkout -b "spectra_modeling"
 ```
 
 #### reference:
@@ -77,6 +78,44 @@ pipenv run pip freeze
 * https://pipenv-fork.readthedocs.io/en/latest/install.html
 * https://pipenv-fork.readthedocs.io/en/latest/basics.html
 
+### Setting up Heroku:
+* create new account in Heroku: nirvascan
+* for installing Heroku in WSL  (Windows with Linux):
+```
+curl https://cli-assets.heroku.com/install.sh | sh
+```
+* add Procfile file with:
+```
+web: gunicorn ASP_NIR.wsgi
+```
+* add runtime.txt file with:
+```
+python-3.8.3
+```
+* add the following to the top & buttom of settings.py:
+```
+import django_heroku
+.
+.
+.
+django_heroku.settings(locals())
+```
+#### Commands:
+```
+heroku login
+pipenv install gunicorn
+sudo apt-get install -y libpq-dev
+pipenv install django-heroku
+heroku git:remote -a nirvascan
+git push heroku spectra_modeling:master
+heroku buildpacks
+```
+#### reference:
+* https://www.analyticsvidhya.com/blog/2020/10/step-by-step-guide-for-deploying-a-django-application-using-heroku-for-free/
+* https://dev.to/wrightdotclick/heroku-cli-on-wsl-26fp
+* https://devcenter.heroku.com/categories/python-support
+* https://devcenter.heroku.com/articles/git
+
 ### Setting up Django:
 
 #### Commands:
@@ -87,7 +126,8 @@ python manage.py runserver
 python manage.py startapp core
 python manage.py makemigrations
 python manage.py migrate
-python3 manage.py createsuperuser
+python manage.py createsuperuser
+from django.contrib.auth.models import User
 ```
 #### reference:
 * https://docs.djangoproject.com/en/3.1/intro/tutorial01/
