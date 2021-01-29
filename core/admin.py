@@ -13,7 +13,9 @@ from django.contrib import messages
 from django.contrib.flatpages.models import FlatPage
 from django.contrib.flatpages.admin import FlatPageAdmin
 from django.utils.translation import gettext_lazy as _
-import pickle
+import re
+# import pickle
+
 
 # Define a new FlatPageAdmin
 class myFlatPageAdmin(FlatPageAdmin):
@@ -32,6 +34,16 @@ class myFlatPageAdmin(FlatPageAdmin):
     # to remove action plot:
     def changelist_view(self, request):
         return remove_action(super().changelist_view(request))
+
+class SpectrumAdmin(admin.ModelAdmin):
+    view_on_site = False
+    def save_model(self, request, obj, form, change):
+        # change the delimiter to ", "
+        delimiter=re.findall("[^\d\,\. ]+",obj.y_axis[:100])
+        if delimiter:
+            print('Delimiter changed from: %r' % delimiter[0])
+            obj.y_axis=re.sub(delimiter[0],', ',obj.y_axis)
+        super().save_model(request, obj, form, change)
 
 class NirProfileAdmin(admin.ModelAdmin):
     view_on_site = False
@@ -87,7 +99,7 @@ class MyAdminSite(admin.AdminSite):
     site_header = 'NIRvaScan - Allied Scientific Pro'
     site_title = 'NIR spectra'
     view_on_site = False
-    
+
     def export_as_json(self, request, queryset):
         response = HttpResponse(content_type="application/json")
         print(dir(response),'\n',response.content)
@@ -133,7 +145,7 @@ admin_site = MyAdminSite(name='myadmin')
 admin_site.register(FlatPage, myFlatPageAdmin)
 admin_site.register(Group,NoPlot)
 admin_site.register(User,NoPlot)
-admin_site.register(Spectrum)
+admin_site.register(Spectrum,SpectrumAdmin)
 admin_site.register(NirProfile,NirProfileAdmin)
 admin_site.register(Poly,myPolyAdmin)
 admin_site.register(Match,myMatchAdmin)

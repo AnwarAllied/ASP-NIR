@@ -21,7 +21,7 @@ def match(request):
         'figure_header': "Matching result:",
         'plot_mode': 'detail',
         'model':'Match',
-        'ids': '13'
+        'ids': '8'
     }
     return HttpResponse(template.render(context, request))
 
