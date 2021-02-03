@@ -68,7 +68,7 @@ class plot(TemplateView):
 class LineChartJSONView(BaseLineChartView):
     # def get_context_data(self, **kwargs):
     #     context = super().get_context_data(**kwargs)
-    #     context.updat({})
+    #     context.update({})
     #     return context
         
     def get_dataset_options(self, index, color):
