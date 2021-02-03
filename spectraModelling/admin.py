@@ -1,5 +1,6 @@
 from django.contrib import admin
 from spectraModelling.models import Poly, Match
+# from core.admin import remove_action
 # Register your models here.
 
 class myMatchAdmin(admin.ModelAdmin):
@@ -17,6 +18,10 @@ class myMatchAdmin(admin.ModelAdmin):
             request, object_id, form_url, extra_context=extra_context,
         )
         return rn
+        # to remove action plot:
+
+    def changelist_view(self, request):
+        return remove_action(super().changelist_view(request))
 
 
 class myPolyAdmin(admin.ModelAdmin):
@@ -39,3 +44,16 @@ class myPolyAdmin(admin.ModelAdmin):
         # print('self:',self.change_form_template)
         # print('Poly detail:',request.get_full_path())
         return rn
+    
+    def changelist_view(self, request):
+        return remove_action(super().changelist_view(request))
+
+
+
+# to remove unwanted actions:
+def remove_action(response,remove = ['PCA_model']):
+    if 'context_data' in dir(response):
+        action_choices=response.context_data['action_form'].fields['action'].choices
+        action_choices=[i for i in action_choices if i[0] not in remove ]
+        response.context_data['action_form'].fields['action'].choices = action_choices
+    return response

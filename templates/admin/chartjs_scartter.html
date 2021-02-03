@@ -1,0 +1,70 @@
+{% load static %}
+
+<div class="chart-container" style="width:70vw">
+    <h1>{{ figure_header }}</h1>
+    <canvas id="myChart"></canvas>
+</div>
+<!-- <button onclick="reset_data(this)" class="">Reset</button>
+<button onclick="reverse(this)" class="">Reverse</button> -->
+<script src="{% static 'js/jquery-1.10.0.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
+<script>
+
+    $.get('{% url "scartter_chart_json" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}', function(data) {
+        Gdata = data
+        var ctx = $("#myChart").get(0).getContext("2d");
+        chart = new Chart.Scatter(ctx, {
+            type: "line",
+            data: data,
+            options: {
+                scales: {
+                    yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Second component'
+                        }
+                    }],
+                    xAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'First component'
+                        }
+                    }]
+                },
+                // tooltips: {
+				// 		position: 'nearest',
+				// 		mode: 'index',
+                //         intersect: false,
+                //         callbacks: {
+                //         label: function(tooltipItem, data) {
+                //             var label = data.datasets[tooltipItem.datasetIndex].name;
+                //             return label + ': (' + tooltipItem.xLabel + ', ' + tooltipItem.yLabel + ')';
+                //             }
+                //         }
+                // },
+            }
+        });
+
+    });
+  
+    function reset_data() {
+        $.get('{% url "scartter_chart_json" %}?model={{ model }}&ids={{ ids }}', function(data) {
+            Gdata = data
+            chart.data.datasets.forEach(function(dataset, index) {
+                dataset.data = Gdata['datasets'][index]["data"];
+            });
+            chart.update();
+        });
+
+    };
+            
+    function reverse() {
+			chart.data.datasets.forEach(function(dataset, index) {
+                const u=[];
+                dataset.data = Gdata['datasets'][index]["data"].reverse();
+			});
+			chart.update();
+		}
+
+</script>
+

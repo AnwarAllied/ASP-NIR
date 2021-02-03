@@ -34,7 +34,8 @@ INSTALLED_APPS = [
     'chartjs',
     'core.apps.FlatPagesConfig',
     'core.apps.CoreConfig',
-    'spectraModelling.apps.SpectramodellingConfig'
+    'spectraModelling.apps.SpectramodellingConfig',
+    'predictionModel.apps.PredictionmodelConfig'
 ]
 
 MIDDLEWARE = [
