@@ -2,33 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="55ef85b3-5d21-4453-9649-0faaffcd6d5e" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/predictionModel/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/predictionModel/admin.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/predictionModel/apps.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/predictionModel/migrations/0001_initial.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/predictionModel/migrations/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/predictionModel/models.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/predictionModel/tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/predictionModel/urls.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/predictionModel/views.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/admin/chartjs_scartter.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ASP_NIR/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/ASP_NIR/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ASP_NIR/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/ASP_NIR/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/admin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/apps.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/apps.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/dataHandeller.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/dataHandeller.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/db.sqlite3" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectraModelling/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/spectraModelling/admin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectraModelling/apps.py" beforeDir="false" afterPath="$PROJECT_DIR$/spectraModelling/apps.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectraModelling/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/spectraModelling/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/admin/chartjs_index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin/chartjs_line.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/admin/index_plot.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin/index_plot.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/admin/index_pub.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin/index_pub.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/admin/match.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin/match.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/admin/spectraModelling/change_form.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin/spectraModelling/change_form.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/predictionModel/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/predictionModel/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/predictionModel/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/predictionModel/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -4,6 +4,41 @@ from spectraModelling.models import wavelength_length, x_poly, fft_sampling
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.decomposition import PCA
 import numpy as np
+from sklearn.cross_decomposition import PLSRegression
+
+
+class PlsModel(models.Model):
+    component = models.TextField(blank=True, null=True, default=2)
+    calibration = models.ManyToManyField(Spectrum)
+
+    def obtain(self):
+        x = np.array(self.scale_y()).T  # y dataset of a spectrum or of some spectra
+        y = np.array(self.scale_y()).T  # y dataset of an ingredient or of some ingredients
+        pls = PLSRegression(n_components=self.component)
+        pls.fit(x, y)
+        self.component = pls.get_params(['component'])
+        return pls
+
+    def scale_y(self, *ids):
+        if ids:
+            y = to_wavelength_length_scal([Spectrum.objects.get(id=i).y().tolist() for i in ids])
+        else:
+            y = to_wavelength_length_scal([i.y().tolist() for i in self.calibration.all()])
+        return y
+
+    def apply(self, mode, *ids):  # predict the ingredients values of a spectrum or of some spectra
+        if mode == 'calibration':
+            y = self.scale_y() if not ids else self.scale_y(*ids)
+            y = np.array(y)
+            predicted_y = self.obtain().predict(y)
+        else:
+            y = self.scale_y(*ids)
+            y = np.array(y)
+            predicted_y = self.obtain().predict(y)
+        return predicted_y
+
+
+
 
 class PcaModel(models.Model):
     order = models.IntegerField(blank=True, null=True)
@@ -36,7 +71,7 @@ class PcaModel(models.Model):
             # ids=[i.id for i in self.calibration.all()]
             y=self.scale_y() if not ids else self.scale_y(*ids)
             y=np.array(y)
-            pca = PCA(n_components = 2)
+            pca = PCA(n_components=2)
             pca.fit(y)
             comp= pca.components_
             C=comp.dot(y.T)
@@ -64,7 +99,7 @@ def to_wavelength_length_scal(y):
                 x=np.round(np.linspace(0,l-1,wavelength_length)).astype(int)
                 scaled.append([i[a] for a in x])
             else:
-                scled.append(fft_sampling(y))
+                scaled.append(fft_sampling(y))
         else:
             scaled.append(i)
     

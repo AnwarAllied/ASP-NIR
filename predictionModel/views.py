@@ -17,7 +17,29 @@ from itertools import chain
 import numpy as np
 
 class pls(TemplateView):
-    pass
+    template_name = "admin/index_plot.html"
+
+    def get_context_data(self, **kwargs):
+        model = self.request.GET.get('model', '')
+        ids = self.request.GET.get('ids', '')
+        data = super().get_context_data()
+        data['model'] = model
+        data['ids'] = ids
+        if model == 'Spectrum':
+            data['figure_header'] = 'PLS model for {}:'.format(Spectrum.object.get(id=int(ids.split(',')[0])).origin.split(' ')[0])
+        elif model == 'NirProfile':
+            data['figure_header'] = 'PLS model for {}:'.format(NirProfile.object.get(id=int(ids.split(',')[0])).title)
+        elif model == 'Ploy':
+            data['figure_header'] = 'PLS model for {}:'.format(Poly.object.get(pk=int(ids.split(',')[0])).spectrum.origin.split(' ')[0])
+        elif model == 'Match':
+            data['figure_header'] = 'Uploaded unknown spectra:'
+
+        data['has_permission'] = self.request.user.is_authenticated
+        data['app_label'] = 'spectraModelling' if (model == 'Poly' or model == 'Match') else 'core'
+        data['verbose_name'] = model
+        data['verbose_name_plural'] = 'figure'
+
+        return data
 
 # Create your views here.
 class pca(TemplateView):
