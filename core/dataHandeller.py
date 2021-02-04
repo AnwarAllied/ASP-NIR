@@ -51,12 +51,40 @@ def detect_xls_profile(xls):
     D: Multi-sheet format
 
     """
-    pass
+    # extract all the infos from the file name
+    # xls = 'Wheat Granded Flour-Protein Brix Moisture-ASP Alan_Ames-1_20201126_120750.xls'
+    xls = xls.split('-')
+    a = xls[0].split()
+    origin = a[0]
+    originsubs = [a[i] for i in range(1, len(a))]
+    labels = xls[1].split()
+    references = xls[2].split()
+    note = xls[3].split('.')[0]
 
+    # detect the type of file
+    data_labels, content_labels, X_dataset, Y_sepctra_dataset, Y_content_dataset = [], [], [], [], []
+    tb = pd.ExcelFile(xls, engine='openpyxl')
+    sheet_names = tb.sheet_names
+    df = pd.read_excel(tb, sheet_names, header=None)
+    for sheet in sheet_names:  # we assume there are several sheets
+        if pd.read_excel(tb, tb.sheet).values[:]:
+            if str(df[sheet].loc[1, 1]).isalpha():
+                if str(df[sheet].loc[1, 2]).isalpha():  # C, file like narcatic_spectra_new
+                    i = 1
+                    while str(df[sheet].loc[1, i]).isalpha():
+                        content_labels.append(df[sheet].loc[1, i])
+                        Y_content_dataset.append(df[sheet].values[1:, i])
+                        i += 1  # we assume there are a lot of content labels
+                    data_labels.append(df[sheet].values[:, 0])  # if all the labels of spectra are in the first column
+                else:  # A
+                    data_labels.append(labels)  # we assume the spectrum label is in the filename
+                    Y_sepctra_dataset.append(df[sheet].values[23:, 1])  # all data are in 1B after row22
+            else:  # B
+                X_dataset.append(df[sheet].values[0, 1:])  # we assume cell[0,0] stocks (label\x-data)
+                Y_sepctra_dataset.append(df[sheet].values[1:, 1:])
 
-
-def figure_2(*args):
-    print(args)
-    fig, ax = plt.subplots()
-    ax.plot([1, 3, 4], [3, 2, 5])
-    return fig
+# def figure_2(*args):
+#     print(args)
+#     fig, ax = plt.subplots()
+#     ax.plot([1, 3, 4], [3, 2, 5])
+#     return fig

@@ -21,7 +21,7 @@ ALLOWED_HOSTS = ["https://nirvascan.herokuapp.com/","*"]
 # Application definition
 
 INSTALLED_APPS = [
-    'core.apps.CoreConfig',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -29,10 +29,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'django.contrib.flatpages',
+    # 'django.contrib.flatpages',
     'django_matplotlib',
     'chartjs',
-    'spectraModelling'
+    'core.apps.FlatPagesConfig',
+    'core.apps.CoreConfig',
+    'spectraModelling.apps.SpectramodellingConfig',
+    'predictionModel.apps.PredictionmodelConfig'
 ]
 
 MIDDLEWARE = [

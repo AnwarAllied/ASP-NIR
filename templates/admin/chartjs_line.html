@@ -37,7 +37,7 @@
     });
 
     function reset_data() {
-        $.get('{% url "line_chart_json" %}?model={{ model }}&ids={{ ids }}', function(data) {
+        $.get('{% url "line_chart_json" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}', function(data) {
             Gdata = data
             chart.data.datasets.forEach(function(dataset, index) {
                 dataset.data = Gdata['datasets'][index]["data"];

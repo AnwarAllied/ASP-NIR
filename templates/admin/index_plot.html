@@ -23,7 +23,11 @@
 
 {% block content %}
     {# include "change_list.html" #}
-    {% include "admin/chartjs_index.html" %}
+    {% if scartter %}
+        {% include "admin/chartjs_scartter.html" %}
+    {% else %}
+        {% include "admin/chartjs_line.html" %}
+    {% endif %}
 {% endblock %}
 
 

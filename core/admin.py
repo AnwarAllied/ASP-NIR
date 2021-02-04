@@ -17,9 +17,15 @@ import re
 # import pickle
 
 
+# class FlatInline(admin.TabularInline):
+#     model = FlatPage
+#     verbose_name = "Static page"
+
 # Define a new FlatPageAdmin
 class myFlatPageAdmin(FlatPageAdmin):
     view_on_site = False
+    # inlines = [FlatInline, ]
+    verbose_name = "Static page"
     fieldsets = (
         (None, {'fields': ('url', 'title', 'content', 'sites')}),
         (_('Advanced options'), {
@@ -39,7 +45,7 @@ class SpectrumAdmin(admin.ModelAdmin):
     view_on_site = False
     def save_model(self, request, obj, form, change):
         # change the delimiter to ", "
-        delimiter=re.findall("[^\d\,\. ]+",obj.y_axis[:100])
+        delimiter=re.findall("[^\d\,\.\- ]+",obj.y_axis[:100])
         if delimiter:
             print('Delimiter changed from: %r' % delimiter[0])
             obj.y_axis=re.sub(delimiter[0],', ',obj.y_axis)
@@ -107,21 +113,32 @@ class MyAdminSite(admin.AdminSite):
         print(dir(response),'\n',response.content)
         return response
 
-    def export_selected_objects(self, request, queryset):
+    def plot_export_selected_objects(self, request, queryset):
         model=queryset.model.__name__
         selected = queryset.values_list('pk', flat=True)
         ct =eval(model+".objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in selected)))")
-        
         return HttpResponseRedirect('/plot/?model=%s&ids=%s' % (
+            model, ','.join(str(pk) for pk in selected),
+        ))
+
+    def pca_export_selected_objects(self, request, queryset):
+        model=queryset.model.__name__
+        selected = queryset.values_list('pk', flat=True)
+        ct =eval(model+".objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in selected)))")
+        return HttpResponseRedirect('/pca/?model=%s&ids=%s' % (
             model, ','.join(str(pk) for pk in selected),
         ))
 
     def plot_spectra(self, request, queryset):
         short_description = "Plot selected spectra"
 
+    def pca_model(self, request, queryset):
+        short_description = "PCA of selected spectra"
+
     # plot_spectra.short_description = "Plot selected spectra"
-    di1={'Poly':('plot_spectra',export_selected_objects)}
-    actions = [di1['Poly']]+[('delete_selected', dict(admin.AdminSite().actions)['delete_selected'])]
+    di1={'Poly':('Plot_spectra',plot_export_selected_objects)}
+    di2={'PCA':('PCA_model',pca_export_selected_objects)}
+    actions = [di1['Poly'],di2['PCA']]+[('delete_selected', dict(admin.AdminSite().actions)['delete_selected'])]
 
 class NoPlot(admin.ModelAdmin):
     view_on_site = False
@@ -131,11 +148,11 @@ class NoPlot(admin.ModelAdmin):
         return remove_action(super().changelist_view(request))
 
 # to remove action plot:
-def remove_action(response,remove = 'plot_spectra'):
+def remove_action(response,remove = ['Plot_spectra','PCA_model']):
     # response=super().changelist_view(request)
     if 'action_form' in response.context_data.keys():
         action_choices=response.context_data['action_form'].fields['action'].choices
-        action_choices=[i for i in action_choices if i[0] != remove ]
+        action_choices=[i for i in action_choices if i[0] not in remove ]
         response.context_data['action_form'].fields['action'].choices = action_choices
     return response
 
