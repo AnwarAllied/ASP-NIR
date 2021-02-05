@@ -17,13 +17,13 @@ class PlsModel(models.Model):
         pls = PLSRegression(n_components=self.component)
         pls.fit(x, y)
         self.component = pls.get_params(['component'])
-        return pls
+
 
     def scale_y(self, *ids):
         if ids:
-            y = to_wavelength_length_scal([Spectrum.objects.get(id=i).y().tolist() for i in ids])
+            y = to_wavelength_length_scal([Spectrum.objects.get(id=i).y().tolist() for i in ids if Spectrum.objects.get(id=i).y().tolist()!=[]])
         else:
-            y = to_wavelength_length_scal([i.y().tolist() for i in self.calibration.all()])
+            y = to_wavelength_length_scal([i.y().tolist() for i in self.calibration.all() if i.y().tolist()!=[]])
         return y
 
     def apply(self, mode, *ids):  # predict the ingredients values of a spectrum or of some spectra
@@ -36,8 +36,6 @@ class PlsModel(models.Model):
             y = np.array(y)
             predicted_y = self.obtain().predict(y)
         return predicted_y
-
-
 
 
 class PcaModel(models.Model):
