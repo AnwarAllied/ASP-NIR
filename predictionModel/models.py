@@ -38,14 +38,18 @@ class PcaModel(models.Model):
             y=np.array(y)
             pca = PCA(n_components = 2)
             pca.fit(y)
-            comp= pca.components_
-            C=comp.dot(y.T)
+            # comp= pca.components_
+            # C=comp.dot(y.T)
+            C=pca.transform(y).T
         else:
             # test the comp on another Spectra ids
             y=self.scale_y(*ids)
             y=np.array(y)
-            comp=self.components_
-            C=comp.dot(y.T)
+            pca=PCA(n_components=2)
+            pca.components_=self.comp()
+            pca.mean_=np.mean(y,axis=0)
+            # C=comp.dot(y.T)
+            C=pca.transform(y).T
         return C
 
 

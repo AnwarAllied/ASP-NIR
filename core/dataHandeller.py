@@ -38,7 +38,7 @@ def detect_xls_profile(xls):
     """
     To detect the format of the spectral content in the xls file:
 
-    The file name format: "ORIGIN ORIGINSUB1 ORIGINSUB2 ... - LABLE1 LABLE2 ... - REFFERANCE Note... .xls"
+    The file name format: "ORIGIN ORIGINSUB1 ORIGINSUB2 ... - LABLE1 LABLE2 ... - REFFERANCE Note... .xlsx"
     ORIGIN: Wheat, Soybean
     ORIGINSUB1: Granded, Flour
     LABLE1: Protein, Brix
