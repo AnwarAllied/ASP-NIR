@@ -11,13 +11,15 @@ class PlsModel(models.Model):
     component = models.TextField(blank=True, null=True, default=2)
     calibration = models.ManyToManyField(Spectrum)
 
-    def obtain(self):
-        x = np.array(self.scale_y()).T  # y dataset of a spectrum or of some spectra
-        y = np.array(self.scale_y()).T  # y dataset of an ingredient or of some ingredients
-        pls = PLSRegression(n_components=self.component)
-        pls.fit(x, y)
-        self.component = pls.get_params(['component'])
+    def comp(self):
+        return np.array(eval('['+self.component+']'))
 
+    def obtain(self, y, *ids):
+        X = self.scale_y() if not ids else self.scale_y(*ids)  # y dataset of a spectrum or of some spectra
+        y = np.array(y)  # y dataset of an ingredient or of some ingredients
+        pls = PLSRegression(n_components=2)
+        pls.fit(X, y)
+        self.component = pls.get_params(['component'])
 
     def scale_y(self, *ids):
         if ids:
@@ -26,16 +28,20 @@ class PlsModel(models.Model):
             y = to_wavelength_length_scal([i.y().tolist() for i in self.calibration.all() if i.y().tolist()!=[]])
         return y
 
-    def apply(self, mode, *ids):  # predict the ingredients values of a spectrum or of some spectra
+    def apply(self, mode, y, *ids):  # predict the ingredients values of a spectrum or of some spectra
         if mode == 'calibration':
-            y = self.scale_y() if not ids else self.scale_y(*ids)
+            X = self.scale_y() if not ids else self.scale_y(*ids)
             y = np.array(y)
-            predicted_y = self.obtain().predict(y)
+            pls = PLSRegression(n_components=2)
+            pls.fit(X, y)
+            C = pls.score(X, y)
         else:
-            y = self.scale_y(*ids)
+            X = self.scale_y(*ids)
             y = np.array(y)
-            predicted_y = self.obtain().predict(y)
-        return predicted_y
+            pls = PLSRegression(n_components=2)
+            pls.fit(X, y)
+            C = pls.score(X, y)
+        return C
 
 
 class PcaModel(models.Model):
