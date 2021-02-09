@@ -14,8 +14,8 @@ class PlsModel(models.Model):
     def comp(self):
         return np.array(eval('['+self.component+']'))
 
-    def obtain(self, y, *ids):
-        X = self.scale_y() if not ids else self.scale_y(*ids)  # y dataset of a spectrum or of some spectra
+    def obtain(self, y):
+        X = self.scale_y()  # y dataset of a spectrum or of some spectra
         y = np.array(y)  # y dataset of an ingredient or of some ingredients
         pls = PLSRegression(n_components=2)
         pls.fit(X, y)
