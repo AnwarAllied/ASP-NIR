@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Spectrum, NirProfile
 from spectraModelling.models import Poly, Match
+from predictionModel.admin import PcaModel
 from spectraModelling.admin import myMatchAdmin, myPolyAdmin
 from .forms import NirProfileForm
 from django.contrib.auth.models import Group ,User
@@ -50,6 +51,15 @@ class SpectrumAdmin(admin.ModelAdmin):
             print('Delimiter changed from: %r' % delimiter[0])
             obj.y_axis=re.sub(delimiter[0],', ',obj.y_axis)
         super().save_model(request, obj, form, change)
+
+        # to disable 1 spectrum selection for PCA and PLS model
+    def changelist_view(self, request, extra_context=None):
+        is_single_selected, message=single_item_selected(request, 'PCA_model')
+        if is_single_selected:
+            self.message_user(request, message, messages.WARNING)
+            return HttpResponseRedirect(request.get_full_path())
+        else:
+            return super().changelist_view(request, extra_context=None)
 
 class NirProfileAdmin(admin.ModelAdmin):
     view_on_site = False
@@ -156,6 +166,20 @@ def remove_action(response,remove = ['Plot_spectra','PCA_model']):
         response.context_data['action_form'].fields['action'].choices = action_choices
     return response
 
+ # to disable single spectrum selection for PCA and PLS model
+def single_item_selected(request, action_model):
+    keys=request.POST.keys()
+    if request.method == 'POST' and 'action' in keys and '_selected_action' in keys:
+        action = request.POST['action']
+        selected = request.POST.__str__().split("_selected_action': ['")[1].split("']")[0].split("', '")
+        if action == action_model and len(selected) < 2:
+            msg = "More than one item must be selected in order to perform modeling actions on them. No action have been performed."
+            return True, msg
+
+    return False, ''
+
+
+
 admin_site = MyAdminSite(name='myadmin')
 # Re-register FlatPageAdmin
 # admin_site.unregister(FlatPage)
@@ -166,4 +190,5 @@ admin_site.register(Spectrum,SpectrumAdmin)
 admin_site.register(NirProfile,NirProfileAdmin)
 admin_site.register(Poly,myPolyAdmin)
 admin_site.register(Match,myMatchAdmin)
+admin_site.register(PcaModel,NoPlot)
 # admin_site.register(NirProfileAdmin)

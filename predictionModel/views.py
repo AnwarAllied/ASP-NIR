@@ -12,7 +12,7 @@ from chartjs.views.lines import BaseLineChartView
 from .models import PcaModel
 from core.models import Spectrum, NirProfile
 from spectraModelling.models import Poly, Match
-
+import json
 from itertools import chain
 import numpy as np
 
@@ -70,6 +70,17 @@ class pca(TemplateView):
         data['scartter']=True
        
         return data
+
+def pca_save(request):
+    print('saving the PCA model')
+    if "components" in request.session.keys(): # check if a session copy availible
+        pca=PcaModel()
+        pca.obtain(request.session['components'], request.session['pca_ids'], request.session['pca_score'])
+        print("model:", pca.__str__(),"saved")
+        content = {"saved":True,"message":"The model saved successfully, as: " + pca.__str__(),"message_class" : "success" }
+    else:
+        content = {"message":"Sorry! unable to save the model","message_class" : "warning" }
+    return HttpResponse(json.dumps(content) ,  content_type = "application/json")
     
    
 
@@ -84,12 +95,10 @@ class ScartterChartView(BaseLineChartView):
 
     def spect2context(self, **kwargs):
         print('Scartter url:',self.request.get_full_path())
-        # self.dic ={"view": "<core.views.LineChartJSONView object at 0x000002F8626AE940>", "labels": ["January", "February", "March", "April", "May", "June", "July"], "datasets": [{"data": [75, 44, 92, 11, 44, 95, 35], "backgroundColor": "rgba(202, 201, 197, 0.5)", "borderColor": "rgba(202, 201, 197, 1)", "pointBackgroundColor": "rgba(202, 201, 197, 1)", "pointBorderColor": "#fff", "label": "Central", "name": "Central"}, {"data": [41, 92, 18, 3, 73, 87, 92], "backgroundColor": "rgba(171, 9, 0, 0.5)", "borderColor": "rgba(171, 9, 0, 1)", "pointBackgroundColor": "rgba(171, 9, 0, 1)", "pointBorderColor": "#fff", "label": "Eastside", "name": "Eastside"}, {"data": [87, 21, 94, 3, 90, 13, 65], "backgroundColor": "rgba(166, 78, 46, 0.5)", "borderColor": "rgba(166, 78, 46, 1)", "pointBackgroundColor": "rgba(166, 78, 46, 1)", "pointBorderColor": "#fff", "label": "Westside", "name": "Westside"}]}
-        # dic = self.dic
         model=self.request.GET.get('model','')
         mode=self.request.GET.get('mode','')
         ids=list(map(int,self.request.GET.get('ids','').split(',')))
-        # print('spct2con:',model,ids)
+        self.request.session['model']=model
         context=super(BaseLineChartView, self).get_context_data(**kwargs)
         if model == "NirProfile":  #nir_profile=np.objects.get(id=4))
             nirprofiles=NirProfile.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
@@ -117,15 +126,19 @@ class ScartterChartView(BaseLineChartView):
             # print('Model:',match)
         # PCA:
         pca=PcaModel()
-        components=pca.apply('calibration',*ids)
+        components, score=pca.apply('calibration',*ids)
+        # keep a copy at session in case saving it:
+        self.request.session['components']=components.tolist()
+        self.request.session['pca_ids']=ids
+        self.request.session['pca_score']=score
         # print("spectra:",spectra)
-        context.update({'model':model ,'Spectra': spectra, 'components': components, 'mode': mode})
+        context.update({'model':model ,'Spectra': spectra, 'components': components.T, 'mode': mode})
         # context.update({'dic': dic})
         return context
 
     def get_labels(self):
         self.cont=self.spect2context()
-        return list(range(len(self.cont['components'][0])))
+        return self.get_providers()
 
     def get_providers(self):
         if self.cont['mode'] == 'detail':
@@ -134,9 +147,7 @@ class ScartterChartView(BaseLineChartView):
             else:
                 return [self.cont['Spectra'].label()] + [i.label() for i in self.cont['Spectra'].similar_pk.all()]
         else:
-        # st='i.spectrum.origin' if self.cont['model'] =="Poly" else 'i.origin'
             return [i.label() for i in self.cont['Spectra']]
-        # return [eval(st) if isinstance(eval(st), str) else eval(st+'()') for i in self.cont['Spectra']]
 
     def get_data(self):
         C=self.cont['components']
@@ -145,8 +156,3 @@ class ScartterChartView(BaseLineChartView):
             C=np.array([list(range(len(C[0]))),C[0].tolist()])
         
         return [[{"x":a,"y":b}] for a,b in C[:2].T]#[{"x":1,"y":2},{"x":5,"y":4}],[{"x":3,"y":4},{"x":3,"y":1}]]#
-
-
-# from predictionModel.models import PcaModel as pca
-# p=pca.objects.first()
-# p.obtain()

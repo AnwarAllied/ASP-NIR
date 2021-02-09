@@ -1,11 +1,14 @@
 {% load static %}
+<ul class="messagelist">
 
+</ul>
 <div class="chart-container" style="width:70vw">
     <h1>{{ figure_header }}</h1>
     <canvas id="myChart"></canvas>
 </div>
-<!-- <button onclick="reset_data(this)" class="">Reset</button>
-<button onclick="reverse(this)" class="">Reverse</button> -->
+<p> Model can be saved to be available for testing it on another dataset :</p>
+<button onclick="save_model(this)" id="save_btn">Save</button>
+<!-- <button onclick="reverse(this)" class="">Reverse</button>disabled -->
 <script src="{% static 'js/jquery-1.10.0.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
 <script>
@@ -31,28 +34,29 @@
                         }
                     }]
                 },
-                // tooltips: {
-				// 		position: 'nearest',
-				// 		mode: 'index',
-                //         intersect: false,
-                //         callbacks: {
-                //         label: function(tooltipItem, data) {
-                //             var label = data.datasets[tooltipItem.datasetIndex].name;
-                //             return label + ': (' + tooltipItem.xLabel + ', ' + tooltipItem.yLabel + ')';
-                //             }
-                //         }
-                // },
+                tooltips: {
+                    callbacks: {
+                        label: function(tooltipItem, data) {
+                            var label = data.datasets[tooltipItem.datasetIndex].label || '';
+
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += '(' + Math.round(tooltipItem.xLabel*100)/100 + ', ' + Math.round(tooltipItem.yLabel*100)/100 + ')';
+                            return label;
+                        }
+                    }
+                }
             }
         });
 
     });
   
-    function reset_data() {
-        $.get('{% url "scartter_chart_json" %}?model={{ model }}&ids={{ ids }}', function(data) {
-            Gdata = data
-            chart.data.datasets.forEach(function(dataset, index) {
-                dataset.data = Gdata['datasets'][index]["data"];
-            });
+    function save_model() {
+        $.get('{% url "pca_save" %}', function(data) {
+            Sdata = data
+            $("#save_btn").attr("disabled", true);
+            $( ".messagelist" ).html('<li class="'+data["message_class"]+'">'+data["message"]+'</li>')
             chart.update();
         });
 
