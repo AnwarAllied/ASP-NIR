@@ -6,22 +6,32 @@ from sklearn.decomposition import PCA
 import numpy as np
 
 class PcaModel(models.Model):
-    order = models.IntegerField(blank=True, null=True)
+    score = models.FloatField(blank=True, null=True)
+    order = models.IntegerField(default = 2)
     component = models.TextField(blank=True, null=True)
     calibration = models.ManyToManyField(Spectrum)
+    
+    def __str__(self):
+        fname=self.calibration.all()[0].origin.split(' ')[0]
+        if self.calibration.count()> 1:
+            origin_list=list(set([i.origin.split(' ')[0] for i in self.calibration.all()]))
+            if len(origin_list) == 2:
+                fname= "%s and %s, score: %s" % (origin_list[0], origin_list[1], "{:0.2f}".format(self.score))
+            elif len(origin_list) > 2:
+                fname= "%s, %s and %d others, score: %s" % (origin_list[0], origin_list[1],self.calibration.count()-2, "{:0.2f}".format(self.score))
+
+        else:
+            fname = "%s, score: %s" % (fname, "{:0.2f}".format(self.score))
+        return fname
 
     def comp(self):
         return np.array(eval("["+self.component+"]"))
 
-    def obtain(self):
-        y=self.scale_y()
-        print('scaled to:',np.shape(y),'max:', np.max(y),'min:',np.min(y))
-        # impliment PCA:
-        pca = PCA(n_components = 2)
-        pca.fit(y)
-        self.order=pca.get_params()['n_components']
-        self.component=str(pca.components_.tolist())[1:-1]
-        # reduced = pca.transform(data_rescaled)
+    def obtain(self, comp, ids, score ):
+        self.component=str(comp)[1:-1]
+        self.score=score
+        self.save()
+        self.calibration.set(ids)
     
     def scale_y(self,*ids):
         if ids:
@@ -40,7 +50,8 @@ class PcaModel(models.Model):
             pca.fit(y)
             # comp= pca.components_
             # C=comp.dot(y.T)
-            C=pca.transform(y).T
+            C=pca.transform(y)
+            S=pca.score(y)
         else:
             # test the comp on another Spectra ids
             y=self.scale_y(*ids)
@@ -49,10 +60,9 @@ class PcaModel(models.Model):
             pca.components_=self.comp()
             pca.mean_=np.mean(y,axis=0)
             # C=comp.dot(y.T)
-            C=pca.transform(y).T
-        return C
-
-
+            C=pca.transform(y)
+            S=pca.score(y)
+        return C, S
 
 def min_max_scal(data):
     scaler = MinMaxScaler()
@@ -73,3 +83,11 @@ def to_wavelength_length_scal(y):
             scaled.append(i)
     
     return min_max_scal(np.array(scaled))
+
+
+# Section has to be moved to test.py: 
+# from predictionModel.models import PcaModel as pca
+# from core.models import NirProfile, Spectrum
+# q=Spectrum.objects.filter(nir_profile=4)
+# p=pca.objects.first()
+# p.obtain()
