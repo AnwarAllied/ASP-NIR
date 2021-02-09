@@ -51,11 +51,13 @@ class pca(TemplateView):
 
 def pca_save(request):
     print('saving the PCA model')
-    if "components" in request.session.keys(): # check if a session copy availible
+    if "comp" in request.session.keys(): # check if a session copy availible
         pca=PcaModel()
-        pca.obtain(request.session['components'], request.session['pca_ids'], request.session['pca_score'])
+        pca.obtain(request.session['comp'], request.session['pca_ids'], request.session['trans'], request.session['pca_score'])
         print("model:", pca.__str__(),"saved")
         content = {"saved":True,"message":"The model saved successfully, as: " + pca.__str__(),"message_class" : "success" }
+        # resest session:
+        _=[request.session.pop(i, None) for i in ['comp', 'pca_ids', 'trans','pca_score']]
     else:
         content = {"message":"Sorry! unable to save the model","message_class" : "warning" }
     return HttpResponse(json.dumps(content) ,  content_type = "application/json")
@@ -104,13 +106,14 @@ class ScartterChartView(BaseLineChartView):
             # print('Model:',match)
         # PCA:
         pca=PcaModel()
-        components, score=pca.apply('calibration',*ids)
+        comp, trans, score=pca.apply('calibration',*ids)
         # keep a copy at session in case saving it:
-        self.request.session['components']=components.tolist()
+        self.request.session['comp']=comp.tolist()
+        self.request.session['trans']=trans.tolist()
         self.request.session['pca_ids']=ids
         self.request.session['pca_score']=score
         # print("spectra:",spectra)
-        context.update({'model':model ,'Spectra': spectra, 'components': components.T, 'mode': mode})
+        context.update({'model':model ,'Spectra': spectra, 'trans': trans, 'mode': mode})
         # context.update({'dic': dic})
         return context
 
@@ -128,9 +131,8 @@ class ScartterChartView(BaseLineChartView):
             return [i.label() for i in self.cont['Spectra']]
 
     def get_data(self):
-        C=self.cont['components']
-        l=len(C)
-        if l<2:
-            C=np.array([list(range(len(C[0]))),C[0].tolist()])
-        
-        return [[{"x":a,"y":b}] for a,b in C[:2].T]#[{"x":1,"y":2},{"x":5,"y":4}],[{"x":3,"y":4},{"x":3,"y":1}]]#
+        trans=self.cont['trans']
+        # l=len(trans.T)
+        # if l<2:
+        #     trans=np.array([list(range(len(trans[0]))),trans[0].tolist()])
+        return [[{"x":a,"y":b}] for a,b in trans[:,:2]]#[{"x":1,"y":2},{"x":5,"y":4}],[{"x":3,"y":4},{"x":3,"y":1}]]#

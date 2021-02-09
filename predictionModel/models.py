@@ -9,10 +9,11 @@ class PcaModel(models.Model):
     score = models.FloatField(blank=True, null=True)
     order = models.IntegerField(default = 2)
     component = models.TextField(blank=True, null=True)
+    transform = models.TextField(blank=True, null=True)
     calibration = models.ManyToManyField(Spectrum)
     
     def __str__(self):
-        fname=self.calibration.all()[0].origin.split(' ')[0]
+        fname=self.calibration.all()[0].origin.split(' ')[0]+", score: "+"{:0.2f}".format(self.score)
         if self.calibration.count()> 1:
             origin_list=list(set([i.origin.split(' ')[0] for i in self.calibration.all()]))
             if len(origin_list) == 2:
@@ -27,9 +28,10 @@ class PcaModel(models.Model):
     def comp(self):
         return np.array(eval("["+self.component+"]"))
 
-    def obtain(self, comp, ids, score ):
+    def obtain(self, comp, ids, trans, score ):
         self.component=str(comp)[1:-1]
         self.score=score
+        self.transform=str(trans)[1:-1]
         self.save()
         self.calibration.set(ids)
     
@@ -48,10 +50,9 @@ class PcaModel(models.Model):
             y=np.array(y)
             pca = PCA(n_components = 2)
             pca.fit(y)
-            # comp= pca.components_
-            # C=comp.dot(y.T)
-            C=pca.transform(y)
-            S=pca.score(y)
+            comp= pca.components_
+            trans=pca.transform(y) # OR trans=comp.dot(y.T).T
+            score=pca.score(y)
         else:
             # test the comp on another Spectra ids
             y=self.scale_y(*ids)
@@ -59,10 +60,10 @@ class PcaModel(models.Model):
             pca=PCA(n_components=2)
             pca.components_=self.comp()
             pca.mean_=np.mean(y,axis=0)
-            # C=comp.dot(y.T)
-            C=pca.transform(y)
-            S=pca.score(y)
-        return C, S
+            comp = self.comp()
+            trans=pca.transform(y)
+            score=pca.score(y)
+        return comp, trans, score
 
 def min_max_scal(data):
     scaler = MinMaxScaler()
@@ -78,7 +79,7 @@ def to_wavelength_length_scal(y):
                 x=np.round(np.linspace(0,l-1,wavelength_length)).astype(int)
                 scaled.append([i[a] for a in x])
             else:
-                scled.append(fft_sampling(y))
+                scaled.append(fft_sampling(i))
         else:
             scaled.append(i)
     
@@ -86,8 +87,10 @@ def to_wavelength_length_scal(y):
 
 
 # Section has to be moved to test.py: 
-# from predictionModel.models import PcaModel as pca
+# from predictionModel.models import PcaModel
 # from core.models import NirProfile, Spectrum
 # q=Spectrum.objects.filter(nir_profile=4)
-# p=pca.objects.first()
-# p.obtain()
+# ids=[73,66,61,35,31,2,1]
+# y1=[Spectrum.objects.get(id=i).y().tolist() for i in ids]
+# p=PcaModel()
+# p.scale_y(*ids)
