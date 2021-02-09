@@ -9,7 +9,7 @@ from django.db.models import Q
 # from django.utils.html import html_safe, mark_safe
 from django.views.generic import TemplateView
 from chartjs.views.lines import BaseLineChartView
-from .models import PcaModel
+from .models import PcaModel, PlsModel
 from core.models import Spectrum, NirProfile
 from spectraModelling.models import Poly, Match
 import json
@@ -21,7 +21,7 @@ class pls(TemplateView):
 
     def get_context_data(self, **kwargs):
         model = self.request.GET.get('model', '')
-        ids = self.request.GET.get('ids', '')
+        ids = self.request.GET.get('ids','')
         data = super().get_context_data()
         data['model'] = model
         data['ids'] = ids
@@ -41,7 +41,89 @@ class pls(TemplateView):
 
         return data
 
-# Create your views here.
+
+def pls_save(request):
+    if "comp" in request.session.keys():
+        pls = PlsModel()
+        pls.obtain(request.session['comp'], request.session['pls_ids'], request.session['trans'], request.session['pls_score'])
+        content = {"saved": True, "message": "The model saved successfully, as: " + pls.__str__(), "message_class": "success" }
+        _=[request.session.pop(i, None) for i in ['comp', 'pls_ids', 'trans', 'pls_score']]
+    else:
+        content = {"message": "Sorry, nable to save the model", "message_class": "warning"}
+    return HttpResponse(json.dumps(content), content_type="application/json")
+
+
+class LineChartJSONView(BaseLineChartView):
+    def get_dataset_options(self, index, color):
+        default_opt = super().get_dataset_options(index, color)
+        default_opt.update({"fill": "false"})
+        return default_opt
+
+    def spect2context(self, **kwargs):
+        model = self.request.GET.get('model', '')
+        mode = self.request.GET.get('mode', '')
+        ids = list(map(int, self.request.GET.get('ids', '').split(',')))
+        # self.request.session['model'] = model
+        context = super(BaseLineChartView, self).get_context_data(**kwargs)
+        if model == "NirProfile":
+            nirprofiles = NirProfile.objects.filter(eval('|'.join('Q(id=' + str(pk) + ')' for pk in ids)))
+            context.update({'max': nirprofiles[0].y_max, })
+            spectra = Spectrum.objects.filter(nir_profile=nirprofiles[0])
+            for obj in nirprofiles[1:]:
+                spectra |= Spectrum.objects.filter(nir_profile=obj)
+            ids = [i.id for i in spectra]
+        elif model == 'Spectrum':
+            spectra = Spectrum.objects.filter(eval('|'.join('Q(id=' + str(pk) + ')' for pk in ids)))
+
+        elif model == 'Poly':
+            if mode == 'detail':
+                spectra = Poly.objects.get(pk=ids[0])
+            else:
+                spectra = Poly.objects.filter(eval('|'.join('Q(pk=' + str(pk) + ')' for pk in ids)))
+            # print('Model:',spectra[0])
+        elif model == 'Match':
+            print('ids:', ids)
+            if mode == 'detail':
+                match = Match.objects.get(id=ids[0])  # if ',' not in ids else ids.split(',')[0]
+            else:
+                match = Match.objects.filter(eval('|'.join('Q(id=' + str(pk) + ')' for pk in ids)))
+            spectra = match
+
+        # PLS:
+        pls = PlsModel()
+        y = []  # this dataset needed to be chosen on the page of Spectrum or NirProfile
+        comp, trans, score = pls.apply('calibration', y, *ids)
+        # keep a copy at session in case saving it:
+        self.request.session['comp'] = comp.tolist()
+        self.request.session['trans'] = trans.tolist()
+        self.request.session['pls_ids'] = ids
+        self.request.session['pls_score'] = score
+        # print("spectra:",spectra)
+        context.update({'model': model, 'Spectra': spectra, 'trans': trans, 'mode': mode})
+        # context.update({'dic': dic})
+        return context
+
+    def get_labels(self):
+        self.cont=self.spect2context()
+        return self.get_providers()
+
+    def get_providers(self):
+        if self.cont['mode'] == 'detail':
+            if self.cont['model'] == 'Match':
+                return [self.cont['Spectra'].label()] + [i.label() for i in self.cont['Spectra'].poly.all()]
+            else:
+                return [self.cont['Spectra'].label()] + [i.label() for i in self.cont['Spectra'].similar_pk.all()]
+        else:
+            return [i.label() for i in self.cont['Spectra']]
+
+    def get_data(self):
+        trans=self.cont['trans']
+        # l=len(trans.T)
+        # if l<2:
+        #     trans=np.array([list(range(len(trans[0]))),trans[0].tolist()])
+        return [[{"x":a,"y":b}] for a,b in trans[:,:2]]#[{"x":1,"y":2},{"x":5,"y":4}],[{"x":3,"y":4},{"x":3,"y":1}]]#
+
+
 class pca(TemplateView):
     template_name = "admin/index_plot.html"
 
@@ -71,27 +153,27 @@ class pca(TemplateView):
        
         return data
 
+
 def pca_save(request):
     print('saving the PCA model')
-    if "components" in request.session.keys(): # check if a session copy availible
+    if "comp" in request.session.keys(): # check if a session copy available
         pca=PcaModel()
-        pca.obtain(request.session['components'], request.session['pca_ids'], request.session['pca_score'])
+        pca.obtain(request.session['comp'], request.session['pca_ids'], request.session['trans'], request.session['pca_score'])
         print("model:", pca.__str__(),"saved")
         content = {"saved":True,"message":"The model saved successfully, as: " + pca.__str__(),"message_class" : "success" }
+        # resest session:
+        _=[request.session.pop(i, None) for i in ['comp', 'pca_ids', 'trans','pca_score']]
     else:
         content = {"message":"Sorry! unable to save the model","message_class" : "warning" }
     return HttpResponse(json.dumps(content) ,  content_type = "application/json")
-    
-   
+
 
 class ScartterChartView(BaseLineChartView):
-        
     def get_dataset_options(self, index, color):
         default_opt = super().get_dataset_options(index, color)
         default_opt.update({"fill": "false"}) # disable the area filling in ChartJS options
         default_opt.update({'pointRadius': 5})
         return default_opt
-
 
     def spect2context(self, **kwargs):
         print('Scartter url:',self.request.get_full_path())
@@ -126,13 +208,14 @@ class ScartterChartView(BaseLineChartView):
             # print('Model:',match)
         # PCA:
         pca=PcaModel()
-        components, score=pca.apply('calibration',*ids)
+        comp, trans, score=pca.apply('calibration',*ids)
         # keep a copy at session in case saving it:
-        self.request.session['components']=components.tolist()
+        self.request.session['comp']=comp.tolist()
+        self.request.session['trans']=trans.tolist()
         self.request.session['pca_ids']=ids
         self.request.session['pca_score']=score
         # print("spectra:",spectra)
-        context.update({'model':model ,'Spectra': spectra, 'components': components.T, 'mode': mode})
+        context.update({'model':model ,'Spectra': spectra, 'trans': trans, 'mode': mode})
         # context.update({'dic': dic})
         return context
 
@@ -150,9 +233,8 @@ class ScartterChartView(BaseLineChartView):
             return [i.label() for i in self.cont['Spectra']]
 
     def get_data(self):
-        C=self.cont['components']
-        l=len(C)
-        if l<2:
-            C=np.array([list(range(len(C[0]))),C[0].tolist()])
-        
-        return [[{"x":a,"y":b}] for a,b in C[:2].T]#[{"x":1,"y":2},{"x":5,"y":4}],[{"x":3,"y":4},{"x":3,"y":1}]]#
+        trans=self.cont['trans']
+        # l=len(trans.T)
+        # if l<2:
+        #     trans=np.array([list(range(len(trans[0]))),trans[0].tolist()])
+        return [[{"x":a,"y":b}] for a,b in trans[:,:2]]#[{"x":1,"y":2},{"x":5,"y":4}],[{"x":3,"y":4},{"x":3,"y":1}]]#
