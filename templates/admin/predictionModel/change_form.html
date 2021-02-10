@@ -23,9 +23,7 @@
 {% endblock %}
 {% endif %}
 
-{% block content %}
-<p>I'm hear </p>
-<div id="content-main">
+{% block content %}<div id="content-main">
 {% block object-tools %}
 {% if change %}{% if not is_popup %}
   <ul class="object-tools">
@@ -35,7 +33,7 @@
   </ul>
 {% endif %}{% endif %}
 {% endblock %}
-<form {% if has_file_field %}enctype="multipart/form-data" {% endif %}{% if form_url %}action="{{ form_url }}" {% endif %}method="post" id="{{ opts.model_name }}_form" novalidate>{% csrf_token %}{% block form_top %}{% endblock %}
+{% block form_top %}{% endblock %}
 <div>
 {% if is_popup %}<input type="hidden" name="{{ is_popup_var }}" value="1">{% endif %}
 {% if to_field %}<input type="hidden" name="{{ to_field_var }}" value="{{ to_field }}">{% endif %}
@@ -48,13 +46,13 @@
 {% endif %}
 
 {% block field_sets %}
-  {% if match_data %}
-    {{ match_data }}
-    {% include "admin/chartjs_index.html" %}
+  {% if index_text %}
+    {{ index_text }}
+    {% include "admin/chartjs_scartter.html" %}
+    <hr>
+    {% include "admin/nested_checkboxes.html" %}
   {% else %}
-    {% for fieldset in adminform %}
-      {% include "admin/includes/fieldset.html" %}
-    {% endfor %}
+    <p> To create a Model, Please select the calibration set from Sepctra page.</p>
   {% endif %}
 {% endblock %}
 
@@ -68,8 +66,7 @@
 
 {% block after_related_objects %}{% endblock %}
 
-{% if not match_data %}
-{% block submit_buttons_bottom %}{% submit_row %}{% endblock %}
+{# block submit_buttons_bottom #}{# submit_row #}{# endblock #}
 
 {% block admin_change_form_document_ready %}
     <script id="django-admin-form-add-constants"
@@ -80,10 +77,10 @@
             async>
     </script>
 {% endblock %}
-{% endif %}
+
 {# JavaScript for prepopulated fields #}
 {% prepopulated_fields_js %}
 
 </div>
-</form></div>
+</div>
 {% endblock %}

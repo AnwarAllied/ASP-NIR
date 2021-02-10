@@ -10,7 +10,7 @@ class PcaModel(models.Model):
     order = models.IntegerField(default = 2)
     component = models.TextField(blank=True, null=True)
     transform = models.TextField(blank=True, null=True)
-    calibration = models.ManyToManyField(Spectrum)
+    calibration = models.ManyToManyField(Spectrum) #on_delete=DO_NOTHING
     
     def __str__(self):
         fname=self.calibration.all()[0].origin.split(' ')[0]+", score: "+"{:0.2f}".format(self.score)
@@ -27,6 +27,9 @@ class PcaModel(models.Model):
 
     def comp(self):
         return np.array(eval("["+self.component+"]"))
+
+    def trans(self):
+        return np.array(eval("["+self.transform+"]"))
 
     def obtain(self, comp, ids, trans, score ):
         self.component=str(comp)[1:-1]

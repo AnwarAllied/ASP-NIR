@@ -1,0 +1,96 @@
+{% load static %}
+
+<style>
+body {
+  color: #555;
+  font-size: 1.25em;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+hr {
+  margin: 50px 0;
+}
+
+ul {
+  list-style: none;
+}
+
+.container {
+  margin: 40px auto;
+  max-width: 700px;
+}
+
+li {
+  margin-top: 1em;
+}
+
+label {
+  font-weight: bold;
+}  
+</style>
+
+<h1> Apply the model to the selected spectra (testing set):<h1>
+<div class="container">
+    <ul>
+    {% for profile in group %}
+      <li>
+        <input type="checkbox" id="option_{{ profile.id }}" value="p_{{ profile.id }}"><label for="option"> {{ profile.name }}</label>
+        <ul>
+        {% for spectrum in profile.spectra %}
+          <li><label><input type="checkbox" class="subOption_{{ profile.id }}" value="s_{{ spectrum.id }}"> {{ spectrum.origin }}</label></li>
+        {% endfor %}
+        </ul>
+      </li>
+    {% endfor %}
+    </ul>
+</div>
+
+<div class="submit-row">
+
+    <!-- <input type="submit" value="Save" class="default" name="_save"> -->
+    
+        
+        <p class="deletelink-box"><a href="/admin/predictionModel/{{ model|lower }}/{{ ids }}/delete/" class="deletelink">Delete</a></p>
+    
+    
+    <input onclick="save_model(this)" value="Apply the model to the selected testing set" name="_addanother">
+    <!-- <input type="submit" value="Save and continue editing" name="_continue"> -->
+    
+    
+</div>
+
+<script>
+{% for profile in group %}
+var checkboxes_{{ profile.id }} = document.querySelectorAll('input.subOption_{{ profile.id }}'),
+    checkall_{{ profile.id }} = document.getElementById('option_{{ profile.id }}');
+
+for(var i=0; i<checkboxes_{{ profile.id }}.length; i++) {
+  checkboxes_{{ profile.id }}[i].onclick = function() {
+    var checkedCount = document.querySelectorAll('input.subOption_{{ profile.id }}:checked').length;
+
+    checkall_{{ profile.id }}.checked = checkedCount > 0;
+    checkall_{{ profile.id }}.indeterminate = checkedCount > 0 && checkedCount < checkboxes_{{ profile.id }}.length;
+  }
+}
+
+checkall_{{ profile.id }}.onclick = function() {
+  for(var i=0; i<checkboxes_{{ profile.id }}.length; i++) {
+    checkboxes_{{ profile.id }}[i].checked = this.checked;
+  }
+}
+{% endfor %}
+
+
+
+function test_model() {
+        $.get('{% url "pca_test" %}', function(data) {
+            Sdata = data
+            $("#save_btn").attr("disabled", true);
+            $( ".messagelist" ).html('<li class="'+data["message_class"]+'">'+data["message"]+'</li>')
+            chart.update();
+        });
+
+    };
+
+
+</script>

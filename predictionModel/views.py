@@ -90,11 +90,12 @@ class ScartterChartView(BaseLineChartView):
         elif model == 'Spectrum':
             spectra=Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
             
-        elif model == 'Poly':
+        elif model == 'PcaModel':
             if mode == 'detail':
-                spectra=Poly.objects.get(pk=ids[0])
+                pca=PcaModel.objects.get(pk=ids[0])
+                spectra = pca.calibration
             else:
-                spectra=Poly.objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in ids)))
+                pca=PcaModel.objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in ids)))
             # print('Model:',spectra[0])
         elif model == 'Match':
             print('ids:',ids)
@@ -105,8 +106,11 @@ class ScartterChartView(BaseLineChartView):
             spectra=match   # need better overall strcture
             # print('Model:',match)
         # PCA:
-        pca=PcaModel()
-        comp, trans, score=pca.apply('calibration',*ids)
+        if "pca" in locals():
+            comp, trans, score=pca.comp(), pca.trans(), pca.score
+        else:
+            pca=PcaModel()
+            comp, trans, score=pca.apply('calibration',*ids)
         # keep a copy at session in case saving it:
         self.request.session['comp']=comp.tolist()
         self.request.session['trans']=trans.tolist()
@@ -123,8 +127,8 @@ class ScartterChartView(BaseLineChartView):
 
     def get_providers(self):
         if self.cont['mode'] == 'detail':
-            if self.cont['model'] == 'Match':
-                return [self.cont['Spectra'].label()] + [i.label() for i in self.cont['Spectra'].poly.all()]
+            if self.cont['model'] == 'PcaModel':
+                return [i.origin for i in self.cont['Spectra'].all()]
             else:
                 return [self.cont['Spectra'].label()] + [i.label() for i in self.cont['Spectra'].similar_pk.all()]
         else:
