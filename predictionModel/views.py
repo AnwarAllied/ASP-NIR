@@ -26,7 +26,6 @@ class pca(TemplateView):
     def get_context_data(self, **kwargs):
         model=self.request.GET.get('model','')
         ids=self.request.GET.get('ids','')
-        # ids=list(map(int,self.request.GET.get('ids','').split(',')))
         data = super().get_context_data()
         # print(dir(self.request.user))
         data["model"]=model
@@ -62,7 +61,26 @@ def pca_save(request):
         content = {"message":"Sorry! unable to save the model","message_class" : "warning" }
     return HttpResponse(json.dumps(content) ,  content_type = "application/json")
     
-   
+class pca_test(TemplateView):
+    template_name = "admin/index_plot.html"
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data()
+        for i in ['model','ids','model_id']:
+            data[i]=self.request.GET.get(i,'')
+            
+        data["has_permission"]= self.request.user.is_authenticated
+        data["app_label"]= 'predictionModel'
+        data["verbose_name"]='PcaModel'
+        data["verbose_name_plural"]="figure"
+        data['scartter']=True
+        data["plot_mode"]=True
+
+        data['title']='Testing set for the model:'
+        data['index_text']= PcaModel.objects.get(id=data['model_id']).__str__()
+        
+       
+        return data
 
 class ScartterChartView(BaseLineChartView):
         
@@ -77,6 +95,8 @@ class ScartterChartView(BaseLineChartView):
         print('Scartter url:',self.request.get_full_path())
         model=self.request.GET.get('model','')
         mode=self.request.GET.get('mode','')
+        model_id=self.request.GET.get('model_id','')
+        model_id= int(model_id) if model_id else model_id
         ids=list(map(int,self.request.GET.get('ids','').split(',')))
         self.request.session['model']=model
         context=super(BaseLineChartView, self).get_context_data(**kwargs)
@@ -94,6 +114,9 @@ class ScartterChartView(BaseLineChartView):
             if mode == 'detail':
                 pca=PcaModel.objects.get(pk=ids[0])
                 spectra = pca.calibration
+            elif model_id:
+                pca=PcaModel.objects.get(id=model_id)
+                spectra = Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
             else:
                 pca=PcaModel.objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in ids)))
             # print('Model:',spectra[0])
@@ -107,7 +130,10 @@ class ScartterChartView(BaseLineChartView):
             # print('Model:',match)
         # PCA:
         if "pca" in locals():
-            comp, trans, score=pca.comp(), pca.trans(), pca.score
+            if model_id:
+                comp, trans, score=pca.apply('test',*ids)
+            else:
+                comp, trans, score=pca.comp(), pca.trans(), pca.score
         else:
             pca=PcaModel()
             comp, trans, score=pca.apply('calibration',*ids)

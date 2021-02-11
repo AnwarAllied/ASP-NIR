@@ -53,7 +53,7 @@ label {
         <p class="deletelink-box"><a href="/admin/predictionModel/{{ model|lower }}/{{ ids }}/delete/" class="deletelink">Delete</a></p>
     
     
-    <input onclick="save_model(this)" value="Apply the model to the selected testing set" name="_addanother">
+    <input onclick="test_model(this)" value="Apply the model to the selected testing set" name="_addanother">
     <!-- <input type="submit" value="Save and continue editing" name="_continue"> -->
     
     
@@ -83,14 +83,9 @@ checkall_{{ profile.id }}.onclick = function() {
 
 
 function test_model() {
-        $.get('{% url "pca_test" %}', function(data) {
-            Sdata = data
-            $("#save_btn").attr("disabled", true);
-            $( ".messagelist" ).html('<li class="'+data["message_class"]+'">'+data["message"]+'</li>')
-            chart.update();
-        });
-
-    };
-
-
+    spectra=$("input[value^='s_']")
+    ids=''
+    spectra.each(function(index,elm) {if (elm.checked) {ids+=elm.value.replace('s_',',')}})
+    location.replace("{% url 'pca_test' %}?model={{ model }}&ids="+ids.replace(',','')+"&model_id={{ ids }}")
+}
 </script>

@@ -15,7 +15,7 @@
 <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
 <script>
 
-    $.get('{% url "scartter_chart_json" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}', function(data) {
+    $.get('{% url "scartter_chart_json" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}{% if model_id %}&model_id={{ model_id }}{% endif %}', function(data) {
         Gdata = data
         var ctx = $("#myChart").get(0).getContext("2d");
         chart = new Chart.Scatter(ctx, {
