@@ -1,4 +1,6 @@
 from django.contrib import admin
+
+from predictionModel.models import PlsModel
 from .models import Spectrum, NirProfile
 from spectraModelling.models import Poly, Match
 from predictionModel.admin import PcaModel
@@ -139,16 +141,28 @@ class MyAdminSite(admin.AdminSite):
             model, ','.join(str(pk) for pk in selected),
         ))
 
+    def pls_export_selected_objects(self, request, queryset):
+        model=queryset.model.__name__
+        selected = queryset.values_list('pk', flat=True)
+        ct =eval(model+".objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in selected)))")
+        return HttpResponseRedirect('/pls/?model=%s&ids=%s' % (
+            model, ','.join(str(pk) for pk in selected),
+        ))
+
     def plot_spectra(self, request, queryset):
         short_description = "Plot selected spectra"
 
     def pca_model(self, request, queryset):
         short_description = "PCA of selected spectra"
 
+    def pls_model(self, request, queryset):
+        short_description = "PLS of selected spectra"
+
     # plot_spectra.short_description = "Plot selected spectra"
     di1={'Poly':('Plot_spectra',plot_export_selected_objects)}
     di2={'PCA':('PCA_model',pca_export_selected_objects)}
-    actions = [di1['Poly'],di2['PCA']]+[('delete_selected', dict(admin.AdminSite().actions)['delete_selected'])]
+    di3 = {'PLS': ('PLS_model', pls_export_selected_objects)}
+    actions = [di1['Poly'],di2['PCA'],di3['PLS']]+[('delete_selected', dict(admin.AdminSite().actions)['delete_selected'])]
 
 class NoPlot(admin.ModelAdmin):
     view_on_site = False
@@ -191,4 +205,5 @@ admin_site.register(NirProfile,NirProfileAdmin)
 admin_site.register(Poly,myPolyAdmin)
 admin_site.register(Match,myMatchAdmin)
 admin_site.register(PcaModel,NoPlot)
+admin_site.register(PlsModel,NoPlot)
 # admin_site.register(NirProfileAdmin)

@@ -16,6 +16,7 @@ import json
 from itertools import chain
 import numpy as np
 
+
 class pls(TemplateView):
     template_name = "admin/index_plot.html"
 
@@ -26,11 +27,11 @@ class pls(TemplateView):
         data['model'] = model
         data['ids'] = ids
         if model == 'Spectrum':
-            data['figure_header'] = 'PLS model for {}:'.format(Spectrum.object.get(id=int(ids.split(',')[0])).origin.split(' ')[0])
+            data['figure_header'] = 'PLS model for {}:'.format(Spectrum.objects.get(id=int(ids.split(',')[0])).origin.split(' ')[0])
         elif model == 'NirProfile':
-            data['figure_header'] = 'PLS model for {}:'.format(NirProfile.object.get(id=int(ids.split(',')[0])).title)
+            data['figure_header'] = 'PLS model for {}:'.format(NirProfile.objects.get(id=int(ids.split(',')[0])).title)
         elif model == 'Ploy':
-            data['figure_header'] = 'PLS model for {}:'.format(Poly.object.get(pk=int(ids.split(',')[0])).spectrum.origin.split(' ')[0])
+            data['figure_header'] = 'PLS model for {}:'.format(Poly.objects.get(pk=int(ids.split(',')[0])).spectrum.origin.split(' ')[0])
         elif model == 'Match':
             data['figure_header'] = 'Uploaded unknown spectra:'
 
@@ -38,22 +39,22 @@ class pls(TemplateView):
         data['app_label'] = 'spectraModelling' if (model == 'Poly' or model == 'Match') else 'core'
         data['verbose_name'] = model
         data['verbose_name_plural'] = 'figure'
-
+        data['pls_modeling'] = True
         return data
 
 
 def pls_save(request):
-    if "comp" in request.session.keys():
+    if "pls_ids" in request.session.keys():
         pls = PlsModel()
-        pls.obtain(request.session['comp'], request.session['pls_ids'], request.session['trans'], request.session['pls_score'])
+        pls.obtain(request.session['pls_ids'], request.session['trans'], request.session['pls_score'])
         content = {"saved": True, "message": "The model saved successfully, as: " + pls.__str__(), "message_class": "success" }
-        _=[request.session.pop(i, None) for i in ['comp', 'pls_ids', 'trans', 'pls_score']]
+        _=[request.session.pop(i, None) for i in ['pls_ids', 'trans', 'pls_score']]
     else:
-        content = {"message": "Sorry, nable to save the model", "message_class": "warning"}
+        content = {"message": "Sorry, unable to save the model", "message_class": "warning"}
     return HttpResponse(json.dumps(content), content_type="application/json")
 
 
-class LineChartJSONView(BaseLineChartView):
+class PlsScatterChartView(BaseLineChartView):
     def get_dataset_options(self, index, color):
         default_opt = super().get_dataset_options(index, color)
         default_opt.update({"fill": "false"})
@@ -91,10 +92,13 @@ class LineChartJSONView(BaseLineChartView):
 
         # PLS:
         pls = PlsModel()
-        y = []  # this dataset needed to be chosen on the page of Spectrum or NirProfile
-        comp, trans, score = pls.apply('calibration', y, *ids)
+        # ingredient spectra, be fixed for testing
+        nir_profiles = NirProfile.objects.get(pk=6)
+        spectra_ingredient = Spectrum.objects.filter(nir_profile=nir_profiles)
+        ids_spec_ingredient = [spectra_ingredient[i].pk for i in range(len(spectra_ingredient))]
+        y = pls.scale_y(*ids_spec_ingredient)
+        trans, score = pls.apply('calibration', y, *ids)
         # keep a copy at session in case saving it:
-        self.request.session['comp'] = comp.tolist()
         self.request.session['trans'] = trans.tolist()
         self.request.session['pls_ids'] = ids
         self.request.session['pls_score'] = score

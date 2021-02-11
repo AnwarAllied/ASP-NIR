@@ -10,7 +10,6 @@ from sklearn.cross_decomposition import PLSRegression
 class PlsModel(models.Model):
     score = models.FloatField(blank=True, null=True)
     order = models.IntegerField(default=2)
-    component = models.TextField(blank=True, null=True)
     transform = models.TextField(blank=True, null=True)
     calibration = models.ManyToManyField(Spectrum)
 
@@ -26,11 +25,7 @@ class PlsModel(models.Model):
             fname = "%s, score: %s" % (fname, "{:0.2f}".format(self.score))
         return fname
 
-    def comp(self):
-        return np.array(eval('['+self.component+']'))
-
-    def obtain(self, comp, ids, trans, score):
-        self.component=str(comp)[1:-1]
+    def obtain(self, ids, trans, score):
         self.score=score
         self.transform=str(trans)[1:-1]
         self.save()
@@ -49,7 +44,6 @@ class PlsModel(models.Model):
             y = np.array(y)
             pls = PLSRegression(n_components=2)
             pls.fit(X, y)
-            comp = pls.component
             trans = pls.transform(y)
             score = pls.score(X, y)
 
@@ -58,10 +52,9 @@ class PlsModel(models.Model):
             y = np.array(y)
             pls = PLSRegression(n_components=2)
             pls.fit(X, y)
-            comp = pls.component
             trans = pls.transform(y)
             score = pls.score(X, y)
-        return comp, trans, score
+        return trans, score
 
 
 class PcaModel(models.Model):

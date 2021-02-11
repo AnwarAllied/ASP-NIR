@@ -2,7 +2,7 @@
 {% load i18n static %}
 
 {% block extrastyle %}
-{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}">
+{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static 'admin/css/dashboard.css' %}">
 
 {% endblock %}
 
@@ -25,6 +25,8 @@
     {# include "change_list.html" #}
     {% if scartter %}
         {% include "admin/chartjs_scartter.html" %}
+    {% elif pls_modeling %}
+        {% include "admin/pls_chartjs_scatter.html" %}
     {% else %}
         {% include "admin/chartjs_line.html" %}
     {% endif %}
