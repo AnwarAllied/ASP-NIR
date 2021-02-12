@@ -46,14 +46,11 @@
 {% endif %}
 
 {% block field_sets %}
-  {% if match_data %}
-    {{ match_data }}
-    {% include "admin/chartjs_index.html" %}
-  {% else %}
+  
     {% for fieldset in adminform %}
       {% include "admin/includes/fieldset.html" %}
     {% endfor %}
-  {% endif %}
+
 {% endblock %}
 
 {% block after_field_sets %}{% endblock %}

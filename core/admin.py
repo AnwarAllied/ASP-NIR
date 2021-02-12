@@ -3,8 +3,9 @@ from django.contrib import admin
 from predictionModel.models import PlsModel
 from .models import Spectrum, NirProfile
 from spectraModelling.models import Poly, Match
-from predictionModel.admin import PcaModel
+from predictionModel.admin import PcaModel, myPcaModelAdmin
 from spectraModelling.admin import myMatchAdmin, myPolyAdmin
+
 from .forms import NirProfileForm
 from django.contrib.auth.models import Group ,User
 from django.core import serializers
@@ -204,6 +205,6 @@ admin_site.register(Spectrum,SpectrumAdmin)
 admin_site.register(NirProfile,NirProfileAdmin)
 admin_site.register(Poly,myPolyAdmin)
 admin_site.register(Match,myMatchAdmin)
-admin_site.register(PcaModel,NoPlot)
 admin_site.register(PlsModel,NoPlot)
+admin_site.register(PcaModel,myPcaModelAdmin)
 # admin_site.register(NirProfileAdmin)

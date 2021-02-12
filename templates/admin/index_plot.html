@@ -14,7 +14,11 @@
 <div class="breadcrumbs">
     <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
     &rsaquo; <a href="{% url 'admin:app_list' app_label=app_label %}">{{ verbose_name }}</a>
+    {% if model_id %}
+    &rsaquo; <a href="{% url 'admin:app_list' app_label=app_label %}{{ model|lower }}/{{ model_id }}/change/">{{ index_text|title }}</a>
+    {% endif %}
     &rsaquo; {{ verbose_name_plural|capfirst }}
+    
     </div>
 {% endblock %}
 

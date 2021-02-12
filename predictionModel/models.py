@@ -62,7 +62,7 @@ class PcaModel(models.Model):
     order = models.IntegerField(default = 2)
     component = models.TextField(blank=True, null=True)
     transform = models.TextField(blank=True, null=True)
-    calibration = models.ManyToManyField(Spectrum)
+    calibration = models.ManyToManyField(Spectrum) #on_delete=DO_NOTHING
     
     def __str__(self):
         fname=self.calibration.all()[0].origin.split(' ')[0]+", score: "+"{:0.2f}".format(self.score)
@@ -80,7 +80,10 @@ class PcaModel(models.Model):
     def comp(self):
         return np.array(eval("["+self.component+"]"))
 
-    def obtain(self, comp, ids, trans, score):
+    def trans(self):
+        return np.array(eval("["+self.transform+"]"))
+
+    def obtain(self, comp, ids, trans, score ):
         self.component=str(comp)[1:-1]
         self.score=score
         self.transform=str(trans)[1:-1]
@@ -105,16 +108,24 @@ class PcaModel(models.Model):
             comp= pca.components_
             trans=pca.transform(y) # OR trans=comp.dot(y.T).T
             score=pca.score(y)
+            print('the calibration score:',score)
         else:
             # test the comp on another Spectra ids
             y=self.scale_y(*ids)
             y=np.array(y)
-            pca=PCA(n_components=2)
+            pca=PCA(n_components = 2)
+            pca.n_components_=2
             pca.components_=self.comp()
             pca.mean_=np.mean(y,axis=0)
             comp = self.comp()
             trans=pca.transform(y)
+            sc=PCA(n_components = 2)
+            sc.fit(y)
+            pca.explained_variance_=sc.explained_variance_
+            pca.singular_values_=sc.singular_values_
+            pca.noise_variance_=sc.noise_variance_
             score=pca.score(y)
+            print('the testing score:',score)
         return comp, trans, score
 
 def min_max_scal(data):

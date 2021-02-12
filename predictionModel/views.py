@@ -134,7 +134,6 @@ class pca(TemplateView):
     def get_context_data(self, **kwargs):
         model=self.request.GET.get('model','')
         ids=self.request.GET.get('ids','')
-        # ids=list(map(int,self.request.GET.get('ids','').split(',')))
         data = super().get_context_data()
         # print(dir(self.request.user))
         data["model"]=model
@@ -169,8 +168,27 @@ def pca_save(request):
         _=[request.session.pop(i, None) for i in ['comp', 'pca_ids', 'trans','pca_score']]
     else:
         content = {"message":"Sorry! unable to save the model","message_class" : "warning" }
-    return HttpResponse(json.dumps(content) ,  content_type = "application/json")
+    return HttpResponse(json.dumps(content),  content_type = "application/json")
+    
+class pca_test(TemplateView):
+    template_name = "admin/index_plot.html"
 
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data()
+        for i in ['model','ids','model_id']:
+            data[i]=self.request.GET.get(i,'')
+            
+        data["has_permission"]= self.request.user.is_authenticated
+        data["app_label"]= 'predictionModel'
+        data["verbose_name"]='PcaModel'
+        data["verbose_name_plural"]="figure"
+        data['scartter']=True
+        data["plot_mode"]=True
+
+        data['title']='Testing set for the model:'
+        data['index_text']= PcaModel.objects.get(id=data['model_id']).__str__()
+
+        return data
 
 class ScartterChartView(BaseLineChartView):
     def get_dataset_options(self, index, color):
@@ -183,6 +201,8 @@ class ScartterChartView(BaseLineChartView):
         print('Scartter url:',self.request.get_full_path())
         model=self.request.GET.get('model','')
         mode=self.request.GET.get('mode','')
+        model_id=self.request.GET.get('model_id','')
+        model_id= int(model_id) if model_id else model_id
         ids=list(map(int,self.request.GET.get('ids','').split(',')))
         self.request.session['model']=model
         context=super(BaseLineChartView, self).get_context_data(**kwargs)
@@ -196,11 +216,15 @@ class ScartterChartView(BaseLineChartView):
         elif model == 'Spectrum':
             spectra=Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
             
-        elif model == 'Poly':
+        elif model == 'PcaModel':
             if mode == 'detail':
-                spectra=Poly.objects.get(pk=ids[0])
+                pca=PcaModel.objects.get(pk=ids[0])
+                spectra = pca.calibration
+            elif model_id:
+                pca=PcaModel.objects.get(id=model_id)
+                spectra = Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
             else:
-                spectra=Poly.objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in ids)))
+                pca=PcaModel.objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in ids)))
             # print('Model:',spectra[0])
         elif model == 'Match':
             print('ids:',ids)
@@ -211,8 +235,14 @@ class ScartterChartView(BaseLineChartView):
             spectra=match   # need better overall strcture
             # print('Model:',match)
         # PCA:
-        pca=PcaModel()
-        comp, trans, score=pca.apply('calibration',*ids)
+        if "pca" in locals():
+            if model_id:
+                comp, trans, score=pca.apply('test',*ids)
+            else:
+                comp, trans, score=pca.comp(), pca.trans(), pca.score
+        else:
+            pca=PcaModel()
+            comp, trans, score=pca.apply('calibration',*ids)
         # keep a copy at session in case saving it:
         self.request.session['comp']=comp.tolist()
         self.request.session['trans']=trans.tolist()
@@ -229,8 +259,8 @@ class ScartterChartView(BaseLineChartView):
 
     def get_providers(self):
         if self.cont['mode'] == 'detail':
-            if self.cont['model'] == 'Match':
-                return [self.cont['Spectra'].label()] + [i.label() for i in self.cont['Spectra'].poly.all()]
+            if self.cont['model'] == 'PcaModel':
+                return [i.origin for i in self.cont['Spectra'].all()]
             else:
                 return [self.cont['Spectra'].label()] + [i.label() for i in self.cont['Spectra'].similar_pk.all()]
         else:
