@@ -54,6 +54,27 @@ def pls_save(request):
     return HttpResponse(json.dumps(content), content_type="application/json")
 
 
+class pls_test(TemplateView):
+    template_name = "admin/index_plot.html"
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data()
+        for i in ['model', 'ids', 'model_id']:
+            data[i] = self.request.GET.get(i, '')
+
+        data["has_permission"] = self.request.user.is_authenticated
+        data["app_label"] = 'predictionModel'
+        data["verbose_name"] = 'PlsModel'
+        data["verbose_name_plural"] = "figure"
+        data['pls_modeling'] = True
+        data["plot_mode"] = True
+
+        data['title'] = 'Testing set for the model:'
+        data['index_text'] = PlsModel.objects.get(id=data['model_id']).__str__()
+
+        return data
+
+
 class PlsScatterChartView(BaseLineChartView):
     def get_dataset_options(self, index, color):
         default_opt = super().get_dataset_options(index, color)
@@ -63,8 +84,10 @@ class PlsScatterChartView(BaseLineChartView):
     def spect2context(self, **kwargs):
         model = self.request.GET.get('model', '')
         mode = self.request.GET.get('mode', '')
+        model_id=self.request.GET.get('model_id','')
+        model_id= int(model_id) if model_id else model_id
         ids = list(map(int, self.request.GET.get('ids', '').split(',')))
-        # self.request.session['model'] = model
+        self.request.session['model'] = model
         context = super(BaseLineChartView, self).get_context_data(**kwargs)
         if model == "NirProfile":
             nirprofiles = NirProfile.objects.filter(eval('|'.join('Q(id=' + str(pk) + ')' for pk in ids)))
@@ -76,12 +99,15 @@ class PlsScatterChartView(BaseLineChartView):
         elif model == 'Spectrum':
             spectra = Spectrum.objects.filter(eval('|'.join('Q(id=' + str(pk) + ')' for pk in ids)))
 
-        elif model == 'Poly':
+        elif model == 'PlsModel':
             if mode == 'detail':
-                spectra = Poly.objects.get(pk=ids[0])
+                pls = PlsModel.objects.get(pk=ids[0])
+                spectra = pls.calibration
+            elif model_id:
+                pls = PlsModel.objects.get(id=model_id)
+                spectra = Spectrum.objects.filter(eval('|'.join('Q(pk=' + str(pk) + ')' for pk in ids)))
             else:
-                spectra = Poly.objects.filter(eval('|'.join('Q(pk=' + str(pk) + ')' for pk in ids)))
-            # print('Model:',spectra[0])
+                pls = PlsModel.objects.filter(eval('|'.join('Q(pk=' + str(pk) + ')' for pk in ids)))
         elif model == 'Match':
             print('ids:', ids)
             if mode == 'detail':
@@ -91,13 +117,14 @@ class PlsScatterChartView(BaseLineChartView):
             spectra = match
 
         # PLS:
-        pls = PlsModel()
-        # ingredient spectra, be fixed for testing
-        nir_profiles = NirProfile.objects.get(pk=6)
-        spectra_ingredient = Spectrum.objects.filter(nir_profile=nir_profiles)
-        ids_spec_ingredient = [spectra_ingredient[i].pk for i in range(len(spectra_ingredient))]
-        y = pls.scale_y(*ids_spec_ingredient)
-        trans, score = pls.apply('calibration', y, *ids)
+        if 'pls' in locals():
+            if model_id:
+                trans, score = pls.apply('test', *ids)
+            else:
+                trans, score = pls.trans(), pls.score
+        else:
+            pls = PlsModel()
+            trans, score = pls.apply('calibration', *ids)
         # keep a copy at session in case saving it:
         self.request.session['trans'] = trans.tolist()
         self.request.session['pls_ids'] = ids

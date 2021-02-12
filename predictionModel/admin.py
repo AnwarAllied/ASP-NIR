@@ -1,6 +1,6 @@
 from django.contrib import admin
 # from spectraModelling.models import Poly, Match
-from predictionModel.models import PcaModel
+from predictionModel.models import PcaModel, PlsModel
 from core.models import Spectrum, NirProfile
 from spectraModelling.models import Poly
 
@@ -52,7 +52,6 @@ class myPlsModelAdmin(admin.ModelAdmin):
     
     def changelist_view(self, request):
         return remove_action(super().changelist_view(request))
-
 
 
 # to remove unwanted actions:

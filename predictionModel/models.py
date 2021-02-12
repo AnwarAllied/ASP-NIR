@@ -5,6 +5,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.decomposition import PCA
 import numpy as np
 from sklearn.cross_decomposition import PLSRegression
+import random
 
 
 class PlsModel(models.Model):
@@ -25,6 +26,9 @@ class PlsModel(models.Model):
             fname = "%s, score: %s" % (fname, "{:0.2f}".format(self.score))
         return fname
 
+    def trans(self):
+        return np.array(eval("["+self.transform+"]"))
+
     def obtain(self, ids, trans, score):
         self.score=score
         self.transform=str(trans)[1:-1]
@@ -38,28 +42,33 @@ class PlsModel(models.Model):
             y=to_wavelength_length_scal([i.y().tolist() for i in self.calibration.all()])
         return y
 
-    def apply(self, mode, y, *ids):  # predict the ingredients values of a spectrum or of some spectra
-        if mode == 'calibration':
-            X = np.array(self.scale_y() if not ids else self.scale_y(*ids))
-            y = np.array(y)
-            pls = PLSRegression(n_components=2)
-            pls.fit(X, y)
-            trans = pls.transform(y)
-            score = pls.score(X, y)
+    def isDigit(self,x):
+        try:
+            float(x)
+            return True
+        except ValueError:
+            return False
 
+    def apply(self, mode, *ids):
+        if ids:
+            spectra = [Spectrum.objects.get(id=i) for i in ids]
         else:
-            X = np.array(self.scale_y(*ids))
-            y = np.array(y)
-            pls = PLSRegression(n_components=2)
-            pls.fit(X, y)
-            trans = pls.transform(y)
-            score = pls.score(X, y)
+            spectra = [Spectrum.objects.all()]
+        spectra_filter = [i for i in spectra for j in i.origin.split() if self.isDigit(j)==True]
+        ids_spec = [i.id for i in spectra_filter]
+        X = self.scale_y(*ids_spec).tolist()
+        y = [float(j) for i in spectra_filter for j in i.origin.split() if self.isDigit(j)==True]
+        pls = PLSRegression(n_components=2)
+        pls.fit(X, y)
+        trans = pls.transform(X)
+        score = pls.score(X, y)
+
         return trans, score
 
 
 class PcaModel(models.Model):
     score = models.FloatField(blank=True, null=True)
-    order = models.IntegerField(default = 2)
+    order = models.IntegerField(default=2)
     component = models.TextField(blank=True, null=True)
     transform = models.TextField(blank=True, null=True)
     calibration = models.ManyToManyField(Spectrum) #on_delete=DO_NOTHING

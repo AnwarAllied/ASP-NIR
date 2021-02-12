@@ -1,9 +1,8 @@
 from django.contrib import admin
 
-from predictionModel.models import PlsModel
 from .models import Spectrum, NirProfile
 from spectraModelling.models import Poly, Match
-from predictionModel.admin import PcaModel, myPcaModelAdmin
+from predictionModel.admin import PcaModel, PlsModel, myPcaModelAdmin, myPlsModelAdmin
 from spectraModelling.admin import myMatchAdmin, myPolyAdmin
 
 from .forms import NirProfileForm
@@ -205,6 +204,6 @@ admin_site.register(Spectrum,SpectrumAdmin)
 admin_site.register(NirProfile,NirProfileAdmin)
 admin_site.register(Poly,myPolyAdmin)
 admin_site.register(Match,myMatchAdmin)
-admin_site.register(PlsModel,NoPlot)
+admin_site.register(PlsModel,myPlsModelAdmin)
 admin_site.register(PcaModel,myPcaModelAdmin)
 # admin_site.register(NirProfileAdmin)
