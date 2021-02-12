@@ -233,7 +233,7 @@ class ScartterChartView(BaseLineChartView):
         ids=list(map(int,self.request.GET.get('ids','').split(',')))
         self.request.session['model']=model
         context=super(BaseLineChartView, self).get_context_data(**kwargs)
-        if model == "NirProfile":  #nir_profile=np.objects.get(id=4))
+        if model == "NirProfile": 
             nirprofiles=NirProfile.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
             context.update({'max': nirprofiles[0].y_max,})
             spectra=Spectrum.objects.filter(nir_profile= nirprofiles[0])
