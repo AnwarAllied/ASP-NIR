@@ -6,8 +6,10 @@
     <h1>{{ figure_header }}</h1>
     <canvas id="myChart"></canvas>
 </div>
+{% if not plot_mode %}
 <p> Model can be saved to be available for testing it on another dataset :</p>
 <button onclick="save_model(this)" id="save_btn">Save</button>
+{% endif %}
 <!-- <button onclick="reverse(this)" class="">Reverse</button>disabled -->
 <script src="{% static 'js/jquery-1.10.0.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>

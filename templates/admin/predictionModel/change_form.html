@@ -6,7 +6,7 @@
 {{ media }}
 {% endblock %}
 
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}">{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}">{% endblock %}
 
 {% block coltype %}colM{% endblock %}
 
@@ -48,7 +48,11 @@
 {% block field_sets %}
   {% if index_text %}
     {{ index_text }}
-    {% include "admin/chartjs_scartter.html" %}
+    {% if scartter %}
+      {% include "admin/chartjs_scartter.html" %}
+    {% elif pls_modeling %}
+      {% include "admin/pls_chartjs_scatter.html" %}
+    {% endif %}
     <hr>
     {% include "admin/nested_checkboxes.html" %}
   {% else %}
