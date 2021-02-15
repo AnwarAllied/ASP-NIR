@@ -33,13 +33,15 @@ class myPlsModelAdmin(admin.ModelAdmin):
     view_on_site = False
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
-        obj = Poly.objects.get(pk=object_id)
-        extra_context['poly_data'] = obj
-        extra_context['model']='Poly'
+        obj = PlsModel.objects.get(id=object_id)
+        extra_context['pls_data'] = obj
+        extra_context['model']='PlsModel'
         extra_context['ids']=object_id
         extra_context['plot_mode']='detail'
-        extra_context['title']='Poly-model and matched spectra:'
-        extra_context['index_text']= 'Polynomial modeled spectrum of %s, with order:%d and MSE:%f' % (obj.spectrum.origin, obj.order, obj.mse)
+        extra_context['title']='PLS model:'
+        extra_context['index_text']= 'Calibration set of %s of maximum likelihood' % (obj.__str__())
+        extra_context['group'] = profile2group(NirProfile)
+        extra_context['pls_modeling'] = True
         rn= super().change_view(
             request, object_id, form_url, extra_context=extra_context,
         )
@@ -55,7 +57,7 @@ class myPlsModelAdmin(admin.ModelAdmin):
 
 
 # to remove unwanted actions:
-def remove_action(response,remove = ['Plot_spectra','PCA_model']):
+def remove_action(response,remove = ['Plot_spectra','PCA_model', 'PLS_model']):
     if 'context_data' in dir(response):
         action_choices=response.context_data['action_form'].fields['action'].choices
         action_choices=[i for i in action_choices if i[0] not in remove ]

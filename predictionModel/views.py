@@ -109,7 +109,6 @@ class PlsScatterChartView(BaseLineChartView):
             else:
                 pls = PlsModel.objects.filter(eval('|'.join('Q(pk=' + str(pk) + ')' for pk in ids)))
         elif model == 'Match':
-            print('ids:', ids)
             if mode == 'detail':
                 match = Match.objects.get(id=ids[0])  # if ',' not in ids else ids.split(',')[0]
             else:
@@ -233,7 +232,7 @@ class ScartterChartView(BaseLineChartView):
         ids=list(map(int,self.request.GET.get('ids','').split(',')))
         self.request.session['model']=model
         context=super(BaseLineChartView, self).get_context_data(**kwargs)
-        if model == "NirProfile": 
+        if model == "NirProfile":
             nirprofiles=NirProfile.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
             context.update({'max': nirprofiles[0].y_max,})
             spectra=Spectrum.objects.filter(nir_profile= nirprofiles[0])
