@@ -63,6 +63,16 @@ class PlsModel(models.Model):
             pls.fit(X, y)
             trans = pls.transform(X)
             score = pls.score(X, y)
+        else:
+            spectra = [Spectrum.objects.get(id=i) for i in ids]
+            spectra_filter = [i for i in spectra for j in i.origin.split() if self.isDigit(j) == True]
+            ids_spec = [i.id for i in spectra_filter]
+            X = self.scale_y(*ids_spec).tolist()
+            y = [float(j) for i in spectra_filter for j in i.origin.split() if self.isDigit(j) == True]
+            pls = PLSRegression(n_components=2)
+            pls.fit(X, y)
+            trans = pls.transform(X)
+            score = pls.score(X, y)
 
         return trans, score
 

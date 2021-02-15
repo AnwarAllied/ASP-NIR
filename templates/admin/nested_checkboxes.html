@@ -80,12 +80,15 @@ checkall_{{ profile.id }}.onclick = function() {
 }
 {% endfor %}
 
+function filterModelLower(mod){
+    return mod.slice(0,3).toLowerCase();
+}
 
 
 function test_model() {
     spectra=$("input[value^='s_']")
     ids=''
     spectra.each(function(index,elm) {if (elm.checked) {ids+=elm.value.replace('s_',',')}})
-    location.replace("{% url 'pca_test' %}?model={{ model }}&ids="+ids.replace(',','')+"&model_id={{ ids }}")
+    location.replace("{% url 'pls_test' %}?model={{ model }}&ids="+ids.replace(',','')+"&model_id={{ ids }}")
 }
 </script>

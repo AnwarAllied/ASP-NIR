@@ -69,7 +69,6 @@ class pls_test(TemplateView):
         data["verbose_name_plural"] = "figure"
         data['pls_modeling'] = True
         data["plot_mode"] = True
-
         data['title'] = 'Testing set for the model:'
         data['index_text'] = PlsModel.objects.get(id=data['model_id']).__str__()
 
