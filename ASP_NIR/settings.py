@@ -1,5 +1,5 @@
 from pathlib import Path
-import django_heroku
+#import django_heroku
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -121,6 +121,6 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
-django_heroku.settings(locals())
+#django_heroku.settings(locals())
 
 SITE_ID = 1

@@ -42,6 +42,7 @@ class myPlsModelAdmin(admin.ModelAdmin):
         extra_context['index_text']= 'Calibration set of %s of maximum likelihood' % (obj.__str__())
         extra_context['group'] = profile2group(NirProfile)
         extra_context['pls_modeling'] = True
+
         rn= super().change_view(
             request, object_id, form_url, extra_context=extra_context,
         )
