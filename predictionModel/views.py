@@ -47,6 +47,7 @@ def pls_save(request):
     if "pls_ids" in request.session.keys():
         pls = PlsModel()
         pls.obtain(request.session['pls_ids'], request.session['trans'], request.session['pls_score'])
+        print('pls:',pls)
         content = {"saved": True, "message": "The model saved successfully, as: " + pls.__str__(), "message_class": "success" }
         _=[request.session.pop(i, None) for i in ['pls_ids', 'trans', 'pls_score']]
     else:
@@ -78,7 +79,8 @@ class pls_test(TemplateView):
 class PlsScatterChartView(BaseLineChartView):
     def get_dataset_options(self, index, color):
         default_opt = super().get_dataset_options(index, color)
-        default_opt.update({"fill": "false"})
+        default_opt.update({"fill": "false"}) # disable the area filling in ChartJS options
+        default_opt.update({'pointRadius': 5})
         return default_opt
 
     def spect2context(self, **kwargs):
@@ -103,11 +105,13 @@ class PlsScatterChartView(BaseLineChartView):
             if mode == 'detail':
                 pls = PlsModel.objects.get(pk=ids[0])
                 spectra = pls.calibration
+                # print([i.id for i in spectra.all()])
             elif model_id:
                 pls = PlsModel.objects.get(id=model_id)
                 spectra = Spectrum.objects.filter(eval('|'.join('Q(pk=' + str(pk) + ')' for pk in ids)))
             else:
                 pls = PlsModel.objects.filter(eval('|'.join('Q(pk=' + str(pk) + ')' for pk in ids)))
+            print('Model:',spectra.all()[0])
         elif model == 'Match':
             if mode == 'detail':
                 match = Match.objects.get(id=ids[0])  # if ',' not in ids else ids.split(',')[0]
@@ -139,8 +143,8 @@ class PlsScatterChartView(BaseLineChartView):
 
     def get_providers(self):
         if self.cont['mode'] == 'detail':
-            if self.cont['model'] == 'Match':
-                return [self.cont['Spectra'].label()] + [i.label() for i in self.cont['Spectra'].poly.all()]
+            if self.cont['model'] == 'PlsModel':
+                return [i.origin for i in self.cont['Spectra'].all()]
             else:
                 return [self.cont['Spectra'].label()] + [i.label() for i in self.cont['Spectra'].similar_pk.all()]
         else:

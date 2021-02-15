@@ -50,18 +50,19 @@ class PlsModel(models.Model):
             return False
 
     def apply(self, mode, *ids):
-        if ids:
-            spectra = [Spectrum.objects.get(id=i) for i in ids]
-        else:
-            spectra = [Spectrum.objects.all()]
-        spectra_filter = [i for i in spectra for j in i.origin.split() if self.isDigit(j)==True]
-        ids_spec = [i.id for i in spectra_filter]
-        X = self.scale_y(*ids_spec).tolist()
-        y = [float(j) for i in spectra_filter for j in i.origin.split() if self.isDigit(j)==True]
-        pls = PLSRegression(n_components=2)
-        pls.fit(X, y)
-        trans = pls.transform(X)
-        score = pls.score(X, y)
+        if mode == 'calibration':
+            if ids:
+                spectra = [Spectrum.objects.get(id=i) for i in ids]
+            else:
+                spectra = [Spectrum.objects.all()]
+            spectra_filter = [i for i in spectra for j in i.origin.split() if self.isDigit(j)==True]
+            ids_spec = [i.id for i in spectra_filter]
+            X = self.scale_y(*ids_spec).tolist()
+            y = [float(j) for i in spectra_filter for j in i.origin.split() if self.isDigit(j)==True]
+            pls = PLSRegression(n_components=2)
+            pls.fit(X, y)
+            trans = pls.transform(X)
+            score = pls.score(X, y)
 
         return trans, score
 
@@ -98,6 +99,7 @@ class PcaModel(models.Model):
         self.transform=str(trans)[1:-1]
         self.save()
         self.calibration.set(ids)
+
     
     def scale_y(self,*ids):
         if ids:
