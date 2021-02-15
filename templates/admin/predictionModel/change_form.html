@@ -48,11 +48,8 @@
 {% block field_sets %}
   {% if index_text %}
     {{ index_text }}
-    {% if scartter %}
-      {% include "admin/chartjs_scartter.html" %}
-    {% elif pls_modeling %}
-      {% include "admin/pls_chartjs_scatter.html" %}
-    {% endif %}
+    {% include "admin/chartjs_scartter.html" %}
+
     <hr>
     {% include "admin/nested_checkboxes.html" %}
   {% else %}
