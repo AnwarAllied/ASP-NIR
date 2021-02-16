@@ -5,12 +5,14 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.decomposition import PCA
 import numpy as np
 from sklearn.cross_decomposition import PLSRegression
-import random
+from sklearn.metrics import mean_squared_error as MSE
 
 
 class PlsModel(models.Model):
-    score = models.FloatField(blank=True, null=True)
     order = models.IntegerField(default=2)
+    score = models.FloatField(blank=True, null=True)
+    mse = models.FloatField(blank=True, null=True)
+    x_rotations = models.TextField(blank=True, null=True)
     transform = models.TextField(blank=True, null=True)
     calibration = models.ManyToManyField(Spectrum)
 
@@ -29,9 +31,14 @@ class PlsModel(models.Model):
     def trans(self):
         return np.array(eval("["+self.transform+"]"))
 
-    def obtain(self, ids, trans, score):
+    def x_rotations(self):
+        return np.array(eval("["+self.x_rotations+"]"))
+
+    def obtain(self, ids, trans, score, mse, x_rotations):
         self.score=score
+        self.mse=mse
         self.transform=str(trans)[1:-1]
+        self.x_rotations=str(x_rotations)[1:-1]
         self.save()
         self.calibration.set(ids)
 
@@ -61,20 +68,33 @@ class PlsModel(models.Model):
             y = [float(j) for i in spectra_filter for j in i.origin.split() if self.isDigit(j)==True]
             pls = PLSRegression(n_components=2)
             pls.fit(X, y)
-            trans = pls.transform(X)
+            trans = pls.transform(X,y)
             score = pls.score(X, y)
-        else:
-            spectra = [Spectrum.objects.get(id=i) for i in ids]
-            spectra_filter = [i for i in spectra for j in i.origin.split() if self.isDigit(j) == True]
-            ids_spec = [i.id for i in spectra_filter]
-            X = self.scale_y(*ids_spec).tolist()
-            y = [float(j) for i in spectra_filter for j in i.origin.split() if self.isDigit(j) == True]
-            pls = PLSRegression(n_components=2)
-            pls.fit(X, y)
-            trans = pls.transform(X)
-            score = pls.score(X, y)
+            y_pred = pls.predict(X)
+            mse = MSE(y, y_pred)
+            x_rotations = pls.x_rotations_
 
-        return trans, score
+        else:
+            if ids:
+                spectra = [Spectrum.objects.get(id=i) for i in ids]
+                spectra_filter = [i for i in spectra for j in i.origin.split() if self.isDigit(j) == True]
+                ids_spec = [i.id for i in spectra_filter]
+                X = self.scale_y(*ids_spec).tolist()
+                y = [float(j) for i in spectra_filter for j in i.origin.split() if self.isDigit(j) == True]
+                pls = PLSRegression(n_components=2)
+                pls.x_rotations_ = self.x_rotations
+                pls.x_mean_ = np.mean(X)
+                pls.y_mean_ = np.mean(y)
+                pls.x_std_ = np.std(X)
+                trans = pls.transform(X, y)
+                sc = PLSRegression(n_components=2)
+                sc.fit(X, y)
+                pls.coef_ = sc.coef_
+                score = pls.score(X, y)
+                y_pred = pls.predict(X)
+                mse = MSE(y, y_pred)
+
+        return trans, score, mse, x_rotations
 
 
 class PcaModel(models.Model):
@@ -140,7 +160,7 @@ class PcaModel(models.Model):
             pca.mean_=np.mean(y,axis=0)
             comp = self.comp()
             trans=pca.transform(y)
-            sc=PCA(n_components = 2)
+            sc=PCA(n_components=2)
             sc.fit(y)
             pca.explained_variance_=sc.explained_variance_
             pca.singular_values_=sc.singular_values_

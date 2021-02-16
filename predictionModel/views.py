@@ -121,16 +121,17 @@ class PlsScatterChartView(BaseLineChartView):
         # PLS:
         if 'pls' in locals():
             if model_id:
-                trans, score = pls.apply('test', *ids)
+                trans, score, mse, x_rotations = pls.apply('test', *ids)
             else:
-                trans, score = pls.trans(), pls.score
+                trans, score, mse, x_rotations = pls.trans(), pls.score, pls.mse, pls.x_rotations
         else:
             pls = PlsModel()
-            trans, score = pls.apply('calibration', *ids)
+            trans, score, mse, x_rotations = pls.apply('calibration', *ids)
         # keep a copy at session in case saving it:
         self.request.session['trans'] = trans.tolist()
         self.request.session['pls_ids'] = ids
         self.request.session['pls_score'] = score
+        self.request.session['pls_mse'] = mse
         # print("spectra:",spectra)
         context.update({'model': model, 'Spectra': spectra, 'trans': trans, 'mode': mode})
         # context.update({'dic': dic})
