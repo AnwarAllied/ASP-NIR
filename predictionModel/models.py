@@ -21,15 +21,15 @@ class PlsModel(models.Model):
     calibration = models.ManyToManyField(Spectrum)
 
     def __str__(self):
-        fname=self.calibration.all()[0].origin.split(' ')[0]+", score: "+"{:0.2f}".format(self.score)+", mse: " + str(self.mse)[:4]
+        fname=self.calibration.all()[0].origin.split(' ')[0]+", score: "+"{:0.2f}".format(self.score)+", mse: " + "{:0.2f}".format(self.mse)
         if self.calibration.count()> 1:
             origin_list=list(set([i.origin.split(' ')[0] for i in self.calibration.all()]))
             if len(origin_list) == 2:
-                fname= "%s and %s, score: %s, mse: %s" % (origin_list[0], origin_list[1], "{:0.2f}".format(self.score), str(self.mse)[:4])
+                fname= "%s and %s, score: %s, mse: %s" % (origin_list[0], origin_list[1], "{:0.2f}".format(self.score), "{:0.2f}".format(self.mse))
             elif len(origin_list) > 2:
-                fname= "%s, %s and %d others, score: %s, mse: %s" % (origin_list[0], origin_list[1],self.calibration.count()-2, "{:0.2f}".format(self.score), str(self.mse)[:4])
+                fname= "%s, %s and %d others, score: %s, mse: %s" % (origin_list[0], origin_list[1],self.calibration.count()-2, "{:0.2f}".format(self.score), "{:0.2f}".format(self.mse))
         else:
-            fname = "%s, score: %s, score: %s" % (fname, "{:0.2f}".format(self.score), str(self.mse)[:4])
+            fname = "%s, score: %s, score: %s" % (fname, "{:0.2f}".format(self.score), "{:0.2f}".format(self.mse))
         return fname
 
     def trans(self):
