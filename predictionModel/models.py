@@ -76,7 +76,7 @@ class PlsModel(models.Model):
         except ValueError:
             return False
 
-    def _transform(self,X, x_mean, x_std, x_rots, copy=True):
+    def mod_transform(self,X, x_mean, x_std, x_rots, copy=True):
         X = X-x_mean
         X = X/x_std
         x_scores = np.dot(X, x_rots)
@@ -116,7 +116,7 @@ class PlsModel(models.Model):
                 pls.x_rotations_ = self.xrots()
                 pls.x_mean_ = self.xmean()
                 pls.x_std_ = self.xstd()
-                trans = self._transform(X,pls.x_mean_,pls.x_std_,pls.x_rotations_)
+                trans = self.mod_transform(X,pls.x_mean_,pls.x_std_,pls.x_rotations_)
                 pls.coef_ = self.coef()
                 pls.y_mean_ = self.ymean()
                 sc = PLSRegression(n_components=2)

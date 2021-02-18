@@ -111,12 +111,13 @@ class PlsScatterChartView(BaseLineChartView):
             if mode == 'detail':
                 pls = PlsModel.objects.get(pk=ids[0])
                 spectra = pls.calibration
-                # print([i.id for i in spectra.all()])
+                print([i.id for i in spectra.all()])
             elif model_id:
                 pls = PlsModel.objects.get(id=model_id)
                 spectra = Spectrum.objects.filter(eval('|'.join('Q(pk=' + str(pk) + ')' for pk in ids)))
             else:
                 pls = PlsModel.objects.filter(eval('|'.join('Q(pk=' + str(pk) + ')' for pk in ids)))
+                spectra = pls.calibration
             print('Model:',spectra.all()[0])
         elif model == 'Match':
             if mode == 'detail':
