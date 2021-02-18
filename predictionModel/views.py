@@ -46,10 +46,13 @@ class pls(TemplateView):
 def pls_save(request):
     if "pls_ids" in request.session.keys():
         pls = PlsModel()
-        pls.obtain(request.session['pls_ids'], request.session['trans'], request.session['pls_score'])
-        print('pls:',pls)
+        pls.obtain(request.session['pls_ids'],
+                   request.session['trans'],
+                   request.session['pls_score'],
+                   request.session['pls_mse'],
+                   request.session['pls_x_rotations'])
         content = {"saved": True, "message": "The model saved successfully, as: " + pls.__str__(), "message_class": "success" }
-        _=[request.session.pop(i, None) for i in ['pls_ids', 'trans', 'pls_score']]
+        _=[request.session.pop(i, None) for i in ['pls_ids', 'trans', 'pls_score', 'pls_mse', 'pls_x_rotations']]
     else:
         content = {"message": "Sorry, unable to save the model", "message_class": "warning"}
     return HttpResponse(json.dumps(content), content_type="application/json")
@@ -110,7 +113,7 @@ class PlsScatterChartView(BaseLineChartView):
                 spectra = Spectrum.objects.filter(eval('|'.join('Q(pk=' + str(pk) + ')' for pk in ids)))
             else:
                 pls = PlsModel.objects.filter(eval('|'.join('Q(pk=' + str(pk) + ')' for pk in ids)))
-            print('Model:',spectra.all()[0])
+            #print('Model:',spectra.all()[0])
         elif model == 'Match':
             if mode == 'detail':
                 match = Match.objects.get(id=ids[0])  # if ',' not in ids else ids.split(',')[0]
@@ -132,6 +135,7 @@ class PlsScatterChartView(BaseLineChartView):
         self.request.session['pls_ids'] = ids
         self.request.session['pls_score'] = score
         self.request.session['pls_mse'] = mse
+        self.request.session['pls_x_rotations'] = x_rotations
         # print("spectra:",spectra)
         context.update({'model': model, 'Spectra': spectra, 'trans': trans, 'mode': mode})
         # context.update({'dic': dic})

@@ -68,7 +68,7 @@ class PlsModel(models.Model):
             y = [float(j) for i in spectra_filter for j in i.origin.split() if self.isDigit(j)==True]
             pls = PLSRegression(n_components=2)
             pls.fit(X, y)
-            trans = pls.transform(X,y)
+            trans = pls.transform(X, y)
             score = pls.score(X, y)
             y_pred = pls.predict(X)
             mse = MSE(y, y_pred)
@@ -93,7 +93,7 @@ class PlsModel(models.Model):
                 score = pls.score(X, y)
                 y_pred = pls.predict(X)
                 mse = MSE(y, y_pred)
-
+                print('test score:',score)
         return trans, score, mse, x_rotations
 
 
