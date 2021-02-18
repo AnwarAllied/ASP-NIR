@@ -56,7 +56,7 @@ class SpectrumAdmin(admin.ModelAdmin):
 
         # to disable 1 spectrum selection for PCA and PLS model
     def changelist_view(self, request, extra_context=None):
-        is_single_selected, message=single_item_selected(request, 'PCA_model')
+        is_single_selected, message=single_item_selected(request, *['PCA_model','PLS_model'])
         if is_single_selected:
             self.message_user(request, message, messages.WARNING)
             return HttpResponseRedirect(request.get_full_path())
@@ -181,12 +181,12 @@ def remove_action(response,remove = ['Plot_spectra','PCA_model', 'PLS_model']):
     return response
 
  # to disable single spectrum selection for PCA and PLS model
-def single_item_selected(request, action_model):
+def single_item_selected(request,*action_models):
     keys=request.POST.keys()
     if request.method == 'POST' and 'action' in keys and '_selected_action' in keys:
         action = request.POST['action']
         selected = request.POST.__str__().split("_selected_action': ['")[1].split("']")[0].split("', '")
-        if action == action_model and len(selected) < 2:
+        if action in action_models and len(selected) < 2:
             msg = "More than one item must be selected in order to perform modeling actions on them. No action have been performed."
             return True, msg
 
