@@ -13,8 +13,8 @@ class PlsModel(models.Model):
     score = models.FloatField(blank=True, null=True)
     mse = models.FloatField(blank=True, null=True)
     x_rotations = models.TextField(blank=True, null=True)
-    # x_std = models.TextField(blank=True, null=True)
-    # x_mean = models.TextField(blank=True, null=True)
+    x_std = models.TextField(blank=True, null=True)
+    x_mean = models.TextField(blank=True, null=True)
     y_mean = models.TextField(blank=True, null=True)
     coef = models.TextField(blank=True, null=True)
     transform = models.TextField(blank=True, null=True)
@@ -38,27 +38,27 @@ class PlsModel(models.Model):
     def xrots(self):
         return np.array(eval("["+self.x_rotations+"]"))
 
-    # def xmean(self):
-    #     return np.array(eval("["+self.x_mean+"]"))
+    def xmean(self):
+        return np.array(eval("["+self.x_mean+"]"))
 
     def ymean(self):
         return np.array(eval("["+self.y_mean+"]"))
 
-    # def xstd(self):
-    #     return np.array(eval("["+self.x_std+"]"))
+    def xstd(self):
+        return np.array(eval("["+self.x_std+"]"))
 
     def pcoef(self):
         return np.array(eval("["+self.coef+"]"))
 
-    def obtain(self, ids, trans, score, mse, xrots, ymean, plscoef):
+    def obtain(self, ids, trans, score, mse, xrots, xmean, ymean, plscoef, xstd):
         self.score = score
         self.mse = mse
         self.transform = str(trans)[1:-1]
         self.x_rotations = str(xrots)[1:-1]
-        # self.x_mean = str(xmean)[1:-1]
+        self.x_mean = str(xmean)[1:-1]
         self.y_mean = str(ymean)[1:-1]
         self.coef = str(plscoef)[1:-1]
-        # self.x_std = str(xstd)[1:-1]
+        self.x_std = str(xstd)[1:-1]
         self.save()
         self.calibration.set(ids)
 
@@ -100,8 +100,10 @@ class PlsModel(models.Model):
             y_pred = pls.predict(X)
             mse = MSE(y, y_pred)
             x_rotations = pls.x_rotations_
+            x_mean = pls.x_mean_
             y_mean = pls.y_mean_
             coef = pls.coef_
+            x_std = pls.x_std_
             # print('calibration-- score: %s, mse: %s' % (score, mse))
         else:
             if ids:
@@ -111,9 +113,14 @@ class PlsModel(models.Model):
                 X = self.scale_y(*ids_spec).tolist()
                 y = [float(j) for i in spectra_filter for j in i.origin.split() if self.isDigit(j) == True]
                 pls = PLSRegression(n_components=2)
-                pls.x_rotations_ = self.xrots()
-                pls.x_mean_ = np.mean(X,axis=0)
+                # pls.fit(X,y)
+                # pls.x_rotations_ = self.xrots()
+
+                pls.x_mean_ = np.mean(X)
+                # pls.y_mean_ = np.mean(y)
                 pls.x_std_ = np.std(X)
+                pls.x_mean_ = self.xmean()
+                pls.x_std_ = self.xstd()
                 trans = pls.transform(X)  # transform(x) needs x_mean_, x_std_ and x_rotations_
                 pls.coef_ = self.pcoef()
                 pls.y_mean_ = self.ymean()
@@ -121,10 +128,12 @@ class PlsModel(models.Model):
                 score = pls.score(X, y)
                 mse = MSE(y, y_pred)
                 x_rotations = pls.x_rotations_
+                x_mean = pls.x_mean_
                 y_mean = pls.y_mean_
                 coef = pls.coef_
-                # print('testing-- score: %s, mse: %s' % (score, mse))
-        return trans, score, mse, x_rotations, y_mean, coef
+                x_std = pls.x_std_
+                print('testing-- y: %s, y_pred:%s' % (y, y_pred))
+        return trans, score, mse, x_rotations, x_mean, y_mean, coef, x_std
 
 
 class PcaModel(models.Model):

@@ -114,7 +114,7 @@ class LineChartJSONView(BaseLineChartView):
             # print('Model:',match)
 
         # print("spectra:",spectra)
-        context.update({'model':model ,'Spectra': spectra, 'mode': mode})
+        context.update({'model':model,'Spectra': spectra, 'mode': mode})
         # context.update({'dic': dic})
         return context
 
