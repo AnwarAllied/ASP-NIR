@@ -100,7 +100,9 @@ def to_wavelength_length_scal(y):
 # Section has to be moved to test.py: 
 # from predictionModel.models import PcaModel
 # from core.models import NirProfile, Spectrum
+# import numpy as np
 # q=Spectrum.objects.filter(nir_profile=4)
+# y=np.array([i.y().tolist() for i in q.all()])
 # ids=[73,66,61,35,31,2,1]
 # y1=[Spectrum.objects.get(id=i).y().tolist() for i in ids]
 # p=PcaModel()

@@ -111,6 +111,7 @@ git push heroku spectra_modeling:master
 heroku run python manage.py migrate
 heroku buildpacks
 heroku ps
+heroku ps:stop run.9768
 
 ```
 #### reference:

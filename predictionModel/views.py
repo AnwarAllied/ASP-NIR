@@ -75,11 +75,8 @@ class pca_test(TemplateView):
         data["verbose_name_plural"]="figure"
         data['scartter']=True
         data["plot_mode"]=True
-
         data['title']='Testing set for the model:'
-        data['index_text']= PcaModel.objects.get(id=data['model_id']).__str__()
-        
-       
+        data['index_text']= PcaModel.objects.get(id=data['model_id']).__str__() #not showing
         return data
 
 class ScartterChartView(BaseLineChartView):
@@ -89,7 +86,6 @@ class ScartterChartView(BaseLineChartView):
         default_opt.update({"fill": "false"}) # disable the area filling in ChartJS options
         default_opt.update({'pointRadius': 5})
         return default_opt
-
 
     def spect2context(self, **kwargs):
         print('Scartter url:',self.request.get_full_path())
