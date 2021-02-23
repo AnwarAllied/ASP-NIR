@@ -192,6 +192,7 @@ def single_item_selected(request,*action_models):
 
     return False, ''
 
+# def delete_selected_items(response):
 
 
 admin_site = MyAdminSite(name='myadmin')

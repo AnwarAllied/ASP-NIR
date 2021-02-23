@@ -18,6 +18,7 @@ class PlsModel(models.Model):
     y_mean = models.TextField(blank=True, null=True)
     coef = models.TextField(blank=True, null=True)
     transform = models.TextField(blank=True, null=True)
+    y_pred = models.TextField(blank=True, null=True)
     calibration = models.ManyToManyField(Spectrum)
 
     def __str__(self):
@@ -50,7 +51,10 @@ class PlsModel(models.Model):
     def pcoef(self):
         return np.array(eval("["+self.coef+"]"))
 
-    def obtain(self, ids, trans, score, mse, xrots, xmean, ymean, plscoef, xstd):
+    def ypred(self):
+        return np.array(eval("["+self.y_pred+"]"))
+
+    def obtain(self, ids, trans, score, mse, xrots, xmean, ymean, plscoef, xstd,ypred):
         self.score = score
         self.mse = mse
         self.transform = str(trans)[1:-1]
@@ -59,6 +63,7 @@ class PlsModel(models.Model):
         self.y_mean = str(ymean)[1:-1]
         self.coef = str(plscoef)[1:-1]
         self.x_std = str(xstd)[1:-1]
+        self.y_pred = str(ypred)[1:-1]
         self.save()
         self.calibration.set(ids)
 
@@ -104,7 +109,7 @@ class PlsModel(models.Model):
             y_mean = pls.y_mean_
             coef = pls.coef_
             x_std = pls.x_std_
-            print('calibration-- score: %s, mse: %s' % (score, mse))
+            # print('calibration-- score: %s, mse: %s' % (score, mse))
         else:
             if ids:
                 spectra = [Spectrum.objects.get(id=i) for i in ids]
@@ -121,15 +126,15 @@ class PlsModel(models.Model):
                 pls.coef_ = self.pcoef()
                 pls.y_mean_ = self.ymean()
                 y_pred = pls.predict(X)  # predict(x) needs x_mean_, y_mean_, coef_
-                score = self.score
-                mse = self.mse
+                score = pls.score(X, y_pred)
+                mse = None
                 x_rotations = pls.x_rotations_
                 x_mean = pls.x_mean_
                 y_mean = pls.y_mean_
                 coef = pls.coef_
                 x_std = pls.x_std_
-                print('testing-- y_pred:%s' % (y_pred))
-        return trans, score, mse, x_rotations, x_mean, y_mean, coef, x_std
+                # print('testing-- y_pred:%s' % (y_pred))
+        return trans, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred
 
 
 class PcaModel(models.Model):

@@ -16,7 +16,7 @@
 
 {% block content %}
 
-    <div class="chart-container" style="width:70vw">
+    <div class="chart-container">
         <p>{{ index_text }}</p>
         <form action="{% url 'spectraModelling:upload' %}" method="post" enctype="multipart/form-data">
             {% csrf_token %}
