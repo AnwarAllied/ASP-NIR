@@ -1,0 +1,75 @@
+{% load static %}
+<ul class="messagelist">
+
+</ul>
+<div class="chart-container">
+    <h1>{{ figure_header }}</h1>
+    <canvas id="myChart"></canvas>
+</div>
+{% if not plot_mode %}
+<p> Model can be saved to be available for testing it on another dataset :</p>
+<button onclick="save_model(this)" id="save_btn">Save</button>
+{% endif %}
+<!-- <button onclick="reverse(this)" class="">Reverse</button>disabled -->
+<script src="{% static 'js/jquery-1.10.0.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
+<script>
+
+    $.get('{% url "pls_chart_json" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}{% if model_id %}&model_id={{ model_id }}{% endif %}', function(data) {
+        Gdata = data
+        var ctx = $("#myChart").get(0).getContext("2d");
+        chart = new Chart.Scatter(ctx, {
+            type: "line",
+            data: data,
+            options: {
+                scales: {
+                    yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Second component'
+                        }
+                    }],
+                    xAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'First component'
+                        }
+                    }]
+                },
+                tooltips: {
+                    callbacks: {
+                        label: function(tooltipItem, data) {
+                            var label = data.datasets[tooltipItem.datasetIndex].label || '';
+
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += '(' + Math.round(tooltipItem.xLabel*100)/100 + ', ' + Math.round(tooltipItem.yLabel*100)/100 + ')';
+                            return label;
+                        }
+                    }
+                }
+            }
+        });
+
+    });
+
+    function save_model() {
+        $.get('{% url "pls_save" %}', function(data) {
+            Sdata = data
+            $("#save_btn").attr("disabled", true);
+            $( ".messagelist" ).html('<li class="'+data["message_class"]+'">'+data["message"]+'</li>')
+            chart.update();
+        });
+
+    };
+
+    function reverse() {
+			chart.data.datasets.forEach(function(dataset, index) {
+                const u=[];
+                dataset.data = Gdata['datasets'][index]["data"].reverse();
+			});
+			chart.update();
+		}
+
+</script>

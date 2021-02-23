@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import Spectrum, NirProfile
 from spectraModelling.models import Poly, Match
-from predictionModel.admin import PcaModel, myPcaModelAdmin
+from predictionModel.admin import PcaModel, myPcaModelAdmin, PlsModel, myPlsModelAdmin
 from spectraModelling.admin import myMatchAdmin, myPolyAdmin
 
 from .forms import NirProfileForm
@@ -55,7 +55,7 @@ class SpectrumAdmin(admin.ModelAdmin):
 
         # to disable 1 spectrum selection for PCA and PLS model
     def changelist_view(self, request, extra_context=None):
-        is_single_selected, message=single_item_selected(request, 'PCA_model')
+        is_single_selected, message=single_item_selected(request, ['PCA_model','PLS_model'])
         if is_single_selected:
             self.message_user(request, message, messages.WARNING)
             return HttpResponseRedirect(request.get_full_path())
@@ -140,16 +140,28 @@ class MyAdminSite(admin.AdminSite):
             model, ','.join(str(pk) for pk in selected),
         ))
 
+    def pls_export_selected_objects(self, request, queryset):
+        model=queryset.model.__name__
+        selected = queryset.values_list('pk', flat=True)
+        ct =eval(model+".objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in selected)))")
+        return HttpResponseRedirect('/pls/?model=%s&ids=%s' % (
+            model, ','.join(str(pk) for pk in selected),
+        ))
+
     def plot_spectra(self, request, queryset):
         short_description = "Plot selected spectra"
 
     def pca_model(self, request, queryset):
         short_description = "PCA of selected spectra"
 
+    def pls_model(self, request, queryset):
+        short_description = "PLS of selected spectra"
+
     # plot_spectra.short_description = "Plot selected spectra"
     di1={'Poly':('Plot_spectra',plot_export_selected_objects)}
-    di2={'PCA':('PCA_model',pca_export_selected_objects)}
-    actions = [di1['Poly'],di2['PCA']]+[('delete_selected', dict(admin.AdminSite().actions)['delete_selected'])]
+    di2={'PCA':('PCA_model', pca_export_selected_objects)}
+    di3 = {'PLS': ('PLS_model', pls_export_selected_objects)}
+    actions = [di1['Poly'],di2['PCA'],di3['PLS']]+[('delete_selected', dict(admin.AdminSite().actions)['delete_selected'])]
 
 class NoPlot(admin.ModelAdmin):
     view_on_site = False
@@ -159,12 +171,13 @@ class NoPlot(admin.ModelAdmin):
         return remove_action(super().changelist_view(request))
 
 # to remove action plot:
-def remove_action(response,remove = ['Plot_spectra','PCA_model']):
+def remove_action(response,remove = ['Plot_spectra','PCA_model','PLS_model']):
     # response=super().changelist_view(request)
     if 'action_form' in response.context_data.keys():
-        action_choices=response.context_data['action_form'].fields['action'].choices
-        action_choices=[i for i in action_choices if i[0] not in remove ]
-        response.context_data['action_form'].fields['action'].choices = action_choices
+        if 'action_form' in response.context_data.keys():
+            action_choices=response.context_data['action_form'].fields['action'].choices
+            action_choices=[i for i in action_choices if i[0] not in remove ]
+            response.context_data['action_form'].fields['action'].choices = action_choices
     return response
 
  # to disable single spectrum selection for PCA and PLS model
@@ -173,7 +186,7 @@ def single_item_selected(request, action_model):
     if request.method == 'POST' and 'action' in keys and '_selected_action' in keys:
         action = request.POST['action']
         selected = request.POST.__str__().split("_selected_action': ['")[1].split("']")[0].split("', '")
-        if action == action_model and len(selected) < 2:
+        if action in action_model and len(selected) < 2:
             msg = "More than one item must be selected in order to perform modeling actions on them. No action have been performed."
             return True, msg
 
@@ -191,5 +204,6 @@ admin_site.register(Spectrum,SpectrumAdmin)
 admin_site.register(NirProfile,NirProfileAdmin)
 admin_site.register(Poly,myPolyAdmin)
 admin_site.register(Match,myMatchAdmin)
+admin_site.register(PlsModel,myPlsModelAdmin)
 admin_site.register(PcaModel,myPcaModelAdmin)
 # admin_site.register(NirProfileAdmin)

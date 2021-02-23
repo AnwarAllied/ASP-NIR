@@ -86,6 +86,10 @@ function test_model() {
     spectra=$("input[value^='s_']")
     ids=''
     spectra.each(function(index,elm) {if (elm.checked) {ids+=elm.value.replace('s_',',')}})
+    if('{{ model }}'=='PlsModel'){
+    location.replace("{% url 'pls_test' %}?model={{ model }}&ids="+ids.replace(',','')+"&model_id={{ ids }}")}
+    else{
     location.replace("{% url 'pca_test' %}?model={{ model }}&ids="+ids.replace(',','')+"&model_id={{ ids }}")
+    }
 }
 </script>
