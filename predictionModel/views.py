@@ -169,8 +169,17 @@ class PlsScatterChartView(BaseLineChartView):
                 return [self.cont['Spectra'].label()] + [i.label() for i in self.cont['Spectra'].similar_pk.all()]
         elif model_id:
             spectra = self.cont['Spectra'].all()
+            # print(self.cont['y_pred'].tolist()[0])
             for i in range(len(spectra)):
-                spectra[i].origin += ' (predicted: '+'{:0.2f}'.format(self.cont['y_pred'].tolist()[0][i])+')'
+                spectra_name_items = spectra[i].origin.split()
+                # modify the origin number of a spectrum
+                if float(spectra_name_items[1]):
+                   spectra_name_items[1] += ' (predicted: '+'{:0.2f}'.format(self.cont['y_pred'].tolist()[i][0])+')'
+                new_origin = ''
+                for item in spectra_name_items:
+                    new_origin += item + ' '
+                # rename a spectrum
+                spectra[i].origin = new_origin
             return [i.label() for i in spectra]
         else:
             return [i.label() for i in self.cont['Spectra']]
@@ -182,9 +191,9 @@ class PlsScatterChartView(BaseLineChartView):
         #     trans=np.array([list(range(len(trans[0]))),trans[0].tolist()])
         return [[{"x":a,"y":b}] for a,b in trans[:,:2]]#[{"x":1,"y":2},{"x":5,"y":4}],[{"x":3,"y":4},{"x":3,"y":1}]]#
 
-    def get_value(self):
-        ypred = self.cont['y_pred'].tolist()
-        return [{'value': '{:0.2f}'.format(j[0])} for i in ypred for j in i]
+    # def get_value(self):
+    #     ypred = self.cont['y_pred'].tolist()
+    #     return [{'value': '{:0.2f}'.format(j[0])} for i in ypred for j in i]
 
 class pca(TemplateView):
     template_name = "admin/index_plot.html"
