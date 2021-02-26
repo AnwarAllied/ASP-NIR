@@ -53,11 +53,13 @@ def pls_save(request):
                    request.session['pls_x_mean'],
                    request.session['pls_y_mean'],
                    request.session['pls_coef'],
-                   request.session['pls_x_std'])
+                   request.session['pls_x_std'],
+                   request.session['pls_y_pred']
+        )
 
         content = {"saved": True, "message": "The model saved successfully, as: " + pls.__str__(), "message_class": "success"}
         # print("x-mean:%s, y-mean:%s,x-std:%s" % (pls.x_mean, pls.y_mean, pls.x_std))
-        _=[request.session.pop(i, None) for i in ['pls_ids', 'trans', 'pls_score', 'pls_mse', 'pls_x_rots', 'pls_x_mean','pls_y_mean', 'pls_coef','pls_x_std']]
+        _=[request.session.pop(i, None) for i in ['pls_ids', 'trans', 'pls_score', 'pls_mse', 'pls_x_rots', 'pls_x_mean','pls_y_mean', 'pls_coef','pls_x_std','pls_y_pred']]
     else:
         content = {"message": "Sorry, unable to save the model", "message_class": "warning"}
     return HttpResponse(json.dumps(content), content_type="application/json")
@@ -130,13 +132,13 @@ class PlsScatterChartView(BaseLineChartView):
         # PLS:
         if 'pls' in locals():
             if model_id:
-                trans, score, mse, x_rotations, x_mean, y_mean, coef, x_std = pls.apply('test', *ids)
+                trans, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred = pls.apply('test', *ids)
             else:
-                trans, score, mse, x_rotations, x_mean, y_mean, coef, x_std = pls.trans(), pls.score, pls.mse, pls.xrots(), pls.xmean(), pls.ymean(), pls.pcoef(), pls.xstd()
+                trans, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred = pls.trans(), pls.score, pls.mse, pls.xrots(), pls.xmean(), pls.ymean(), pls.pcoef(), pls.xstd(), pls.ypred()
                 # print('xrots:%s, xmean:%s' % (x_rotations,x_mean))
         else:
             pls = PlsModel()
-            trans, score, mse, x_rotations, x_mean, y_mean, coef, x_std = pls.apply('calibration', *ids)
+            trans, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred = pls.apply('calibration', *ids)
         # keep a copy at session in case saving it:
         self.request.session['trans'] = trans.tolist()
         self.request.session['pls_ids'] = ids
@@ -147,8 +149,9 @@ class PlsScatterChartView(BaseLineChartView):
         self.request.session['pls_y_mean'] = y_mean.tolist()
         self.request.session['pls_coef'] = coef.tolist()
         self.request.session['pls_x_std'] = x_std.tolist()
+        self.request.session['pls_y_pred'] = y_pred.tolist()
         # print("spectra:",spectra)
-        context.update({'model': model, 'Spectra': spectra, 'trans': trans, 'mode': mode})
+        context.update({'model': model, 'Spectra': spectra, 'trans': trans, 'mode': mode, 'y_pred': y_pred})
         # context.update({'dic': dic})
         return context
 
@@ -157,11 +160,26 @@ class PlsScatterChartView(BaseLineChartView):
         return self.get_providers()
 
     def get_providers(self):
+        model_id = self.request.GET.get('model_id', '')
         if self.cont['mode'] == 'detail':
             if self.cont['model'] == 'PlsModel':
                 return [i.origin for i in self.cont['Spectra'].all()]
             else:
                 return [self.cont['Spectra'].label()] + [i.label() for i in self.cont['Spectra'].similar_pk.all()]
+        elif model_id:
+            spectra = self.cont['Spectra'].all()
+            # print(self.cont['y_pred'].tolist()[0])
+            for i in range(len(spectra)):
+                spectra_name_items = spectra[i].origin.split()
+                # modify the origin number of a spectrum
+                if float(spectra_name_items[1]):
+                   spectra_name_items[1] += ' (predicted: '+'{:0.2f}'.format(self.cont['y_pred'].tolist()[i][0])+')'
+                new_origin = ''
+                for item in spectra_name_items:
+                    new_origin += item + ' '
+                # rename a spectrum
+                spectra[i].origin = new_origin
+            return [i.label() for i in spectra]
         else:
             return [i.label() for i in self.cont['Spectra']]
 
