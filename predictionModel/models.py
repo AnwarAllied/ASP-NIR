@@ -69,9 +69,9 @@ class PlsModel(models.Model):
 
     def scale_y(self,*ids):
         if ids:
-            y=to_wavelength_length_scal([Spectrum.objects.get(id=i).y().tolist() for i in ids])
+            y=normalize_y([Spectrum.objects.get(id=i).y().tolist() for i in ids])
         else:
-            y=to_wavelength_length_scal([i.y().tolist() for i in self.calibration.all()])
+            y=normalize_y([i.y().tolist() for i in self.calibration.all()])
         return y
 
     def isDigit(self,x):
@@ -80,13 +80,6 @@ class PlsModel(models.Model):
             return True
         except ValueError:
             return False
-
-    # def mod_transform(self,X, x_mean, x_std, x_rots, copy=True):
-    #     X = X-x_mean
-    #     X = X/x_std
-    #     x_scores = np.dot(X, x_rots)
-    #     return x_scores
-
 
     def apply(self, mode, *ids):
         if mode == 'calibration':
@@ -112,21 +105,18 @@ class PlsModel(models.Model):
             # print('calibration-- score: %s, mse: %s' % (score, mse))
         else:
             if ids:
-                spectra = [Spectrum.objects.get(id=i) for i in ids]
-                spectra_filter = [i for i in spectra for j in i.origin.split() if self.isDigit(j) == True]
-                ids_spec = [i.id for i in spectra_filter]
-                X = self.scale_y(*ids_spec).tolist()
-                # for testing
-                # y = [float(j) for i in spectra_filter for j in i.origin.split() if self.isDigit(j) == True]
+                spectra_testing = [Spectrum.objects.get(id=i) for i in ids]
+                testing_set = [i.y() for i in spectra_testing]
+                testing_set_scaled = to_wavelength_length_scale(testing_set).tolist()
                 pls = PLSRegression(n_components=2)
                 pls.x_rotations_ = self.xrots()
                 pls.x_mean_ = self.xmean()
                 pls.x_std_ = self.xstd()
-                trans = pls.transform(X)  # transform(x) needs x_mean_, x_std_ and x_rotations_
+                trans = pls.transform(testing_set_scaled)  # transform(x) needs x_mean_, x_std_ and x_rotations_
                 pls.coef_ = self.pcoef()
                 pls.y_mean_ = self.ymean()
-                y_pred = pls.predict(X)  # predict(x) needs x_mean_, y_mean_, coef_
-                score = pls.score(X, y_pred)
+                y_pred = pls.predict(testing_set_scaled)  # predict(x) needs x_mean_, y_mean_, coef_
+                score = pls.score(testing_set_scaled, y_pred)
                 mse = None
                 x_rotations = pls.x_rotations_
                 x_mean = pls.x_mean_
@@ -173,9 +163,9 @@ class PcaModel(models.Model):
     
     def scale_y(self,*ids):
         if ids:
-            y=to_wavelength_length_scal([Spectrum.objects.get(id=i).y().tolist() for i in ids])
+            y=normalize_y([Spectrum.objects.get(id=i).y().tolist() for i in ids])
         else:
-            y=to_wavelength_length_scal([i.y().tolist() for i in self.calibration.all()])
+            y=normalize_y([i.y().tolist() for i in self.calibration.all()])
         return y
     
     def apply(self, mode, *ids):
@@ -194,7 +184,7 @@ class PcaModel(models.Model):
             # test the comp on another Spectra ids
             y=self.scale_y(*ids)
             y=np.array(y)
-            pca=PCA(n_components = 2)
+            pca=PCA(n_components=2)
             pca.n_components_=2
             pca.components_=self.comp()
             pca.mean_=np.mean(y,axis=0)
@@ -209,11 +199,11 @@ class PcaModel(models.Model):
             print('the testing score:',score)
         return comp, trans, score
 
-def min_max_scal(data):
+def min_max_scale(data):
     scaler = MinMaxScaler()
     return scaler.fit_transform(data)
 
-def to_wavelength_length_scal(y):
+def to_wavelength_length_scale(y):
     scaled=[]
     for i in y:
         l=len(i)
@@ -226,7 +216,11 @@ def to_wavelength_length_scal(y):
                 scaled.append(fft_sampling(i))
         else:
             scaled.append(i)
-    return min_max_scal(np.array(scaled))
+    return np.array(scaled)
+
+def normalize_y(y):
+    data=to_wavelength_length_scale(y)
+    return min_max_scale(data)
 
 
 # Section has to be moved to test.py: 
