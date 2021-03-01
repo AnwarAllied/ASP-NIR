@@ -159,6 +159,13 @@ class PlsScatterChartView(BaseLineChartView):
         self.cont=self.spect2context()
         return self.get_providers()
 
+    def isDigit(self,x):
+            try:
+                float(x)
+                return True
+            except ValueError:
+                return False
+
     def get_providers(self):
         model_id = self.request.GET.get('model_id', '')
         if self.cont['mode'] == 'detail':
@@ -172,13 +179,15 @@ class PlsScatterChartView(BaseLineChartView):
             for i in range(len(spectra)):
                 spectra_name_items = spectra[i].origin.split()
                 # modify the origin number of a spectrum
-                if float(spectra_name_items[1]):
-                   spectra_name_items[1] += ' (predicted: '+'{:0.2f}'.format(self.cont['y_pred'].tolist()[i][0])+')'
-                new_origin = ''
-                for item in spectra_name_items:
-                    new_origin += item + ' '
-                # rename a spectrum
-                spectra[i].origin = new_origin
+                if len(spectra_name_items)>1 and self.isDigit(spectra_name_items[1])==True:
+                    spectra_name_items[1] += ' (predicted: '+'{:0.2f}'.format(self.cont['y_pred'].tolist()[i][0])+')'
+                    new_origin = ''
+                    for item in spectra_name_items:
+                        new_origin += item + ' '
+                    # rename a spectrum
+                    spectra[i].origin = new_origin
+                else:
+                    spectra[i].origin += ' (predicted: '+'{:0.2f}'.format(self.cont['y_pred'].tolist()[i][0])+')'
             return [i.label() for i in spectra]
         else:
             return [i.label() for i in self.cont['Spectra']]
@@ -277,16 +286,19 @@ class ScartterChartView(BaseLineChartView):
             ids=[i.id for i in spectra]
         elif model == 'Spectrum':
             spectra=Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
-            
+            ids=[i.id for i in spectra]
         elif model == 'PcaModel':
             if mode == 'detail':
                 pca=PcaModel.objects.get(pk=ids[0])
                 spectra = pca.calibration
+                ids=[i.id for i in spectra.all()]
             elif model_id:
                 pca=PcaModel.objects.get(id=model_id)
                 spectra = Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
+                ids=[i.id for i in spectra]
             else:
                 pca=PcaModel.objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in ids)))
+                ids=[i.pk for i in pca]
             # print('Model:',spectra[0])
         elif model == 'Match':
             print('ids:',ids)
