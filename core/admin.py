@@ -5,8 +5,8 @@ from spectraModelling.models import Poly, Match
 from predictionModel.admin import PcaModel, PlsModel, myPcaModelAdmin, myPlsModelAdmin
 from spectraModelling.admin import myMatchAdmin, myPolyAdmin
 
-from .forms import NirProfileForm
-from django.contrib.auth.models import Group ,User
+from .forms import NirProfileForm, SpectrumForm
+from django.contrib.auth.models import Group,User
 from django.core import serializers
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
@@ -46,6 +46,8 @@ class myFlatPageAdmin(FlatPageAdmin):
 
 class SpectrumAdmin(admin.ModelAdmin):
     view_on_site = False
+    # form = SpectrumForm
+
     def save_model(self, request, obj, form, change):
         # change the delimiter to ", "
         delimiter=re.findall("[^\d\,\.\- ]+",obj.y_axis[:100])
