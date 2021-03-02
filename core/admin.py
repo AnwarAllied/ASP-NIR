@@ -46,8 +46,8 @@ class myFlatPageAdmin(FlatPageAdmin):
 
 class SpectrumAdmin(admin.ModelAdmin):
     view_on_site = False
-    # form = SpectrumForm
-
+    list_display = ('__str__','spec_image')
+    # readonly_fields = ('spec_image',)
     def save_model(self, request, obj, form, change):
         # change the delimiter to ", "
         delimiter=re.findall("[^\d\,\.\- ]+",obj.y_axis[:100])
@@ -64,6 +64,10 @@ class SpectrumAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(request.get_full_path())
         else:
             return super().changelist_view(request, extra_context=None)
+
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data()
+    #     print(context)
 
 class NirProfileAdmin(admin.ModelAdmin):
     view_on_site = False

@@ -14,7 +14,6 @@
   {% if not actions_on_top and not actions_on_bottom %}
     <style>
       #changelist table thead th:first-child {width: inherit}
-      .results table tbody td {vertical-align: middle}
     </style>
   {% endif %}
 {% endblock %}
@@ -62,7 +61,6 @@
         {% if cl.formset %}
           <div>{{ cl.formset.management_form }}</div>
         {% endif %}
-
         {% block result_list %}
           {% if action_form and actions_on_top and cl.show_admin_actions %}{% admin_actions %}{% endif %}
           {% result_list cl %}
