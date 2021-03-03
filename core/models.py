@@ -87,12 +87,21 @@ class Spectrum(models.Model):
 
     def spec_image(self):
         if self.spec_pic:
-            return format_html('<img src="{}" style="width: 100px; height: 65px" />'.format('/media/'+ str(self.spec_pic)))
-
+            return format_html('<img src="{}" style="width: 100px; height: 75px" />'.format('/media/'+ str(self.spec_pic)))
+        else:
+            return format_html('<img src="{}" style="width: 100px; height: 75px" />'.format('/media/spectrum_default.png'))
     spec_image.short_description = 'Spec_pic'
         
     class Meta:
         verbose_name_plural = "Spectra"
+
+# class SpectraDisplay(Spectrum):
+#     class Meta:
+#         proxy = True
+#         verbose_name = 'Spectrum information'
+#         verbose_name_plural = 'Spectra information'
+#
+
 
 class NirProfile(models.Model):
     title = models.CharField(max_length=100)

@@ -17,12 +17,12 @@ class NirProfileForm(forms.ModelForm):
         fields = ['nir_type', 'nir_method', 'nir_configuration','figure_id', 'figure_title', 'figure_caption', 'x_label', 'y_label', 'x_min', 'x_max','y_min', 'y_max','reference_type', 'reference_title', 'reference_link']
 
 #form to display or add a spectrum
-class SpectrumForm(forms.Form):
-    upload_dataset = forms.ImageField()
-    upload_dataset.widget.attrs.update({'accept':'.jpg, .jpeg, .png'})
-    class Meta:
-        model = Spectrum
-        fields = ['origin', 'code', 'color', 'y_axis', 'x_range_max', 'x_range_min', 'pic_name', 'spec_pic', 'nir_profile']
+# class SpectrumForm(forms.Form):
+#     upload_dataset = forms.ImageField()
+#     upload_dataset.widget.attrs.update({'accept':'.jpg, .jpeg, .png'})
+#     class Meta:
+#         model = Spectrum
+#         fields = ['origin', 'code', 'color', 'y_axis', 'x_range_max', 'x_range_min', 'pic_name', 'spec_pic', 'nir_profile']
 
 # Creating a form to add an article.
 # form = ArticleForm()

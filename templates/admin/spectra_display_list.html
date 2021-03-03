@@ -1,4 +1,4 @@
-{% extends "admin/base_site.html" %}
+{% extends "admin/change_list.html" %}
 {% load i18n admin_urls static admin_list %}
 
 {% block extrastyle %}
@@ -14,6 +14,7 @@
   {% if not actions_on_top and not actions_on_bottom %}
     <style>
       #changelist table thead th:first-child {width: inherit}
+
     </style>
   {% endif %}
 {% endblock %}
@@ -61,9 +62,11 @@
         {% if cl.formset %}
           <div>{{ cl.formset.management_form }}</div>
         {% endif %}
+
         {% block result_list %}
           {% if action_form and actions_on_top and cl.show_admin_actions %}{% admin_actions %}{% endif %}
-          {% result_list cl %}
+          <!--{% result_list cl %}-->
+
           {% if action_form and actions_on_bottom and cl.show_admin_actions %}{% admin_actions %}{% endif %}
         {% endblock %}
         {% block pagination %}{% pagination cl %}{% endblock %}
