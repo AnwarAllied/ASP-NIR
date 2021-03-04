@@ -1,4 +1,5 @@
 from django.contrib import admin
+import numpy as np
 
 from .models import Spectrum, NirProfile
 from spectraModelling.models import Poly, Match
@@ -6,7 +7,7 @@ from predictionModel.admin import PcaModel, PlsModel, myPcaModelAdmin, myPlsMode
 from spectraModelling.admin import myMatchAdmin, myPolyAdmin
 
 from .forms import NirProfileForm
-from django.contrib.auth.models import Group ,User
+from django.contrib.auth.models import Group,User
 from django.core import serializers
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
@@ -17,6 +18,7 @@ from django.contrib.flatpages.models import FlatPage
 from django.contrib.flatpages.admin import FlatPageAdmin
 from django.utils.translation import gettext_lazy as _
 import re
+# from django.contrib.admin.views.main import ChangeList
 # import pickle
 
 
@@ -46,22 +48,51 @@ class myFlatPageAdmin(FlatPageAdmin):
 
 class SpectrumAdmin(admin.ModelAdmin):
     view_on_site = False
+    change_list_template = 'admin/spectra_display_list.html'
+    # list_display = ('__str__','spec_image')
+
+    # readonly_fields = ('spec_image',)
     def save_model(self, request, obj, form, change):
         # change the delimiter to ", "
         delimiter=re.findall("[^\d\,\.\- ]+",obj.y_axis[:100])
         if delimiter:
-            print('Delimiter changed from: %r' % delimiter[0])
+            # print('Delimiter changed from: %r' % delimiter[0])
             obj.y_axis=re.sub(delimiter[0],', ',obj.y_axis)
         super().save_model(request, obj, form, change)
 
-        # to disable 1 spectrum selection for PCA and PLS model
+        # cutomize the changelist page of spectrum
     def changelist_view(self, request, extra_context=None):
+        response = super().changelist_view(request, extra_context=None)
+        try:
+            qs = response.context_data['cl'].queryset  # get_queryset
+        except (AttributeError, KeyError):
+            return response
+
+        pics_info = [i['spec_pic'] for i in qs.values('spec_pic')]
+        origin = [i.origin for i in qs]
+        y_axis = [i.y() for i in qs]
+        # res = [j for j in pics_info if j!='' and j!=None]
+        # print(pics_info)
+        # print([i for i in zip(origin,pics_info,y_axis)][0])
+        response.context_data['new_cl'] = [i for i in zip(origin, pics_info, y_axis)]
+
+
+        # to disable 1 spectrum selection for PCA and PLS model
         is_single_selected, message=single_item_selected(request, *['PCA_model','PLS_model'])
         if is_single_selected:
             self.message_user(request, message, messages.WARNING)
             return HttpResponseRedirect(request.get_full_path())
         else:
-            return super().changelist_view(request, extra_context=None)
+            return response
+
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data()
+    #     print(context)
+
+# @admin.register(SpectraDisplay)
+# class SpectraDisplayAdmin(ModelAdmin):
+#     change_list_template = 'admin/spectra_display_list.html'
+
 
 class NirProfileAdmin(admin.ModelAdmin):
     view_on_site = False
@@ -120,9 +151,9 @@ class MyAdminSite(admin.AdminSite):
 
     def export_as_json(self, request, queryset):
         response = HttpResponse(content_type="application/json")
-        print(dir(response),'\n',response.content)
+        # print(dir(response),'\n',response.content)
         serializers.serialize("json", queryset, stream=response)
-        print(dir(response),'\n',response.content)
+        # print(dir(response),'\n',response.content)
         return response
 
     def plot_export_selected_objects(self, request, queryset):
@@ -202,6 +233,7 @@ admin_site.register(FlatPage, myFlatPageAdmin)
 admin_site.register(Group,NoPlot)
 admin_site.register(User,NoPlot)
 admin_site.register(Spectrum,SpectrumAdmin)
+# admin_site.register(Spectrum,SpectraDisplayAdmin)
 admin_site.register(NirProfile,NirProfileAdmin)
 admin_site.register(Poly,myPolyAdmin)
 admin_site.register(Match,myMatchAdmin)
