@@ -1,3 +1,31 @@
+<style>
+
+select{
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px 6px;
+    margin-top: 0;
+    height: 30px;
+    vertical-align: middle;
+    font-family: "Roboto", "Lucida Grande", Verdana, Arial, sans-serif;
+    font-weight: normal;
+    font-size: 13px;
+}
+  #test-opt{
+  margin: 2px 0 2px 2px;
+  padding: 2px 3px;
+  vertical-align: middle;
+  font-family: "Roboto", "Lucida Grande", Verdana, Arial, sans-serif;
+  font-weight: normal;
+  font-size: 13px;
+  background: #79aec8;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  }
+</style>
+
 {% extends "admin/change_list.html" %}
 {% load i18n admin_urls static admin_list %}
 
@@ -19,6 +47,7 @@
     </style>
   {% endif %}
 {% endblock %}
+
 
 {% block extrahead %}
 {{ block.super }}
@@ -65,18 +94,29 @@
         {% endif %}
 
         {% block result_list %}
-          {% if action_form and actions_on_top and cl.show_admin_actions %}{% admin_actions %}{% endif %}
-          <!--{% result_list cl %}-->
-          <div class="spectra_list">
-            <input type="checkbox" /><span>Spectrum</span>
-            <div class="container">
-              {% for spectrum in new_cl %}
-                <div class="card" style="width: 18rem;">
-                <img src="" class="card-img-top" alt="...">
-                <div class="card-body">
-                  <input type="checkbox" class="mr-2">
-                  <a href="#"><h5 class="card-title"></h5></a>
-                </div>
+<!--          {% if action_form and actions_on_top and cl.show_admin_actions %}{% admin_actions %}{% endif %}-->
+          <span>Action:&nbsp;</span><select id="testSel" name="testsel">
+            <option>1f</option>
+            <option>Delete selected spectra</option>
+          </select>
+          <button id="test-opt" onclick="alert(document.getElementById('testSel').value);">Go</button>
+          <span id="sel-counter">0</span>&nbsp;of&nbsp;<span id="all-counter">72</span>
+<!--          {% result_list cl %}-->
+        <div class="spectra_list">
+            <div style="background:#e6e6e6;padding:10px 0 10px 30px;margin:30px 0 10px 0">
+              <input type="checkbox" style="margin-right:10px" /><span>Select all spectra</span>
+            </div>
+            <div style="display:flex;flex:1;flex-wrap:wrap">
+              {% for spectrum in cl.queryset %}
+              <div style="margin: 5px;border: 1px solid #ccc">
+                <a target="_blank" href="#">
+                  {% if spectrum.spec_pic != '' and spectrum.spec_pic != None %}
+                  <img src="{% static 'admin/media/'%}{{spectrum.spec_pic}}"  alt="" width="240" height="160">
+                  {% else %}
+                  <img src="{% static 'admin/media/spectrum_default.png' %}" alt="" width="240" height="160">
+                  {% endif %}
+                </a>
+                <div style="padding: 15px;"><input type="checkbox" style="margin-right:5px"><a href="#"><label style="font-weight:700">{{spectrum.origin}}</label></a></div>
               </div>
               {% endfor %}
             </div>
@@ -99,3 +139,9 @@
     </div>
   </div>
 {% endblock %}
+
+<script>
+function testClick(){
+ var v = document.getElementById('test-opt').value;alert(v);
+ }
+</script>

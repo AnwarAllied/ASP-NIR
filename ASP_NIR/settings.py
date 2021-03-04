@@ -22,7 +22,9 @@ ALLOWED_HOSTS = ["https://nirvascan.herokuapp.com/","*"]
 # Application definition
 
 INSTALLED_APPS = [
-
+    'core.apps.CoreConfig',
+    'spectraModelling.apps.SpectramodellingConfig',
+    'predictionModel.apps.PredictionmodelConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -34,9 +36,7 @@ INSTALLED_APPS = [
     'django_matplotlib',
     'chartjs',
     'core.apps.FlatPagesConfig',
-    'core.apps.CoreConfig',
-    'spectraModelling.apps.SpectramodellingConfig',
-    'predictionModel.apps.PredictionmodelConfig'
+
 ]
 
 MIDDLEWARE = [
@@ -125,6 +125,6 @@ STATICFILES_DIRS = [
 ]
 #django_heroku.settings(locals())
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'admin/media')
 
 SITE_ID = 1
