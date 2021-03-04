@@ -21,12 +21,12 @@ import numpy as np
 
 def index(request):
     template = loader.get_template('admin/index_pub.html')
-    flat_page=FlatPage.objects.get(url= '/welcome/')
+    flat_page=FlatPage.objects.get(url='/welcome/')
     context = {
         'has_permission': request.user.is_authenticated,
         'page': 'welcome',
         'title': flat_page.title,
-        'index_text' : flat_page.content,
+        'index_text': flat_page.content,
         'figure_header': "Example of interactive plotting:",
         'model':'Spectrum',
         'ids': '4,15,27,38,49'

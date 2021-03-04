@@ -46,6 +46,8 @@ class Spectrum(models.Model):
     y_axis = models.TextField()
     x_range_max = models.FloatField(blank=True, null=True)
     x_range_min = models.FloatField(blank=True, null=True)
+    #pic_name = models.CharField(max_length=60，blank=True, null=True)
+    #spec_picture = models.ImageField()
     nir_profile = models.ForeignKey(
         'NirProfile', on_delete=models.SET_NULL, blank=True, null=True)
 
