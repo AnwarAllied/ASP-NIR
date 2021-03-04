@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.contrib.admin import ModelAdmin
+import numpy as np
 
 from .models import Spectrum, NirProfile
 from spectraModelling.models import Poly, Match
@@ -67,15 +67,15 @@ class SpectrumAdmin(admin.ModelAdmin):
             qs = response.context_data['cl'].queryset  # get_queryset
         except (AttributeError, KeyError):
             return response
-        # print(qs, len(qs))
-        # print([i.spec_pic for i in Spectrum.objects.all()])
-        # print(response.context_data) #  'cl': <django.contrib.admin.views.main.ChangeList object at 0x000002461DC1A760>
-        # print(ChangeList.__dict__) #'apply_select_related': <function ChangeList.apply_select_related at 0x0000013A3665EE50>, 'has_related_field_in_list_display': <function ChangeList.has_related_field_in_list_display at 0x0000013A3665EEE0>, 'url_for_result': <function ChangeList.url_for_result at 0x0000013A3665EF70>
-        # print(response.context_data['cl'].get_results(request))
-        # print(response.context_data['cl'].has_related_field_in_list_display()) # False
-        ret =[i['spec_pic'] for i in qs.values('spec_pic')]
-        res = [j for j in ret if j!='' and j!=None]
-        print(res)
+
+        pics_info = [i['spec_pic'] for i in qs.values('spec_pic')]
+        origin = [i.origin for i in qs]
+        y_axis = [i.y() for i in qs]
+        # res = [j for j in pics_info if j!='' and j!=None]
+        # print(pics_info)
+        # print([i for i in zip(origin,pics_info,y_axis)][0])
+        response.context_data['new_cl'] = [i for i in zip(origin, pics_info, y_axis)]
+
 
         # to disable 1 spectrum selection for PCA and PLS model
         is_single_selected, message=single_item_selected(request, *['PCA_model','PLS_model'])

@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    # 'django.contrib.flatpages',
+    #'django.contrib.flatpages',
     'django_matplotlib',
     'chartjs',
     'core.apps.FlatPagesConfig',
