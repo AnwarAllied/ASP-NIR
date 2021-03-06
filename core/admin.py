@@ -76,6 +76,7 @@ class SpectrumAdmin(admin.ModelAdmin):
         # print([i for i in zip(origin,pics_info,y_axis)][0])
         # response.context_data['new_cl'] = [i for i in zip(origin, pics_info, y_axis)]
         # response.context_data['new_cl'] = [{'origin':i[0], 'pics_info':i[1], 'y_axis':i[2]} for i in response.context_data['new_cl']]
+        response.context_data['total_counter'] = len(qs)
 
         # to disable 1 spectrum selection for PCA and PLS model
         is_single_selected, message=single_item_selected(request, *['PCA_model','PLS_model'])
