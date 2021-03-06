@@ -67,10 +67,10 @@ class SpectrumAdmin(admin.ModelAdmin):
             qs = response.context_data['cl'].queryset  # get_queryset
         except (AttributeError, KeyError):
             return response
-
-        pics_info = [i['spec_pic'] for i in qs.values('spec_pic')]
-        origin = [i.origin for i in qs]
-        y_axis = [i.y() for i in qs]
+        # print(response.context_data.keys())
+        # pics_info = [i['spec_pic'] for i in qs.values('spec_pic')]
+        # origin = [i.origin for i in qs]
+        # y_axis = [i.y() for i in qs]
         # res = [j for j in pics_info if j!='' and j!=None]
         # print(pics_info)
         # print([i for i in zip(origin,pics_info,y_axis)][0])

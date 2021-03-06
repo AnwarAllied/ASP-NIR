@@ -1,4 +1,3 @@
-
 {% extends "admin/change_list.html" %}
 {% load i18n admin_urls static admin_list %}
 {% block extrastyle %}
@@ -17,7 +16,6 @@
     </style>
   {% endif %}
 {% endblock %}
-
 
 {% block extrahead %}
 {{ block.super }}
@@ -129,14 +127,25 @@ function checkboxCounter(){
 }
 
 function doAction(){
-    var action=document.getElementById('actionList').value;
+    var myaction=document.getElementById('actionList').value;
     spectra=document.querySelectorAll('input[name="spectrumCheckbox"]:checked');
     ids='';
     spectra.forEach(function(elm){ids+=elm.value.replace('spec_',',')});
 
-    if(action=='Plot spectra'){
-      alert(action);
-      location.replace("{% url 'line_chart_json' %}?model=Spectrum&ids="+ids.replace(',',''))
+    if(myaction=='Plot spectra'){
+      location.replace("{% url 'plot' %}?model=Spectrum&ids="+ids.replace(',',''));
+    }
+    else if(myaction=='PCA model'){
+      location.replace("{% url 'pca' %}?model=Spectrum&ids="+ids.replace(',',''));
+    }
+    else if(myaction=='PLS model'){
+      location.replace("{% url 'pls' %}?model=Spectrum&ids="+ids.replace(',',''));
+    }
+    else if(myaction=='Delete selected spectra'){
+      s=ids.replace(',','').split(',');
+      for(var id of s){
+      location.replace("/admin/core/spectrum/"+id+"/delete/");
+      }
     }
 }
 </script>
@@ -148,8 +157,8 @@ function doAction(){
             <option>PLS model</option>
             <option>Delete selected spectra</option>
           </select>
-          <input id="actionButton" type='submit' onclick="doAction(this)" value="Go">
-          <span id="selCounter">0</span>&nbsp;of&nbsp;<span id="allCounter">{{total_counter}}</span>
+          <input id="actionButton" onclick="doAction()" value="Go" name="_addanother" style="width:22px">
+          <span id="selCounter">0</span>&nbsp;of&nbsp;<span id="allCounter">{{total_counter}}&nbsp;selected</span>
 <!--          {% result_list cl %}-->
         <div class="spectra_list">
             <div id='selectAll'>
