@@ -76,7 +76,11 @@ class SpectrumAdmin(admin.ModelAdmin):
         # print([i for i in zip(origin,pics_info,y_axis)][0])
         # response.context_data['new_cl'] = [i for i in zip(origin, pics_info, y_axis)]
         # response.context_data['new_cl'] = [{'origin':i[0], 'pics_info':i[1], 'y_axis':i[2]} for i in response.context_data['new_cl']]
-        response.context_data['total_counter'] = len(qs)
+        # response.context_data['total_counter'] = len(qs)
+        # print(response.context_data['cl'].__dict__)
+        # print(response.context_data['action_form'])
+
+        print(admin.AdminSite().actions)
 
         # to disable 1 spectrum selection for PCA and PLS model
         is_single_selected, message=single_item_selected(request, *['PCA_model','PLS_model'])
@@ -85,6 +89,7 @@ class SpectrumAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(request.get_full_path())
         else:
             return response
+
 
     # def get_context_data(self, **kwargs):
     #     context = super().get_context_data()
@@ -223,9 +228,6 @@ def single_item_selected(request,*action_models):
             return True, msg
 
     return False, ''
-
-# def delete_selected_items(response):
-
 
 admin_site = MyAdminSite(name='myadmin')
 # Re-register FlatPageAdmin
