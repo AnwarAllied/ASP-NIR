@@ -3,6 +3,7 @@ from django.conf import settings
 from django.db import models
 import numpy as np
 from django.shortcuts import reverse
+from django.utils.html import format_html
 from django_matplotlib import MatplotlibFigureField as ma
 
 SCRIPT_CHOICES = (
@@ -46,6 +47,7 @@ class Spectrum(models.Model):
     y_axis = models.TextField()
     x_range_max = models.FloatField(blank=True, null=True)
     x_range_min = models.FloatField(blank=True, null=True)
+    spec_pic = models.ImageField(upload_to='spec_pics/', blank=True, null=True, verbose_name='Upload pic')
     nir_profile = models.ForeignKey(
         'NirProfile', on_delete=models.SET_NULL, blank=True, null=True)
 
@@ -78,6 +80,13 @@ class Spectrum(models.Model):
         return reverse("core:remove-from-graph", kwargs={
             'slug': self.slug()
         })
+
+    def spec_image(self):
+        if self.spec_pic:
+            return format_html('<img src="{}" style="width: 100px; height: 75px" />'.format('/media/'+ str(self.spec_pic)))
+        else:
+            return format_html('<img src="{}" style="width: 100px; height: 75px" />'.format('/media/spectrum_default.png'))
+    spec_image.short_description = 'Spec_pic'
         
     class Meta:
         verbose_name_plural = "Spectra"

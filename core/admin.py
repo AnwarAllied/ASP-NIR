@@ -45,6 +45,7 @@ class myFlatPageAdmin(FlatPageAdmin):
 
 class SpectrumAdmin(admin.ModelAdmin):
     view_on_site = False
+    change_list_template = 'admin/spectra_display_list.html'
     def save_model(self, request, obj, form, change):
         # change the delimiter to ", "
         delimiter=re.findall("[^\d\,\.\- ]+",obj.y_axis[:100])
@@ -53,14 +54,26 @@ class SpectrumAdmin(admin.ModelAdmin):
             obj.y_axis=re.sub(delimiter[0],', ',obj.y_axis)
         super().save_model(request, obj, form, change)
 
-        # to disable 1 spectrum selection for PCA and PLS model
+        
+        
     def changelist_view(self, request, extra_context=None):
+        
+        # to disable 1 spectrum selection for PCA and PLS model
         is_single_selected, message=single_item_selected(request, ['PCA_model','PLS_model'])
         if is_single_selected:
             self.message_user(request, message, messages.WARNING)
             return HttpResponseRedirect(request.get_full_path())
         else:
-            return super().changelist_view(request, extra_context=None)
+            # cutomize the changelist page of spectrum
+            response = super().changelist_view(request, extra_context=None)
+            response.render()
+            try:
+                qs = response.context_data['cl'].queryset  # get_queryset
+            except (AttributeError, KeyError):
+                return response
+
+            response.context_data['total_counter'] = len(qs)
+            return response
 
 class NirProfileAdmin(admin.ModelAdmin):
     view_on_site = False
