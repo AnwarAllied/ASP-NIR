@@ -62,126 +62,84 @@
         {% endif %}
 
         {% block result_list %}
-          <style>
-select{
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 5px 6px;
-    margin-top: 0;
-    height: 30px;
-    vertical-align: middle;
-    font-family: "Roboto", "Lucida Grande", Verdana, Arial, sans-serif;
-    font-weight: normal;
-    font-size: 13px;
-}
-  #actionButton{
-  margin: 2px 0 2px 2px;
-  padding: 2px 3px;
-  vertical-align: middle;
-  font-family: "Roboto", "Lucida Grande", Verdana, Arial, sans-serif;
-  font-weight: normal;
-  font-size: 13px;
-  background: #79aec8;
-  border: none;
-  border-radius: 4px;
-  color: #fff;
-  cursor: pointer;
-  }
-  #selectAll{
-  background:#e6e6e6;
-  padding:10px 0 10px 30px;
-  margin:30px 0 10px 0;
-  }
-  #listContainer{
-     display:flex;
-     flex:1;
-     flex-wrap:wrap;
-  }
-  .gallery{
-    margin: 5px;
-    border: 1px solid #ccc;
-  }
-</style>
-<script>
-  function toggle(source){
-  var allCheckboxes=document.querySelectorAll('input[name="spectrumCheckbox"]');
-  var counter=document.getElementById('selCounter');
-  for(var checkbox of allCheckboxes){
-    checkbox.checked=source.checked;
-  }
-  var numChecked=document.querySelectorAll('input[name="spectrumCheckbox"]:checked').length;
-  counter.textContent=numChecked;
-}
+         <style>
 
-function checkboxCounter(){
-  var allSelector=document.getElementById('allSelector');
-  var counter=document.getElementById('selCounter');
-  var allCheckboxes=document.querySelectorAll('input[name="spectrumCheckbox"]');
-  for(var checkbox of allCheckboxes){
-    if(checkbox.checked==false){
-      allSelector.checked=false;
-    }
-  }
-  var numChecked=document.querySelectorAll('input[name="spectrumCheckbox"]:checked').length;
-  counter.textContent=numChecked;
-}
+          .selectAll{
+          background:#e6e6e6;
+          padding:10px 0 10px 30px;
+          margin:30px 0 10px 0;
+          }
+          #listContainer{
+             display:flex;
+             flex:1;
+             flex-wrap:wrap;
+          }
+          .gallery{
+            margin: 5px;
+            border: 1px solid #ccc;
+          }
+          .actionButton{
+          margin: 2px 0 2px 2px;
+          padding: 2px 3px;
+          vertical-align: middle;
+          font-family: "Roboto", "Lucida Grande", Verdana, Arial, sans-serif;
+          font-weight: normal;
+          font-size: 13px;
+          background: #79aec8;
+          border: none;
+          border-radius: 4px;
+          color: #fff;
+          cursor: pointer;
+          }
 
-function doAction(){
-    var myaction=document.getElementById('actionList').value;
-    spectra=document.querySelectorAll('input[name="spectrumCheckbox"]:checked');
-    ids='';
-    spectra.forEach(function(elm){ids+=elm.value.replace('spec_',',')});
-
-    if(myaction=='Plot spectra'){
-      location.replace("{% url 'plot' %}?model=Spectrum&ids="+ids.replace(',',''));
-    }
-    else if(myaction=='PCA model'){
-      location.replace("{% url 'pca' %}?model=Spectrum&ids="+ids.replace(',',''));
-    }
-    else if(myaction=='PLS model'){
-      location.replace("{% url 'pls' %}?model=Spectrum&ids="+ids.replace(',',''));
-    }
-    else if(myaction=='Delete selected spectra'){
-      s=ids.replace(',','').split(',');
-      for(var id of s){
-      location.replace("/admin/core/spectrum/"+id+"/delete/");
-      }
-    }
-}
-</script>
-<!--          {% if action_form and actions_on_top and cl.show_admin_actions %}{% admin_actions %}{% endif %}-->
-          <span>Action:&nbsp;</span><select id="actionList" name="actionList">
-            <option selected>---------</option>
-            <option>Plot spectra</option>
-            <option>PCA model</option>
-            <option>PLS model</option>
-            <option>Delete selected spectra</option>
-          </select>
-          <input id="actionButton" onclick="doAction()" value="Go" name="_addanother" style="width:22px">
-          <span id="selCounter">0</span>&nbsp;of&nbsp;<span id="allCounter">{{total_counter}}&nbsp;selected</span>
-<!--          {% result_list cl %}-->
-        <div class="spectra_list">
-            <div id='selectAll'>
-              <input id="allSelector" type="checkbox" onclick="toggle(this)" style="margin-right:10px" /><span>Select all spectra</span>
-            </div>
-            <div id='listContainer'>
-              {% for spectrum in cl.queryset %}
-              <div class='gallery'>
-                <a href="/admin/core/spectrum/{{spectrum.id}}/change">
-                  {% if spectrum.spec_pic != '' and spectrum.spec_pic != None %}
-                  <img src="{% static 'admin/media/'%}{{spectrum.spec_pic}}"  alt="" width="240" height="160">
-                  {% else %}
-                  <img src="{% static 'admin/media/spectrum_default.png' %}" alt="" width="240" height="160">
-                  {% endif %}
-                </a>
-                <div style="padding: 15px;">
-                  <input value="spec_{{spectrum.id}}" onclick="checkboxCounter()" name="spectrumCheckbox" type="checkbox" style="margin-right:5px">
-                  <a href="/admin/core/spectrum/{{spectrum.id}}/change"><label style="font-weight:700">{{spectrum.origin}}</label></a>
+          .changeToBigPic{
+           background: #e6e6e6;
+          padding:10px 0 10px 10px;
+          margin:30px 0 10px 0;
+          }
+        </style>
+        <script>
+        function toggle(source){
+          var allCheckboxes=document.querySelectorAll('input[name="_selected_action"]');
+          for(var checkbox of allCheckboxes){
+            checkbox.checked=source.checked;
+          }
+        }
+        </script>
+        {% if action_form and actions_on_top and cl.show_admin_actions %}{% admin_actions %}{% endif %}
+            <div class="results">
+                <div id="result_list">
+                    {% if is_big_pic %}
+                    <div class='selectAll'>
+                        <input id="allSelector" type="checkbox" onclick="toggle(this)" style="margin-right:10px" /><span id="togglePic">Select all spectra</span>
+                        <form action="post">
+                            <input id="changeToSmallPic" type="submit" name="smallPic" style="margin-left:60px" value="Change to small picture view"  />
+                        </form>
+                    </div>
+                     <div id='listContainer'>
+                          {% for spectrum in cl.queryset %}
+                          <div class='gallery'>
+                            <a href="/admin/core/spectrum/{{spectrum.id}}/change">
+                              {% if spectrum.spec_pic != '' and spectrum.spec_pic != None %}
+                              <img src="{% static 'admin/media/'%}{{spectrum.spec_pic}}"  alt="" width="240" height="160">
+                              {% else %}
+                              <img src="{% static 'admin/media/spectrum_default.png' %}" alt="" width="240" height="160">
+                              {% endif %}
+                            </a>
+                            <div class="action-checkbox">
+                              <input type="checkbox" name="_selected_action" value="{{spectrum.id}}" class="action-select" style="margin:10px">
+                              <a href="/admin/core/spectrum/{{spectrum.id}}/change"><label style="font-weight:700">{{spectrum.origin}}</label></a>
+                            </div>
+                          </div>
+                          {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="changeToBigPic"><img src="{% static 'admin/img/image.svg'%}" style="width:15px;color:#999;margin:0 10px -3px 10px"><a href="/admin/core/spectrum/">Change to big picture view</a></div>
+                    {% result_list cl %}
+                    {% endif %}
                 </div>
-              </div>
-              {% endfor %}
-        </div>
-          {% if action_form and actions_on_bottom and cl.show_admin_actions %}{% admin_actions %}{% endif %}
+            </div>
+        {% if action_form and actions_on_bottom and cl.show_admin_actions %}{% admin_actions %}{% endif %}
         {% endblock %}
         {% block pagination %}{% pagination cl %}{% endblock %}
         </form>
