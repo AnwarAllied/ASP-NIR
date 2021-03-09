@@ -87,9 +87,9 @@ class Spectrum(models.Model):
 
     def spec_image(self):
         if self.spec_pic:
-            return format_html('<img src="{}" style="width: 100px; height: 75px" />'.format('/media/'+ str(self.spec_pic)))
+            return format_html('<img src="{}" style="width: 120px; height: 80px" />'.format('/media/'+ str(self.spec_pic)))
         else:
-            return format_html('<img src="{}" style="width: 100px; height: 75px" />'.format('/media/spectrum_default.png'))
+            return format_html('<img src="{}" style="width: 120px; height: 80px" />'.format('/media/spectrum_default.png'))
     spec_image.short_description = 'Spec_pic'
         
     class Meta:
