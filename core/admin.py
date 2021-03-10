@@ -15,6 +15,7 @@ from django.contrib import messages
 from django.contrib.flatpages.models import FlatPage
 from django.contrib.flatpages.admin import FlatPageAdmin
 from django.utils.translation import gettext_lazy as _
+from django.contrib.admin.templatetags.admin_list import results
 import re
 # import pickle
 
@@ -45,7 +46,7 @@ class myFlatPageAdmin(FlatPageAdmin):
 
 class SpectrumAdmin(admin.ModelAdmin):
     view_on_site = False
-    change_list_template = 'admin/spectra_display_list.html'
+    # change_list_template = 'admin/spectra_display_list.html'
     def save_model(self, request, obj, form, change):
         # change the delimiter to ", "
         delimiter=re.findall("[^\d\,\.\- ]+",obj.y_axis[:100])
@@ -57,7 +58,7 @@ class SpectrumAdmin(admin.ModelAdmin):
         
         
     def changelist_view(self, request, extra_context=None):
-        
+
         # to disable 1 spectrum selection for PCA and PLS model
         is_single_selected, message=single_item_selected(request, ['PCA_model','PLS_model'])
         if is_single_selected:
@@ -66,13 +67,19 @@ class SpectrumAdmin(admin.ModelAdmin):
         else:
             # cutomize the changelist page of spectrum
             response = super().changelist_view(request, extra_context=None)
-            response.render()
-            try:
-                qs = response.context_data['cl'].queryset  # get_queryset
-            except (AttributeError, KeyError):
-                return response
+            # response.render()
+            # try:
+            #     qs = response.context_data['cl'].queryset  # get_queryset
+            # except (AttributeError, KeyError):
+            #     return response
 
-            response.context_data['total_counter'] = len(qs)
+            # response.context_data['total_counter'] = len(qs)
+            if 'context_data' in dir(response):
+                if 'cl' in response.context_data.keys():
+                    cl=response.context_data['cl']
+                    qs = cl.queryset
+                    result=list(results(cl))   # this is the results found in the changelist_results html.
+                    response.context_data['items']=[[i for i in r]+[q.spec_image()] for r,q in zip(result,qs.all())]
             return response
 
 class NirProfileAdmin(admin.ModelAdmin):
