@@ -76,19 +76,27 @@
              justify-content:center;
              flex:1;
              flex-wrap:wrap;
+             border-bottom:1px solid #e6e6e6;
           }
           .gallery{
             margin:10px;
             border: 1px solid #ccc;
           }
           .changeToBigPic{
-          width:300px;
+          width:260px;
           padding:10px 0 10px 10px;
           margin:30px 0 10px 0;
           font-size:11px;
           text-transform:uppercase;
           border-radius:15px;
-          background:#ccc;
+          background:#999;
+          letter-spacing:0.5px;
+          }
+          .changeToBigPic:hover{
+          background:#447e9b;
+          }
+          .changeToBigPic a:link, .changeToBigPic a:visited{
+          color:#fff;
           }
           #changeToSmallPic{
           margin:0 10px 0 auto;
@@ -97,6 +105,7 @@
           padding-top:-3px;
           font-size:11px;
           text-transform:uppercase;
+          letter-spacing:0.5px;
           }
 
 
@@ -138,8 +147,8 @@
                     </div>
                     {% else %}
                     <div class="changeToBigPic">
-                        <img src="{% static 'admin/img/image.svg'%}" style="width:15px;color:#999;margin:0 10px -3px 10px">
-                        <a href="/admin/core/spectrum/"><b>Change to big picture view</b></a>
+                        <img src="{% static 'admin/img/image.svg'%}" style="width:15px;margin:0 10px -3px 10px">
+                        <a href="/admin/core/spectrum/">Change to big picture view</a>
                     </div>
                     {% result_list cl %}
                     {% endif %}

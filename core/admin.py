@@ -53,6 +53,9 @@ class SpectrumAdmin(admin.ModelAdmin):
 
     # readonly_fields = ('spec_image',)
     def save_model(self, request, obj, form, change):
+        # compress the image uploaded
+
+
         # change the delimiter to ", "
         delimiter=re.findall("[^\d\,\.\- ]+",obj.y_axis[:100])
         if delimiter:
