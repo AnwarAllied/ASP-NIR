@@ -118,23 +118,24 @@
           }
         }
         </script>
+
         {% if action_form and actions_on_top and cl.show_admin_actions %}{% admin_actions %}{% endif %}
             <div class="results">
                 <div id="result_list">
+
                     {% if is_big_pic %}
-                    <div class='selectAll'>
+                    <div class="selectAll">
                         <input id="allSelector" type="checkbox" onclick="toggle(this)" style="margin-right:10px" /><span id="togglePic">Select all spectra</span>
-                        <form action="post">
-                            <input id="changeToSmallPic" type="submit" name="smallPic" value="Change to small picture view"  />
-                        </form>
+                        <input id="changeToSmallPic" type="submit" name="smallPic" value="Switch to small picture view"  />
                     </div>
                      <div id='listContainer'>
                           {% for spectrum in cl.queryset %}
                           <div class='gallery'>
                             <a href="/admin/core/spectrum/{{spectrum.id}}/change">
                               {% if spectrum.spec_pic != '' and spectrum.spec_pic != None %}
-                              <img src="{% static 'admin/media/'%}{{spectrum.spec_pic}}"  alt="" width="240" height="160">
-                              {% else %}
+                              <img src="{% static 'admin/media/' %}{{spectrum.spec_pic}}"  alt="" width="240" height="160">
+
+                                {% else %}
                               <img src="{% static 'admin/media/spectrum_default.png' %}" alt="" width="240" height="160">
                               {% endif %}
                             </a>
@@ -148,7 +149,7 @@
                     {% else %}
                     <div class="changeToBigPic">
                         <img src="{% static 'admin/img/image.svg'%}" style="width:15px;margin:0 10px -3px 10px">
-                        <a href="/admin/core/spectrum/">Change to big picture view</a>
+                        <a href="/admin/core/spectrum/">Switch to big picture view</a>
                     </div>
                     {% result_list cl %}
                     {% endif %}

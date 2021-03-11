@@ -18,6 +18,7 @@ from django.contrib.flatpages.models import FlatPage
 from django.contrib.flatpages.admin import FlatPageAdmin
 from django.utils.translation import gettext_lazy as _
 import re
+import dropbox
 # from django.contrib.admin.views.main import ChangeList
 # import pickle
 
@@ -53,8 +54,8 @@ class SpectrumAdmin(admin.ModelAdmin):
 
     # readonly_fields = ('spec_image',)
     def save_model(self, request, obj, form, change):
-        # compress the image uploaded
-
+        # images on dropbox
+        dbx=dropbox.Dropbox()
 
         # change the delimiter to ", "
         delimiter=re.findall("[^\d\,\.\- ]+",obj.y_axis[:100])

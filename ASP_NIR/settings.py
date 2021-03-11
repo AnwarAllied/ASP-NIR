@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'django_matplotlib',
     'chartjs',
     'core.apps.FlatPagesConfig',
-
+    'django_dropbox_storage',
 ]
 
 MIDDLEWARE = [
@@ -135,4 +135,13 @@ DJANGORESIZED_DEFAULT_FORCE_FORMAT = 'JPEG'
 DJANGORESIZED_DEFAULT_FORMAT_EXTENSIONS = {'JPEG': ".jpg"}
 DJANGORESIZED_DEFAULT_NORMALIZE_ROTATION = True
 
+
+#dropbox cloud storage
+DEFAULT_FILE_STORAGE = 'django_dropbox_storage.storage.DropboxStorage'
+DROPBOX_ACCESS_TOKEN = '_TCiPNi1C1YAAAAAAAAAAX-d-rG6apIe20SXhXb9wKfS9dJ0iX89ppR_V6NYUQhr'
+# DROPBOX_ROOT_PATH = '/spec-pics'
+DROPBOX_ROOT_FOLDER = '/nirpics'
+
+
+#sites
 SITE_ID = 1
