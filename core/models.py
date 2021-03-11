@@ -49,7 +49,7 @@ class Spectrum(models.Model):
     y_axis = models.TextField()
     x_range_max = models.FloatField(blank=True, null=True)
     x_range_min = models.FloatField(blank=True, null=True)
-    # pic_name = models.CharField(max_length=60, blank=True, null=True)
+    pic_path = models.CharField(max_length=300, blank=True, null=True)
     spec_pic = ResizedImageField(crop=['middle', 'center'], upload_to='',storage=DropboxStorage(), blank=True, null=True, verbose_name='Upload pic')
     nir_profile = models.ForeignKey(
         'NirProfile', on_delete=models.SET_NULL, blank=True, null=True)
@@ -69,8 +69,8 @@ class Spectrum(models.Model):
     def label(self):
         return self.origin
 
-    # def picname(self):
-    #     return self.pic_name
+    def picpath(self):
+        return self.pic_path
 
     def get_absolute_url(self):
         return reverse("core:spectrum", kwargs={
@@ -89,7 +89,7 @@ class Spectrum(models.Model):
 
     def spec_image(self):
         if self.spec_pic:
-            return format_html('<img src="{}" style="width: 120px; height: 80px" />'.format('/media/'+ str(self.spec_pic)))
+            return format_html('<img src="{}" style="width: 120px; height: 80px" />'.format(str(self.pic_path)))
         else:
             return format_html('<img src="{}" style="width: 120px; height: 80px" />'.format('/media/spectrum_default.png'))
     spec_image.short_description = 'Spec_pic'

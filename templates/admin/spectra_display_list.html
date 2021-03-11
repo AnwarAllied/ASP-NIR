@@ -133,7 +133,7 @@
                           <div class='gallery'>
                             <a href="/admin/core/spectrum/{{spectrum.id}}/change">
                               {% if spectrum.spec_pic != '' and spectrum.spec_pic != None %}
-                              <img src="{% static 'admin/media/' %}{{spectrum.spec_pic}}"  alt="" width="240" height="160">
+                              <img src={{spectrum.pic_path}}  alt="" width="240" height="160">
 
                                 {% else %}
                               <img src="{% static 'admin/media/spectrum_default.png' %}" alt="" width="240" height="160">
