@@ -7,6 +7,7 @@ from django.utils.html import format_html
 from django_matplotlib import MatplotlibFigureField as ma
 from django_resized import ResizedImageField
 from django_dropbox_storage.storage import DropboxStorage
+import dropbox
 
 SCRIPT_CHOICES = (
     ('A', 'Apout'),
@@ -50,7 +51,8 @@ class Spectrum(models.Model):
     x_range_max = models.FloatField(blank=True, null=True)
     x_range_min = models.FloatField(blank=True, null=True)
     pic_path = models.CharField(max_length=300, blank=True, null=True)
-    spec_pic = ResizedImageField(crop=['middle', 'center'], upload_to='',storage=DropboxStorage(), blank=True, null=True, verbose_name='Upload pic')
+    spec_pic = ResizedImageField(crop=['middle', 'center'], upload_to='nirpics',storage=DropboxStorage(),
+                                 blank=True, null=True, verbose_name='Upload pic')
     nir_profile = models.ForeignKey(
         'NirProfile', on_delete=models.SET_NULL, blank=True, null=True)
 
