@@ -62,13 +62,12 @@ class SpectrumAdmin(admin.ModelAdmin):
             # print('Delimiter changed from: %r' % delimiter[0])
             obj.y_axis=re.sub(delimiter[0],', ',obj.y_axis)
         super().save_model(request, obj, form, change)
-        # spectra=Spectrum.objects.all()
-        # for i in spectra:
-        #     if i.spec_pic == obj.spec_pic:
-        #         obj.pic_path=i.pic_path
-        #     elif i==len(spectra)-1 and i.spec_pic != obj.spec_pic:
-        #
-        obj.pic_path = getDropboxImgUrl()
+        spectra=Spectrum.objects.all()
+        for i in spectra:
+            if i.spec_pic == obj.spec_pic:
+                obj.pic_path=i.pic_path
+            elif i==len(spectra)-1 and i.spec_pic != obj.spec_pic:
+                obj.pic_path = getDropboxImgUrl()
         obj.save()
 
         # cutomize the changelist page of spectrum

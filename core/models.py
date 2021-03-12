@@ -99,14 +99,6 @@ class Spectrum(models.Model):
     class Meta:
         verbose_name_plural = "Spectra"
 
-# class SpectraDisplay(Spectrum):
-#     class Meta:
-#         proxy = True
-#         verbose_name = 'Spectrum information'
-#         verbose_name_plural = 'Spectra information'
-#
-
-
 class NirProfile(models.Model):
     title = models.CharField(max_length=100)
 
