@@ -62,13 +62,19 @@ class SpectrumAdmin(admin.ModelAdmin):
             # print('Delimiter changed from: %r' % delimiter[0])
             obj.y_axis=re.sub(delimiter[0],', ',obj.y_axis)
         super().save_model(request, obj, form, change)
-        spectra=Spectrum.objects.all()
-        for i in spectra:
-            if i.spec_pic == obj.spec_pic:
-                obj.pic_path=i.pic_path
-            elif i==len(spectra)-1 and i.spec_pic != obj.spec_pic:
-                obj.pic_path = getDropboxImgUrl()
-        obj.save()
+        # only when a picture is uploaded, otherwise nothing happens
+        if request.FILES:
+            obj.pic_path = getDropboxImgUrl()  # assign pic url on dropbox to the spectrum
+            '''
+            because the uploaded picture has a new url on dropbox, we have to 
+            update the pic_path of all the spectra with the same spec_pic
+            '''
+            spectra = Spectrum.objects.all()
+            for i in spectra:
+                if i.spec_pic and i.spec_pic == obj.spec_pic:
+                    i.pic_path = obj.pic_path
+                    i.save()
+            obj.save()
 
         # cutomize the changelist page of spectrum
     def changelist_view(self, request, extra_context=None):
