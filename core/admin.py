@@ -4,7 +4,8 @@ from spectraModelling.models import Poly, Match
 from predictionModel.admin import PcaModel, myPcaModelAdmin, PlsModel, myPlsModelAdmin
 from spectraModelling.admin import myMatchAdmin, myPolyAdmin
 
-from .forms import NirProfileForm
+from ASP_NIR.settings import DROPBOX_ACCESS_TOKEN
+from .forms import NirProfileForm, SpectrumForm
 from django.contrib.auth.models import Group ,User
 from django.core import serializers
 from django.http import HttpResponse
@@ -16,7 +17,7 @@ from django.contrib.flatpages.models import FlatPage
 from django.contrib.flatpages.admin import FlatPageAdmin
 from django.utils.translation import gettext_lazy as _
 from django.contrib.admin.templatetags.admin_list import results
-import re
+import re, json, dropbox, requests
 # import pickle
 
 
@@ -46,16 +47,25 @@ class myFlatPageAdmin(FlatPageAdmin):
 
 class SpectrumAdmin(admin.ModelAdmin):
     view_on_site = False
-    # change_list_template = 'admin/spectra_display_list.html'
+    form = SpectrumForm
+    change_list_template = 'admin/spectra_display_list.html'
+    list_display = ('__str__','spec_image')
+
     def save_model(self, request, obj, form, change):
         # change the delimiter to ", "
         delimiter=re.findall("[^\d\,\.\- ]+",obj.y_axis[:100])
         if delimiter:
-            print('Delimiter changed from: %r' % delimiter[0])
+            # print('Delimiter changed from: %r' % delimiter[0])
             obj.y_axis=re.sub(delimiter[0],', ',obj.y_axis)
-        super().save_model(request, obj, form, change)
+        # Handel Dropbox images:
+        if request.FILES:
+            spectrum=Spectrum.objects.filter(spec_pic=obj.spec_pic).first()
+            if spectrum:
+                obj.pic_path = spectrum.pic_path
+            else:
+                obj.pic_path = getDropboxImgUrl()
 
-        
+        super().save_model(request, obj, form, change)
         
     def changelist_view(self, request, extra_context=None):
 
@@ -67,19 +77,23 @@ class SpectrumAdmin(admin.ModelAdmin):
         else:
             # cutomize the changelist page of spectrum
             response = super().changelist_view(request, extra_context=None)
-            # response.render()
-            # try:
-            #     qs = response.context_data['cl'].queryset  # get_queryset
-            # except (AttributeError, KeyError):
-            #     return response
+            try:
+                qs = response.context_data['cl'].queryset  # get_queryset
+            except (AttributeError, KeyError):
+                return response
 
-            # response.context_data['total_counter'] = len(qs)
-            if 'context_data' in dir(response):
-                if 'cl' in response.context_data.keys():
-                    cl=response.context_data['cl']
-                    qs = cl.queryset
-                    result=list(results(cl))   # this is the results found in the changelist_results html.
-                    response.context_data['items']=[[i for i in r]+[q.spec_image()] for r,q in zip(result,qs.all())]
+            if 'smallPic' in request.POST.keys():
+                response.context_data['is_big_pic'] = False
+            else:
+                response.context_data['is_big_pic'] = True
+
+            # To over-ride change-list-results:
+            # if 'context_data' in dir(response):
+            #     if 'cl' in response.context_data.keys():
+            #         cl=response.context_data['cl']
+            #         qs = cl.queryset
+            #         result=list(results(cl))   # this is the results found in the changelist_results html.
+            #         response.context_data['items']=[[i for i in r]+[q.spec_image()] for r,q in zip(result,qs.all())]
             return response
 
 class NirProfileAdmin(admin.ModelAdmin):
@@ -212,7 +226,21 @@ def single_item_selected(request, action_model):
 
     return False, ''
 
-
+def getDropboxImgUrl():
+    dbx = dropbox.Dropbox(DROPBOX_ACCESS_TOKEN)
+    imgs=[i.name for i in dbx.files_list_folder('/nirpics').entries]
+    url=''
+    if imgs!=[] :
+        img=imgs[len(imgs)-1]
+        url = "https://api.dropboxapi.com/2/sharing/create_shared_link"
+        headers = {"Authorization": "Bearer "+DROPBOX_ACCESS_TOKEN,
+                   "Content-Type": "application/json"}
+        data = {"path": "/nirpics/"+img}
+        r = requests.post(url, headers=headers, data=json.dumps(data))
+        rn = json.loads(r.text)
+        url = rn['url'].replace('www.dropbox.com', 'dl.dropboxusercontent.com')
+        print(url)
+    return url
 
 admin_site = MyAdminSite(name='myadmin')
 # Re-register FlatPageAdmin

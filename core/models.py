@@ -5,6 +5,27 @@ import numpy as np
 from django.shortcuts import reverse
 from django.utils.html import format_html
 from django_matplotlib import MatplotlibFigureField as ma
+from django_resized import ResizedImageField
+try:
+    from django_dropbox_storage.storage import DropboxStorage
+except Exception as e:
+    import traceback
+    print('/'*20, 'Upgrade DropboxStorage to Python 3', '/'*20)
+    t=traceback.format_exc()
+    pa=t.split('File "')[1].split('", line')[0]
+    print('Storage path:',pa)
+    fi=open(pa,'r+')
+    old=fi.read()
+    fi.seek(0) # rewind
+    new=old[:old.find('try')]+'try:\n    from io import StringIO ## for Python 3'+old[old.find('IO\n')+2:]
+    new=new.replace('count.next()','next(count)')
+    fi.write(new)
+    print(new[:200], '...')
+    fi.close()
+    print('/'*20, 'Upgraded', '/'*20)
+    from django_dropbox_storage.storage import DropboxStorage
+
+import dropbox
 
 SCRIPT_CHOICES = (
     ('A', 'Apout'),
@@ -47,10 +68,12 @@ class Spectrum(models.Model):
     y_axis = models.TextField()
     x_range_max = models.FloatField(blank=True, null=True)
     x_range_min = models.FloatField(blank=True, null=True)
-    spec_pic = models.ImageField(upload_to='spec_pics/', blank=True, null=True, verbose_name='Upload pic')
+    pic_path = models.CharField(max_length=300, blank=True, null=True)
+    spec_pic = ResizedImageField(crop=['middle', 'center'], upload_to='nirpics',storage=DropboxStorage(),
+                                 blank=True, null=True, verbose_name='Upload pic')
     nir_profile = models.ForeignKey(
         'NirProfile', on_delete=models.SET_NULL, blank=True, null=True)
-
+        
     def __str__(self):
         return self.origin
 
@@ -65,6 +88,9 @@ class Spectrum(models.Model):
 
     def label(self):
         return self.origin
+
+    def picpath(self):
+        return self.pic_path
 
     def get_absolute_url(self):
         return reverse("core:spectrum", kwargs={
@@ -82,10 +108,10 @@ class Spectrum(models.Model):
         })
 
     def spec_image(self):
-        if self.spec_pic:
-            return format_html('<img src="{}" style="width: 100px; height: 75px" />'.format('/media/'+ str(self.spec_pic)))
+        if self.pic_path:
+            return format_html('<img src="{}" style="width: 120px; height: 80px" />'.format(str(self.pic_path)))
         else:
-            return format_html('<img src="{}" style="width: 100px; height: 75px" />'.format('/media/spectrum_default.png'))
+            return format_html('<img src="{}" style="width: 120px; height: 80px" />'.format('/media/spectrum_default.png'))
     spec_image.short_description = 'Spec_pic'
         
     class Meta:

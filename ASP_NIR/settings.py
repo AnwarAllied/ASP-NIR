@@ -36,7 +36,8 @@ INSTALLED_APPS = [
     'core.apps.FlatPagesConfig',
     'core.apps.CoreConfig',
     'spectraModelling.apps.SpectramodellingConfig',
-    'predictionModel.apps.PredictionmodelConfig'
+    'predictionModel.apps.PredictionmodelConfig',
+    'django_dropbox_storage'
 ]
 
 MIDDLEWARE = [
@@ -125,6 +126,21 @@ STATICFILES_DIRS = [
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'static/admin/media')
+
+#resize uploaded images
+DJANGORESIZED_DEFAULT_SIZE = [600, 400]
+DJANGORESIZED_DEFAULT_QUALITY = 75
+DJANGORESIZED_DEFAULT_KEEP_META = True
+DJANGORESIZED_DEFAULT_FORCE_FORMAT = 'JPEG'
+DJANGORESIZED_DEFAULT_FORMAT_EXTENSIONS = {'JPEG': ".jpg"}
+DJANGORESIZED_DEFAULT_NORMALIZE_ROTATION = True
+
+
+#dropbox cloud storage
+DEFAULT_FILE_STORAGE = 'django_dropbox_storage.storage.DropboxStorage'
+DROPBOX_ACCESS_TOKEN = '3BhWi_VVheoAAAAAAAAAAQ2r_e4RcY9aCfaSbgIx83BcLCi9q2NkCvKjH8SOgSEy'
+# DROPBOX_ROOT_PATH = '/spec-pics'
+# DROPBOX_ROOT_FOLDER = '/nirpics'
 
 django_heroku.settings(locals())
 

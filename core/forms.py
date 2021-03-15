@@ -1,5 +1,5 @@
 from django import forms
-from .models import NirProfile
+from .models import NirProfile, Spectrum
 from django.core.exceptions import ValidationError
 
 def validate_file_extension(value):
@@ -16,6 +16,10 @@ class NirProfileForm(forms.ModelForm):
         model = NirProfile
         fields = ['nir_type', 'nir_method', 'nir_configuration','figure_id', 'figure_title', 'figure_caption', 'x_label', 'y_label', 'x_min', 'x_max','y_min', 'y_max','reference_type', 'reference_title', 'reference_link']
 
+class SpectrumForm(forms.ModelForm):
+    class Meta:
+        model = Spectrum
+        exclude = ['pic_path']
 # Creating a form to add an article.
 # form = ArticleForm()
 

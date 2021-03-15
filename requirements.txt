@@ -2,9 +2,12 @@ asgiref==3.3.1
 cycler==0.10.0
 dj-database-url==0.5.0
 django-chartjs==2.2.1
+django-dropbox-storage==0.4.1
 django-heroku==0.3.1
 django-matplotlib==0.1
+django-resized==0.3.11
 django==3.1.4
+dropbox==11.4.1
 et-xmlfile==1.0.1
 gunicorn==20.0.4
 jdcal==1.4.1
