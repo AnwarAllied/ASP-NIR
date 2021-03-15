@@ -6,8 +6,24 @@ from django.shortcuts import reverse
 from django.utils.html import format_html
 from django_matplotlib import MatplotlibFigureField as ma
 from django_resized import ResizedImageField
-from django_dropbox_storage.storage import DropboxStorage
-import dropbox
+try:
+     from django_dropbox_storage.storage import DropboxStorage
+except Exception as e:
+     import traceback
+     print('/'*20, 'Upgrade DropboxStorage to Python 3', '/'*20)
+     t=traceback.format_exc()
+     pa=t.split('File "')[1].split('", line')[0]
+     print('Storage path:',pa)
+     fi=open(pa,'r+')
+     old=fi.read()
+     fi.seek(0) # rewind
+     new=old[:old.find('try')]+'try:\n    from io import StringIO ## for Python 3'+old[old.find('IO\n')+2:]
+     new=new.replace('count.next()','next(count)')
+     fi.write(new)
+     print(new[:200], '...')
+     fi.close()
+     print('/'*20, 'Upgraded', '/'*20)
+     from django_dropbox_storage.storage import DropboxStorage
 
 SCRIPT_CHOICES = (
     ('A', 'Apout'),
@@ -41,7 +57,12 @@ NIR_TYPE_CHOICES = (
 
 #     def __str__(self):
 #         return self.user.username
-
+class myStorage(DropboxStorage):
+    def get_available_name(self, name, max_length=None):
+        name = self._get_abs_path(name)
+        if self.exists(name):
+            self.delete(name)
+        return name
 
 class Spectrum(models.Model):
     origin = models.CharField(max_length=60)
@@ -51,7 +72,7 @@ class Spectrum(models.Model):
     x_range_max = models.FloatField(blank=True, null=True)
     x_range_min = models.FloatField(blank=True, null=True)
     pic_path = models.CharField(max_length=300, blank=True, null=True)
-    spec_pic = ResizedImageField(crop=['middle', 'center'], upload_to='nirpics',storage=DropboxStorage(),
+    spec_pic = ResizedImageField(crop=['middle', 'center'], upload_to='nirpics',storage=myStorage(),
                                  blank=True, null=True, verbose_name='Upload pic')
     nir_profile = models.ForeignKey(
         'NirProfile', on_delete=models.SET_NULL, blank=True, null=True)

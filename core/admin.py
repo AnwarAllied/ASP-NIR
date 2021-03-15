@@ -251,6 +251,7 @@ def getDropboxImgUrl():
         r = requests.post(url, headers=headers, data=json.dumps(data))
         rn = json.loads(r.text)
         url = rn['url'].replace('www.dropbox.com', 'dl.dropboxusercontent.com')
+        url = url.replace('?dl=0', '')
         print(url)
     return url
 
