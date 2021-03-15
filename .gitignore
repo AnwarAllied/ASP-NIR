@@ -3,3 +3,5 @@ Pipfile.lock
 db.sqlite3
 venv/
 .idea/
+
+!venv/Lib/site-packages/django_dropbox_storage/storage.py

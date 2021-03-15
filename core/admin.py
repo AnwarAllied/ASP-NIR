@@ -63,7 +63,6 @@ class SpectrumAdmin(admin.ModelAdmin):
             # print('Delimiter changed from: %r' % delimiter[0])
             obj.y_axis=re.sub(delimiter[0],', ',obj.y_axis)
         super().save_model(request, obj, form, change)
-        
         obj.pic_path = getDropboxImgUrl()
         obj.save()
 
@@ -84,7 +83,7 @@ class SpectrumAdmin(admin.ModelAdmin):
         # response.context_data['new_cl'] = [i for i in zip(origin, pics_info, y_axis)]
         # response.context_data['new_cl'] = [{'origin':i[0], 'pics_info':i[1], 'y_axis':i[2]} for i in response.context_data['new_cl']]
         # response.context_data['total_counter'] = len(qs)
-        response.context_data['pic'] = getDropboxImgUrl()
+        # response.context_data['pic'] = getDropboxImgUrl()
         if 'smallPic' in request.POST.keys():
             response.context_data['is_big_pic'] = False
         else:
