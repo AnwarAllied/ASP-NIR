@@ -47,7 +47,7 @@ class myFlatPageAdmin(FlatPageAdmin):
 
 class SpectrumAdmin(admin.ModelAdmin):
     view_on_site = False
-    form = SpectrumForm
+    # form = SpectrumForm
     change_list_template = 'admin/spectra_display_list.html'
     list_display = ('__str__','spec_image')
 
@@ -57,15 +57,22 @@ class SpectrumAdmin(admin.ModelAdmin):
         if delimiter:
             # print('Delimiter changed from: %r' % delimiter[0])
             obj.y_axis=re.sub(delimiter[0],', ',obj.y_axis)
+        super().save_model(request, obj, form, change)
         # Handel Dropbox images:
         if request.FILES:
-            spectrum=Spectrum.objects.filter(spec_pic=obj.spec_pic).first()
-            if spectrum:
-                obj.pic_path = spectrum.pic_path
-            else:
-                obj.pic_path = getDropboxImgUrl()
-
-        super().save_model(request, obj, form, change)
+            obj.pic_path = getDropboxImgUrl()  # assign pic url on dropbox to the spectrum
+            
+            '''
+            because the uploaded picture has a new url on dropbox, we have to 
+            update the pic_path of all the spectra with the same spec_pic
+            '''
+            spectra = Spectrum.objects.all()
+            for i in spectra:
+                if i.spec_pic and i.spec_pic == obj.spec_pic:
+                    i.pic_path = obj.pic_path
+                    i.save()
+            obj.save()
+        
         
     def changelist_view(self, request, extra_context=None):
 
@@ -239,7 +246,7 @@ def getDropboxImgUrl():
         r = requests.post(url, headers=headers, data=json.dumps(data))
         rn = json.loads(r.text)
         url = rn['url'].replace('www.dropbox.com', 'dl.dropboxusercontent.com')
-        print(url)
+        url = url.replace('?dl=0', '')
     return url
 
 admin_site = MyAdminSite(name='myadmin')

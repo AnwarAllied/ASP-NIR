@@ -25,8 +25,6 @@ except Exception as e:
     print('/'*20, 'Upgraded', '/'*20)
     from django_dropbox_storage.storage import DropboxStorage
 
-import dropbox
-
 SCRIPT_CHOICES = (
     ('A', 'Apout'),
     ('B', 'Blog'),
@@ -60,6 +58,12 @@ NIR_TYPE_CHOICES = (
 #     def __str__(self):
 #         return self.user.username
 
+class myStorage(DropboxStorage):
+    def get_available_name(self, name, max_length=None):
+        name = self._get_abs_path(name)
+        if self.exists(name):
+            self.delete(name)
+        return name
 
 class Spectrum(models.Model):
     origin = models.CharField(max_length=60)
@@ -69,7 +73,7 @@ class Spectrum(models.Model):
     x_range_max = models.FloatField(blank=True, null=True)
     x_range_min = models.FloatField(blank=True, null=True)
     pic_path = models.CharField(max_length=300, blank=True, null=True)
-    spec_pic = ResizedImageField(crop=['middle', 'center'], upload_to='nirpics',storage=DropboxStorage(),
+    spec_pic = ResizedImageField(crop=['middle', 'center'], upload_to='nirpics',storage=myStorage(),
                                  blank=True, null=True, verbose_name='Upload pic')
     nir_profile = models.ForeignKey(
         'NirProfile', on_delete=models.SET_NULL, blank=True, null=True)

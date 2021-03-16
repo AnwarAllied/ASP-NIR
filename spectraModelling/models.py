@@ -165,7 +165,6 @@ class Match(models.Model):
 
 # auto create and save poly whenever Spectrum created.
 def poly_receiver(sender, instance, created, *args, **kwargs):
-    print(instance.y_axis[:70])
     
     if created and instance.y_axis:
         poly = Poly(spectrum = instance)
