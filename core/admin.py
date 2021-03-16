@@ -47,7 +47,7 @@ class myFlatPageAdmin(FlatPageAdmin):
 
 class SpectrumAdmin(admin.ModelAdmin):
     view_on_site = False
-    # form = SpectrumForm
+    form = SpectrumForm
     change_list_template = 'admin/spectra_display_list.html'
     list_display = ('__str__','spec_image')
 
