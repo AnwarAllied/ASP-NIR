@@ -1,6 +1,7 @@
 from pathlib import Path
+import django_heroku
 import os
-#import django_heroku
+
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -22,9 +23,7 @@ ALLOWED_HOSTS = ["https://nirvascan.herokuapp.com/","*"]
 # Application definition
 
 INSTALLED_APPS = [
-    'core.apps.CoreConfig',
-    'spectraModelling.apps.SpectramodellingConfig',
-    'predictionModel.apps.PredictionmodelConfig',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -32,11 +31,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    #'django.contrib.flatpages',
+    # 'django.contrib.flatpages',
     'django_matplotlib',
     'chartjs',
     'core.apps.FlatPagesConfig',
-    'django_dropbox_storage',
+    'core.apps.CoreConfig',
+    'spectraModelling.apps.SpectramodellingConfig',
+    'predictionModel.apps.PredictionmodelConfig',
+    'django_dropbox_storage'
 ]
 
 MIDDLEWARE = [
@@ -116,14 +118,13 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
-# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
-#django_heroku.settings(locals())
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'static/admin/media')
 
@@ -139,9 +140,8 @@ DJANGORESIZED_DEFAULT_NORMALIZE_ROTATION = True
 #dropbox cloud storage
 DEFAULT_FILE_STORAGE = 'django_dropbox_storage.storage.DropboxStorage'
 DROPBOX_ACCESS_TOKEN = '3BhWi_VVheoAAAAAAAAAAQ2r_e4RcY9aCfaSbgIx83BcLCi9q2NkCvKjH8SOgSEy'
-# DROPBOX_ROOT_PATH = '/spec-pics'
-# DROPBOX_ROOT_FOLDER = '/'
+DROPBOX_ROOT_FOLDER = '/'
 
+django_heroku.settings(locals())
 
-#sites
 SITE_ID = 1

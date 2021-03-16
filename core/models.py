@@ -1,13 +1,50 @@
-from django.db.models.signals import post_save
-from django.conf import settings
+
 from django.db import models
 import numpy as np
 from django.shortcuts import reverse
 from django.utils.html import format_html
 from django_matplotlib import MatplotlibFigureField as ma
 from django_resized import ResizedImageField
-from django_dropbox_storage.storage import DropboxStorage
+
+import numpy as np
+from django.shortcuts import reverse
+from django.utils.html import format_html
+from django_matplotlib import MatplotlibFigureField as ma
+from django_resized import ResizedImageField
+try:
+    from django_dropbox_storage.storage import DropboxStorage
+except Exception as e:
+    import traceback
+    print('/'*20, 'Upgrade DropboxStorage to Python 3', '/'*20)
+    t=traceback.format_exc()
+    pa=t.split('File "')[1].split('", line')[0]
+    print('Storage path:',pa)
+    fi=open(pa,'r+')
+    old=fi.read()
+    fi.seek(0) # rewind
+    new=old[:old.find('try')]+'try:\n    from io import StringIO ## for Python 3'+old[old.find('IO\n')+2:]
+    new=new.replace('next(count)','next(count)')
+    fi.write(new)
+    print(new[:200], '...')
+    fi.close()
+    print('/'*20, 'Upgraded', '/'*20)
+    from django_dropbox_storage.storage import DropboxStorage
+
 import dropbox
+
+# add a wrapper to DropboxStorage()
+# def delete_same_name(func,name):
+#     func()
+#     temp=str(name).split('.')
+#     if temp[0][-2]=='_1':
+#         DropboxStorage.delete(name)
+
+class myStorage(DropboxStorage):
+    def get_available_name(self, name, max_length=None):
+        name = self._get_abs_path(name)
+        if self.exists(name):
+            self.delete(name)
+        return name
 
 
 SCRIPT_CHOICES = (
@@ -52,12 +89,11 @@ class Spectrum(models.Model):
     x_range_max = models.FloatField(blank=True, null=True)
     x_range_min = models.FloatField(blank=True, null=True)
     pic_path = models.CharField(max_length=300, blank=True, null=True)
-    spec_pic = ResizedImageField(crop=['middle', 'center'], upload_to='nirpics',
-                                 storage=DropboxStorage(), blank=True, null=True,
-                                 verbose_name='Upload pic')
+    spec_pic = ResizedImageField(crop=['middle', 'center'], upload_to='nirpics',storage=myStorage(),
+                                 blank=True, null=True, verbose_name='Upload pic')
     nir_profile = models.ForeignKey(
         'NirProfile', on_delete=models.SET_NULL, blank=True, null=True)
-
+        
     def __str__(self):
         return self.origin
 
@@ -92,7 +128,7 @@ class Spectrum(models.Model):
         })
 
     def spec_image(self):
-        if self.spec_pic:
+        if self.pic_path:
             return format_html('<img src="{}" style="width: 120px; height: 80px" />'.format(str(self.pic_path)))
         else:
             return format_html('<img src="{}" style="width: 120px; height: 80px" />'.format('/media/spectrum_default.png'))
@@ -100,14 +136,6 @@ class Spectrum(models.Model):
         
     class Meta:
         verbose_name_plural = "Spectra"
-
-# class SpectraDisplay(Spectrum):
-#     class Meta:
-#         proxy = True
-#         verbose_name = 'Spectrum information'
-#         verbose_name_plural = 'Spectra information'
-#
-
 
 class NirProfile(models.Model):
     title = models.CharField(max_length=100)

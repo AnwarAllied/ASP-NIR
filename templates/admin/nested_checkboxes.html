@@ -81,6 +81,7 @@ checkall_{{ profile.id }}.onclick = function() {
 {% endfor %}
 
 
+
 function test_model() {
     spectra=$("input[value^='s_']")
     ids=''
@@ -90,6 +91,5 @@ function test_model() {
     else{
     location.replace("{% url 'pca_test' %}?model={{ model }}&ids="+ids.replace(',','')+"&model_id={{ ids }}")
     }
-
 }
 </script>

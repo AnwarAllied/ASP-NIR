@@ -1,13 +1,12 @@
 from django.contrib import admin
-import numpy as np
-from ASP_NIR.settings import DROPBOX_ACCESS_TOKEN
 from .models import Spectrum, NirProfile
 from spectraModelling.models import Poly, Match
-from predictionModel.admin import PcaModel, PlsModel, myPcaModelAdmin, myPlsModelAdmin
+from predictionModel.admin import PcaModel, myPcaModelAdmin, PlsModel, myPlsModelAdmin
 from spectraModelling.admin import myMatchAdmin, myPolyAdmin
 
-from .forms import NirProfileForm
-from django.contrib.auth.models import Group,User
+from ASP_NIR.settings import DROPBOX_ACCESS_TOKEN
+from .forms import NirProfileForm, SpectrumForm
+from django.contrib.auth.models import Group ,User
 from django.core import serializers
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
@@ -17,11 +16,8 @@ from django.contrib import messages
 from django.contrib.flatpages.models import FlatPage
 from django.contrib.flatpages.admin import FlatPageAdmin
 from django.utils.translation import gettext_lazy as _
-import re
-import dropbox
-import requests
-import json
-# from django.contrib.admin.views.main import ChangeList
+from django.contrib.admin.templatetags.admin_list import results
+import re, json, dropbox, requests
 # import pickle
 
 
@@ -51,52 +47,54 @@ class myFlatPageAdmin(FlatPageAdmin):
 
 class SpectrumAdmin(admin.ModelAdmin):
     view_on_site = False
+    form = SpectrumForm
     change_list_template = 'admin/spectra_display_list.html'
     list_display = ('__str__','spec_image')
 
-    # readonly_fields = ('spec_image',)
     def save_model(self, request, obj, form, change):
-
         # change the delimiter to ", "
         delimiter=re.findall("[^\d\,\.\- ]+",obj.y_axis[:100])
         if delimiter:
             # print('Delimiter changed from: %r' % delimiter[0])
             obj.y_axis=re.sub(delimiter[0],', ',obj.y_axis)
-        super().save_model(request, obj, form, change)
-        obj.pic_path = getDropboxImgUrl()
-        obj.save()
+        # Handel Dropbox images:
+        if request.FILES:
+            spectrum=Spectrum.objects.filter(spec_pic=obj.spec_pic).first()
+            if spectrum:
+                obj.pic_path = spectrum.pic_path
+            else:
+                obj.pic_path = getDropboxImgUrl()
 
-        # cutomize the changelist page of spectrum
+        super().save_model(request, obj, form, change)
+        
     def changelist_view(self, request, extra_context=None):
-        response = super().changelist_view(request, extra_context=None)
-        try:
-            qs = response.context_data['cl'].queryset  # get_queryset
-        except (AttributeError, KeyError):
-            return response
-        # print(response.context_data.keys())
-        # pics_info = [i['spec_pic'] for i in qs.values('spec_pic')]
-        # origin = [i.origin for i in qs]
-        # y_axis = [i.y() for i in qs]
-        # res = [j for j in pics_info if j!='' and j!=None]
-        # print(pics_info)
-        # print([i for i in zip(origin,pics_info,y_axis)][0])
-        # response.context_data['new_cl'] = [i for i in zip(origin, pics_info, y_axis)]
-        # response.context_data['new_cl'] = [{'origin':i[0], 'pics_info':i[1], 'y_axis':i[2]} for i in response.context_data['new_cl']]
-        # response.context_data['total_counter'] = len(qs)
-        # response.context_data['pic'] = getDropboxImgUrl()
-        if 'smallPic' in request.POST.keys():
-            response.context_data['is_big_pic'] = False
-        else:
-            response.context_data['is_big_pic'] = True
 
         # to disable 1 spectrum selection for PCA and PLS model
-        is_single_selected, message=single_item_selected(request, *['PCA_model','PLS_model'])
+        is_single_selected, message=single_item_selected(request, ['PCA_model','PLS_model'])
         if is_single_selected:
             self.message_user(request, message, messages.WARNING)
             return HttpResponseRedirect(request.get_full_path())
         else:
-            return response
+            # cutomize the changelist page of spectrum
+            response = super().changelist_view(request, extra_context=None)
+            try:
+                qs = response.context_data['cl'].queryset  # get_queryset
+            except (AttributeError, KeyError):
+                return response
 
+            if 'smallPic' in request.POST.keys():
+                response.context_data['is_big_pic'] = False
+            else:
+                response.context_data['is_big_pic'] = True
+
+            # To over-ride change-list-results:
+            # if 'context_data' in dir(response):
+            #     if 'cl' in response.context_data.keys():
+            #         cl=response.context_data['cl']
+            #         qs = cl.queryset
+            #         result=list(results(cl))   # this is the results found in the changelist_results html.
+            #         response.context_data['items']=[[i for i in r]+[q.spec_image()] for r,q in zip(result,qs.all())]
+            return response
 
 class NirProfileAdmin(admin.ModelAdmin):
     view_on_site = False
@@ -155,9 +153,9 @@ class MyAdminSite(admin.AdminSite):
 
     def export_as_json(self, request, queryset):
         response = HttpResponse(content_type="application/json")
-        # print(dir(response),'\n',response.content)
+        print(dir(response),'\n',response.content)
         serializers.serialize("json", queryset, stream=response)
-        # print(dir(response),'\n',response.content)
+        print(dir(response),'\n',response.content)
         return response
 
     def plot_export_selected_objects(self, request, queryset):
@@ -195,7 +193,7 @@ class MyAdminSite(admin.AdminSite):
 
     # plot_spectra.short_description = "Plot selected spectra"
     di1={'Poly':('Plot_spectra',plot_export_selected_objects)}
-    di2={'PCA':('PCA_model',pca_export_selected_objects)}
+    di2={'PCA':('PCA_model', pca_export_selected_objects)}
     di3 = {'PLS': ('PLS_model', pls_export_selected_objects)}
     actions = [di1['Poly'],di2['PCA'],di3['PLS']]+[('delete_selected', dict(admin.AdminSite().actions)['delete_selected'])]
 
@@ -207,21 +205,22 @@ class NoPlot(admin.ModelAdmin):
         return remove_action(super().changelist_view(request))
 
 # to remove action plot:
-def remove_action(response,remove = ['Plot_spectra','PCA_model', 'PLS_model']):
+def remove_action(response,remove = ['Plot_spectra','PCA_model','PLS_model']):
     # response=super().changelist_view(request)
     if 'action_form' in response.context_data.keys():
-        action_choices=response.context_data['action_form'].fields['action'].choices
-        action_choices=[i for i in action_choices if i[0] not in remove ]
-        response.context_data['action_form'].fields['action'].choices = action_choices
+        if 'action_form' in response.context_data.keys():
+            action_choices=response.context_data['action_form'].fields['action'].choices
+            action_choices=[i for i in action_choices if i[0] not in remove ]
+            response.context_data['action_form'].fields['action'].choices = action_choices
     return response
 
  # to disable single spectrum selection for PCA and PLS model
-def single_item_selected(request,*action_models):
+def single_item_selected(request, action_model):
     keys=request.POST.keys()
     if request.method == 'POST' and 'action' in keys and '_selected_action' in keys:
         action = request.POST['action']
         selected = request.POST.__str__().split("_selected_action': ['")[1].split("']")[0].split("', '")
-        if action in action_models and len(selected) < 2:
+        if action in action_model and len(selected) < 2:
             msg = "More than one item must be selected in order to perform modeling actions on them. No action have been performed."
             return True, msg
 
@@ -240,10 +239,9 @@ def getDropboxImgUrl():
         r = requests.post(url, headers=headers, data=json.dumps(data))
         rn = json.loads(r.text)
         url = rn['url'].replace('www.dropbox.com', 'dl.dropboxusercontent.com')
+        url = url.replace('?dl=0','')
         print(url)
     return url
-
-
 
 admin_site = MyAdminSite(name='myadmin')
 # Re-register FlatPageAdmin
@@ -252,7 +250,6 @@ admin_site.register(FlatPage, myFlatPageAdmin)
 admin_site.register(Group,NoPlot)
 admin_site.register(User,NoPlot)
 admin_site.register(Spectrum,SpectrumAdmin)
-# admin_site.register(Spectrum,SpectraDisplayAdmin)
 admin_site.register(NirProfile,NirProfileAdmin)
 admin_site.register(Poly,myPolyAdmin)
 admin_site.register(Match,myMatchAdmin)
