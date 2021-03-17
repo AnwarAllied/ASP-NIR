@@ -74,7 +74,7 @@ class SpectrumAdmin(admin.ModelAdmin):
                 if i.spec_pic and i.spec_pic == obj.spec_pic:
                     i.pic_path = obj.pic_path
                     i.save()
-            obj.save()
+        super().save_model(request, obj, form, change)
 
         # cutomize the changelist page of spectrum
     def changelist_view(self, request, extra_context=None):
