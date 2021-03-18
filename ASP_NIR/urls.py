@@ -8,6 +8,7 @@ urlpatterns = [
     path('', include('core.urls')),
     path('', include('spectraModelling.urls')),
     path('', include('predictionModel.urls')),
+    path('', include('masterModelling.urls')),
     # path('404/', permission_denied_view),
     # path('pages/', include('django.contrib.flatpages.urls')),
     # path('djadmin/', admin.site.urls),
