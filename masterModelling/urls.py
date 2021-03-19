@@ -3,6 +3,6 @@ from core.admin import admin_site
 from .views import *
 
 urlpatterns = [
-    # path('staticmodel/',Staticmodel, name='staticmodel'),
-
+    path('master_static_pca/',master_pca.as_view(), name='masterpca'),
+    path('master_static_pls/',master_pls.as_view(), name='masterpls'),
 ]

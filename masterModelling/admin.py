@@ -1,11 +1,20 @@
 from django.contrib import admin
+from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 
 from .models import StaticModel, IngredientsModel
-from django.urls import path
+from django.urls import path, reverse
+
 
 # Register your models here.
 class StaticModelAdmin(admin.ModelAdmin):
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        obj=StaticModel.objects.get(id=object_id)
+        if obj.name=='PCA matching model':
+            url='/master_static_pca/'
+        elif obj.name=='PLS matching model':
+            url='/master_static_pls'
+        return HttpResponseRedirect(url)
 
 
     def changelist_view(self, request, extra_context=None):
