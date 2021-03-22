@@ -54,14 +54,15 @@ def pls_save(request):
                    # request.session['pls_y_mean'],
                    # request.session['pls_coef'],
                    # request.session['pls_x_std'],
+                   request.session['pls_order'],
                    request.session['pls_x_train'],
                    request.session['pls_y_train'],
-                   request.session['pls_y_pred']
+                   request.session['pls_y_pred'],
         )
 
         content = {"saved": True, "message": "The model saved successfully, as: " + pls.__str__(), "message_class": "success"}
         # print("x-mean:%s, y-mean:%s,x-std:%s" % (pls.x_mean, pls.y_mean, pls.x_std))
-        _=[request.session.pop(i, None) for i in ['pls_ids', 'trans', 'pls_score', 'pls_mse', 'pls_x_train', 'pls_y_train','pls_y_pred']]
+        _=[request.session.pop(i, None) for i in ['pls_ids', 'trans', 'pls_score', 'pls_mse','pls_order', 'pls_x_train', 'pls_y_train','pls_y_pred']]
     else:
         content = {"message": "Sorry, unable to save the model", "message_class": "warning"}
     return HttpResponse(json.dumps(content), content_type="application/json")
@@ -122,7 +123,8 @@ class PlsScatterChartView(BaseLineChartView):
                 spectra = Spectrum.objects.filter(eval('|'.join('Q(pk=' + str(pk) + ')' for pk in ids)))
             else:
                 pls = PlsModel.objects.filter(eval('|'.join('Q(pk=' + str(pk) + ')' for pk in ids)))
-                spectra = pls.calibration
+                ids = [i.pk for i in pls]
+                # spectra = pls.calibration
             # print('Model:',spectra.all()[0])
         elif model == 'Match':
             if mode == 'detail':
@@ -134,18 +136,23 @@ class PlsScatterChartView(BaseLineChartView):
         # PLS:
         if 'pls' in locals():
             if model_id:
-                trans, score, mse, x_train, y_train, y_pred = pls.apply('test', *ids)
+                trans, score, mse, order, x_train, y_train, y_pred = pls.apply('test', *ids)
+                print(order)
             else:
-                trans, score, mse, x_train, y_train, y_pred = pls.trans(), pls.score, pls.mse, pls.xtrain(), pls.ytrain(), pls.ypred()
+                trans, score, mse, order, x_train, y_train, y_pred = pls.trans(), pls.score, pls.mse, pls.order, pls.xtrain(), pls.ytrain(), pls.ypred()
+                print('debug:',order)
                 # print('xrots:%s, xmean:%s' % (x_rotations,x_mean))
         else:
             pls = PlsModel()
-            trans, score, mse, x_train, y_train, y_pred = pls.apply('calibration', *ids)
+            trans, score, mse, order, x_train, y_train, y_pred = pls.apply('calibration', *ids)
+            print('debug apply:',order)
         # keep a copy at session in case saving it:
         self.request.session['trans'] = trans.tolist()
         self.request.session['pls_ids'] = ids
         self.request.session['pls_score'] = score
         self.request.session['pls_mse'] = mse
+        self.request.session['pls_order'] = order
+        print('order in session:',self.request.session['pls_order'])
         self.request.session['pls_x_train'] = x_train.tolist()
         self.request.session['pls_y_train'] = y_train.tolist()
         self.request.session['pls_y_pred'] = y_pred.tolist()

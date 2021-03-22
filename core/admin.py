@@ -191,8 +191,18 @@ class MyAdminSite(admin.AdminSite):
 
     def pls_export_selected_objects(self, request, queryset):
         model=queryset.model.__name__
-        selected = queryset.values_list('pk', flat=True)
-        ct =eval(model+".objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in selected)))")
+        if model=='Spectrum':
+            spectra_names=[i.origin for i in queryset]
+            queryset_filtered=[]
+            for i in range(len(spectra_names)):
+                if len(spectra_names[i].split())>1 and isDigit(spectra_names[i].split()[1]):
+                    queryset_filtered.append(queryset[i])
+            # print(queryset_filtered)
+            selected = [i.id for i in queryset_filtered]
+        elif model=='NirProfile':
+            selected=queryset.values_list('pk',flat=True)
+        # print(selected)
+        # ct =eval(model+".objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in selected)))")
         return HttpResponseRedirect('/pls/?model=%s&ids=%s' % (
             model, ','.join(str(pk) for pk in selected),
         ))
@@ -258,6 +268,12 @@ def getDropboxImgUrl():
     return url
 
 
+def isDigit(x):
+    try:
+        float(x)
+        return True
+    except ValueError:
+        return False
 
 admin_site = MyAdminSite(name='myadmin')
 # Re-register FlatPageAdmin

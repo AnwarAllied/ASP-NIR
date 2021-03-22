@@ -60,13 +60,14 @@ class PlsModel(models.Model):
     def ypred(self):
         return np.array(eval("["+self.y_pred+"]"))
 
-    def obtain(self, ids, trans, score, mse, xtrain, ytrain, ypred):
+    def obtain(self, ids, trans, score, mse, order, xtrain, ytrain, ypred):
         self.score = score
         self.mse = mse
         self.transform = str(trans)[1:-1]
         self.x_train = str(xtrain)[1:-1]
         self.y_train = str(ytrain)[1:-1]
         self.y_pred = str(ypred)[1:-1]
+        self.order = order
         self.save()
         self.calibration.set(ids)
 
@@ -94,7 +95,13 @@ class PlsModel(models.Model):
             ids_spec = [i.id for i in spectra_filter]
             X_train = self.scale_y(*ids_spec)
             Y_train = [float(j) for i in spectra_filter for j in i.origin.split() if self.isDigit(j)==True]
-            pls = PLSRegression(n_components=2)
+            order=self.order
+            if len(ids_spec)>10:
+                order=10
+            else:
+                order=2
+            # print(order)
+            pls = PLSRegression(n_components=order)
             pls.fit(X_train.tolist(), Y_train)
             trans = pls.transform(X_train)
             score = pls.score(X_train, Y_train)
@@ -105,19 +112,25 @@ class PlsModel(models.Model):
         else:
             if ids:
                 spectra_testing = [Spectrum.objects.get(id=i) for i in ids]
+                print(ids)
                 testing_set = [i.y() for i in spectra_testing]
                 testing_set_scaled = to_wavelength_length_scale(testing_set).tolist()
-                pls = PLSRegression(n_components=2)
+                order=self.order
+                pls = PLSRegression(n_components=order)
                 X_train = self.xtrain()
                 Y_train = self.ytrain()
                 pls.fit(X_train, Y_train)
-                trans = pls.transform(testing_set_scaled)  # transform(x) needs x_mean_, x_std_ and x_rotations_
-                y_pred = pls.predict(testing_set_scaled)  # predict(x) needs x_mean_, y_mean_, coef_
+                trans = pls.transform(testing_set_scaled)
+                # y = normalize_y(testing_set_scaled)
+                y=normalize_data(testing_set_scaled)
+                y_pred = pls.predict(y)
+                # y_pred=pls.predict(testing_set_scaled)
+                print(y_pred)
                 score = pls.score(testing_set_scaled, y_pred)
                 mse = None
 
                 # print('testing-- y_pred:%s' % (y_pred))
-        return trans, score, mse, X_train, Y_train, y_pred
+        return trans, score, mse, order, X_train, Y_train, y_pred
 
 
 class PcaModel(models.Model):
@@ -219,6 +232,8 @@ def normalize_y(y):
     data=to_wavelength_length_scale(y)
     return min_max_scale(data)
 
+def normalize_data(y):
+    return (y-np.min(y))/(np.max(y)-np.min(y))
 
 # Section has to be moved to test.py: 
 # from predictionModel.models import PcaModel
