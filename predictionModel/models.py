@@ -98,8 +98,6 @@ class PlsModel(models.Model):
             order=self.order
             if len(ids_spec)>10:
                 order=10
-            else:
-                order=2
             # print(order)
             pls = PLSRegression(n_components=order)
             pls.fit(X_train.tolist(), Y_train)
@@ -126,7 +124,8 @@ class PlsModel(models.Model):
                 y_pred = pls.predict(y)
                 # y_pred=pls.predict(testing_set_scaled)
                 print(y_pred)
-                score = pls.score(testing_set_scaled, y_pred)
+                score = pls.score(y, y_pred)
+                print('predicted score: ', score)
                 mse = None
 
                 # print('testing-- y_pred:%s' % (y_pred))
