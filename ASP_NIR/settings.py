@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'core.apps.CoreConfig',
     'spectraModelling.apps.SpectramodellingConfig',
     'predictionModel.apps.PredictionmodelConfig',
+    'masterModelling.apps.MastermodellingConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

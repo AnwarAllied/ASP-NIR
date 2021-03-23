@@ -30,7 +30,11 @@
 {% if result.form and result.form.non_field_errors %}
     <tr><td colspan="{{ result|length }}">{{ result.form.non_field_errors }}</td></tr>
 {% endif %}
-<tr>{% for item in result %}{{ item }}{% endfor %}</tr>
+{#cycle '<div class="row">' '' '' '' #}
+
+  <tr>{% for item in result %}{{ item }}{% endfor %}</tr>
+
+{# cycle '</div>' '' '' '' #}
 {% endfor %}
 </tbody>
 </table>

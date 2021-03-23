@@ -5,6 +5,8 @@ from .models import Spectrum, NirProfile
 from spectraModelling.models import Poly, Match
 from predictionModel.admin import PcaModel, PlsModel, myPcaModelAdmin, myPlsModelAdmin
 from spectraModelling.admin import myMatchAdmin, myPolyAdmin
+from masterModelling.models import StaticModel, IngredientsModel
+from masterModelling.admin import StaticModelAdmin, IngredientsModelAdmin
 
 from .forms import NirProfileForm
 from django.contrib.auth.models import Group,User
@@ -74,7 +76,6 @@ class SpectrumAdmin(admin.ModelAdmin):
                 if i.spec_pic and i.spec_pic == obj.spec_pic:
                     i.pic_path = obj.pic_path
                     i.save()
-
         super().save_model(request, obj, form, change)
 
         # cutomize the changelist page of spectrum
@@ -271,4 +272,6 @@ admin_site.register(Poly,myPolyAdmin)
 admin_site.register(Match,myMatchAdmin)
 admin_site.register(PlsModel,myPlsModelAdmin)
 admin_site.register(PcaModel,myPcaModelAdmin)
+admin_site.register(StaticModel,StaticModelAdmin)
+admin_site.register(IngredientsModel,IngredientsModelAdmin)
 # admin_site.register(NirProfileAdmin)

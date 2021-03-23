@@ -16,7 +16,6 @@ import json
 from itertools import chain
 import numpy as np
 
-
 class pls(TemplateView):
     template_name = "admin/index_plot.html"
 
@@ -50,17 +49,19 @@ def pls_save(request):
                    request.session['trans'],
                    request.session['pls_score'],
                    request.session['pls_mse'],
-                   request.session['pls_x_rots'],
-                   request.session['pls_x_mean'],
-                   request.session['pls_y_mean'],
-                   request.session['pls_coef'],
-                   request.session['pls_x_std'],
+                   # request.session['pls_x_rots'],
+                   # request.session['pls_x_mean'],
+                   # request.session['pls_y_mean'],
+                   # request.session['pls_coef'],
+                   # request.session['pls_x_std'],
+                   request.session['pls_x_train'],
+                   request.session['pls_y_train'],
                    request.session['pls_y_pred']
-                   )
+        )
 
         content = {"saved": True, "message": "The model saved successfully, as: " + pls.__str__(), "message_class": "success"}
         # print("x-mean:%s, y-mean:%s,x-std:%s" % (pls.x_mean, pls.y_mean, pls.x_std))
-        _=[request.session.pop(i, None) for i in ['pls_ids', 'trans', 'pls_score', 'pls_mse', 'pls_x_rots', 'pls_x_mean','pls_y_mean', 'pls_coef','pls_x_std','pls_y_pred']]
+        _=[request.session.pop(i, None) for i in ['pls_ids', 'trans', 'pls_score', 'pls_mse', 'pls_x_train', 'pls_y_train','pls_y_pred']]
     else:
         content = {"message": "Sorry, unable to save the model", "message_class": "warning"}
     return HttpResponse(json.dumps(content), content_type="application/json")
@@ -133,23 +134,20 @@ class PlsScatterChartView(BaseLineChartView):
         # PLS:
         if 'pls' in locals():
             if model_id:
-                trans, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred = pls.apply('test', *ids)
+                trans, score, mse, x_train, y_train, y_pred = pls.apply('test', *ids)
             else:
-                trans, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred = pls.trans(), pls.score, pls.mse, pls.xrots(), pls.xmean(), pls.ymean(), pls.pcoef(), pls.xstd(), pls.ypred()
+                trans, score, mse, x_train, y_train, y_pred = pls.trans(), pls.score, pls.mse, pls.xtrain(), pls.ytrain(), pls.ypred()
                 # print('xrots:%s, xmean:%s' % (x_rotations,x_mean))
         else:
             pls = PlsModel()
-            trans, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred = pls.apply('calibration', *ids)
+            trans, score, mse, x_train, y_train, y_pred = pls.apply('calibration', *ids)
         # keep a copy at session in case saving it:
         self.request.session['trans'] = trans.tolist()
         self.request.session['pls_ids'] = ids
         self.request.session['pls_score'] = score
         self.request.session['pls_mse'] = mse
-        self.request.session['pls_x_rots'] = x_rotations.tolist()
-        self.request.session['pls_x_mean'] = x_mean.tolist()
-        self.request.session['pls_y_mean'] = y_mean.tolist()
-        self.request.session['pls_coef'] = coef.tolist()
-        self.request.session['pls_x_std'] = x_std.tolist()
+        self.request.session['pls_x_train'] = x_train.tolist()
+        self.request.session['pls_y_train'] = y_train.tolist()
         self.request.session['pls_y_pred'] = y_pred.tolist()
         # print("spectra:",spectra)
         context.update({'model': model, 'Spectra': spectra, 'trans': trans, 'mode': mode, 'y_pred': y_pred})
@@ -161,11 +159,11 @@ class PlsScatterChartView(BaseLineChartView):
         return self.get_providers()
 
     def isDigit(self,x):
-        try:
-            float(x)
-            return True
-        except ValueError:
-            return False
+            try:
+                float(x)
+                return True
+            except ValueError:
+                return False
 
     def get_providers(self):
         model_id = self.request.GET.get('model_id', '')
@@ -177,8 +175,6 @@ class PlsScatterChartView(BaseLineChartView):
         elif model_id:
             spectra = self.cont['Spectra'].all()
             # print(self.cont['y_pred'].tolist()[0])
-            # print([i.origin for i in spectra])
-
             for i in range(len(spectra)):
                 spectra_name_items = spectra[i].origin.split()
                 # modify the origin number of a spectrum
@@ -202,10 +198,8 @@ class PlsScatterChartView(BaseLineChartView):
         #     trans=np.array([list(range(len(trans[0]))),trans[0].tolist()])
         return [[{"x":a,"y":b}] for a,b in trans[:,:2]]#[{"x":1,"y":2},{"x":5,"y":4}],[{"x":3,"y":4},{"x":3,"y":1}]]#
 
-    # def get_value(self):
-    #     ypred = self.cont['y_pred'].tolist()
-    #     return [{'value': '{:0.2f}'.format(j[0])} for i in ypred for j in i]
 
+# Create your views here.
 class pca(TemplateView):
     template_name = "admin/index_plot.html"
 
@@ -234,10 +228,9 @@ class pca(TemplateView):
        
         return data
 
-
 def pca_save(request):
     print('saving the PCA model')
-    if "comp" in request.session.keys(): # check if a session copy available
+    if "comp" in request.session.keys(): # check if a session copy availible
         pca=PcaModel()
         pca.obtain(request.session['comp'], request.session['pca_ids'], request.session['trans'], request.session['pca_score'])
         print("model:", pca.__str__(),"saved")
@@ -246,7 +239,7 @@ def pca_save(request):
         _=[request.session.pop(i, None) for i in ['comp', 'pca_ids', 'trans','pca_score']]
     else:
         content = {"message":"Sorry! unable to save the model","message_class" : "warning" }
-    return HttpResponse(json.dumps(content),  content_type = "application/json")
+    return HttpResponse(json.dumps(content) ,  content_type = "application/json")
     
 class pca_test(TemplateView):
     template_name = "admin/index_plot.html"
@@ -262,13 +255,12 @@ class pca_test(TemplateView):
         data["verbose_name_plural"]="figure"
         data['scartter']=True
         data["plot_mode"]=True
-
         data['title']='Testing set for the model:'
-        data['index_text']= PcaModel.objects.get(id=data['model_id']).__str__()
-
+        data['index_text']= PcaModel.objects.get(id=data['model_id']).__str__() #not showing
         return data
 
 class ScartterChartView(BaseLineChartView):
+        
     def get_dataset_options(self, index, color):
         default_opt = super().get_dataset_options(index, color)
         default_opt.update({"fill": "false"}) # disable the area filling in ChartJS options
@@ -284,7 +276,7 @@ class ScartterChartView(BaseLineChartView):
         ids=list(map(int,self.request.GET.get('ids','').split(',')))
         self.request.session['model']=model
         context=super(BaseLineChartView, self).get_context_data(**kwargs)
-        if model == "NirProfile":
+        if model == "NirProfile":  #nir_profile=np.objects.get(id=4))
             nirprofiles=NirProfile.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
             context.update({'max': nirprofiles[0].y_max,})
             spectra=Spectrum.objects.filter(nir_profile= nirprofiles[0])
@@ -293,16 +285,19 @@ class ScartterChartView(BaseLineChartView):
             ids=[i.id for i in spectra]
         elif model == 'Spectrum':
             spectra=Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
-            
+            ids=[i.id for i in spectra]
         elif model == 'PcaModel':
             if mode == 'detail':
                 pca=PcaModel.objects.get(pk=ids[0])
                 spectra = pca.calibration
+                ids=[i.id for i in spectra.all()]
             elif model_id:
                 pca=PcaModel.objects.get(id=model_id)
                 spectra = Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
+                ids=[i.id for i in spectra]
             else:
                 pca=PcaModel.objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in ids)))
+                ids=[i.pk for i in pca]
             # print('Model:',spectra[0])
         elif model == 'Match':
             print('ids:',ids)

@@ -39,7 +39,7 @@ class myPlsModelAdmin(admin.ModelAdmin):
         extra_context['ids']=object_id
         extra_context['plot_mode']='detail'
         extra_context['title']='PLS model:'
-        extra_context['index_text']= 'Calibration set of %s of maximum likelihood' % (obj.__str__())
+        extra_context['index_text']= 'Calibration set of %s of the model' % (obj.__str__())
         extra_context['group'] = profile2group(NirProfile)
         extra_context['pls_modeling'] = True
 
@@ -57,15 +57,13 @@ class myPlsModelAdmin(admin.ModelAdmin):
         return remove_action(super().changelist_view(request))
 
 
+
 # to remove unwanted actions:
-def remove_action(response, remove=['Plot_spectra','PCA_model', 'PLS_model']):
+def remove_action(response,remove = ['Plot_spectra','PCA_model','PLS_model']):
     if 'context_data' in dir(response):
-        action_choices=response.context_data['action_form'].fields['action'].choices
-        action_choices=[i for i in action_choices if i[0] not in remove]
-        response.context_data['action_form'].fields['action'].choices = action_choices
         if 'action_form' in response.context_data.keys():
-            action_choices = response.context_data['action_form'].fields['action'].choices
-            action_choices = [i for i in action_choices if i[0] not in remove]
+            action_choices=response.context_data['action_form'].fields['action'].choices
+            action_choices=[i for i in action_choices if i[0] not in remove ]
             response.context_data['action_form'].fields['action'].choices = action_choices
     return response
 

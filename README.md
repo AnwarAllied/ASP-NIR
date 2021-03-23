@@ -107,10 +107,11 @@ pipenv install gunicorn
 sudo apt-get install -y libpq-dev
 pipenv install django-heroku
 heroku git:remote -a nirvascan
-git push heroku spectra_modeling:master
+git push heroku predict_model:master
 heroku run python manage.py migrate
 heroku buildpacks
 heroku ps
+heroku ps:stop run.9768
 
 ```
 #### reference:
