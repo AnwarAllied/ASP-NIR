@@ -5,7 +5,7 @@ from core.models import Spectrum, NirProfile
 from chartjs.views.lines import BaseLineChartView
 from sklearn.decomposition import PCA
 from sklearn.cross_decomposition import PLSRegression
-from predictionModel.models import min_max_scale, to_wavelength_length_scale, normalize_y
+from predictionModel.models import normalize_y
 
 class master_pca(TemplateView):
     template_name = 'admin/index_plot.html'
@@ -45,7 +45,6 @@ class master_pca_chart(BaseLineChartView):
         pca=PCA(n_components=2)
         pca.fit(Y)
         trans=pca.transform(Y)
-
         context.update({'spectra': spectra, 'trans':trans})
         return context
 
@@ -54,7 +53,7 @@ class master_pca_chart(BaseLineChartView):
         return self.get_providers()
 
     def get_providers(self):
-        return [i.origin for i in self.cont['Spectra'].all()]
+        return [i.origin for i in self.cont['spectra'].all()]
 
     def close_to(self):
         spectra = self.cont['spectra']
@@ -68,17 +67,18 @@ class master_pca_chart(BaseLineChartView):
             d_min=min(distance)
             indices=[i for i, x in enumerate(distance) if x==d_min]
             spectrum=spectra[indices[0]+1]
-
-
-
-
-
-
+            if spectrum.nir_profile_id:
+                s=NirProfile.objects.get(id=spectrum.nir_profile_id)
+                if s:
+                    messages.append('close to the group: '+s.title)
+            else:
+                messages.append('close to: '+spectrum.origin)
+            distance=[]
+        return messages
 
     def get_data(self):
         trans = self.cont['trans']
-
-        return
+        return [[{"x":a,"y":b}] for a,b in trans[:,:2]]
 
 class master_pca_element_chart(BaseLineChartView):
     pass
@@ -130,13 +130,11 @@ class master_pls_chart(BaseLineChartView):
         return [i.origin for i in self.cont['Spectra'].all()]
 
     def close_to(self):
-        spectra=self.cont['spectra']
+        pass
 
 
     def get_data(self):
-        spectra=self.cont['spectra']
-
-        return
+        pass
 
 class master_pls_element_chart(BaseLineChartView):
     pass
