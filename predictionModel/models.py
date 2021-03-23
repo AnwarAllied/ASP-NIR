@@ -11,13 +11,13 @@ class PlsModel(models.Model):
     order = models.IntegerField(default=2)
     score = models.FloatField(blank=True, null=True)
     mse = models.FloatField(blank=True, null=True)
-    # x_rotations = models.TextField(blank=True, null=True)
-    # x_std = models.TextField(blank=True, null=True)
-    # x_mean = models.TextField(blank=True, null=True)
-    # y_mean = models.TextField(blank=True, null=True)
-    # coef = models.TextField(blank=True, null=True)
-    x_train = models.TextField(blank=True, null=True)
-    y_train = models.TextField(blank=True, null=True)
+    x_rotations = models.TextField(blank=True, null=True)
+    x_std = models.TextField(blank=True, null=True)
+    x_mean = models.TextField(blank=True, null=True)
+    y_mean = models.TextField(blank=True, null=True)
+    coef = models.TextField(blank=True, null=True)
+    # x_train = models.TextField(blank=True, null=True)
+    # y_train = models.TextField(blank=True, null=True)
     transform = models.TextField(blank=True, null=True)
     y_pred = models.TextField(blank=True, null=True)
     calibration = models.ManyToManyField(Spectrum)
@@ -37,25 +37,25 @@ class PlsModel(models.Model):
     def trans(self):
         return np.array(eval("["+self.transform+"]"))
 
-    # def xrots(self):
-    #     return np.array(eval("["+self.x_rotations+"]"))
-    #
-    # def xmean(self):
-    #     return np.array(eval("["+self.x_mean+"]"))
-    #
-    # def ymean(self):
-    #     return np.array(eval("["+self.y_mean+"]"))
-    #
-    # def xstd(self):
-    #     return np.array(eval("["+self.x_std+"]"))
-    #
-    # def pcoef(self):
-    #     return np.array(eval("["+self.coef+"]"))
-    def xtrain(self):
-        return np.array(eval("["+self.x_train+"]"))
+    def xrots(self):
+        return np.array(eval("["+self.x_rotations+"]"))
 
-    def ytrain(self):
-        return np.array(eval("["+self.y_train+"]"))
+    def xmean(self):
+        return np.array(eval("["+self.x_mean+"]"))
+
+    def ymean(self):
+        return np.array(eval("["+self.y_mean+"]"))
+
+    def xstd(self):
+        return np.array(eval("["+self.x_std+"]"))
+
+    def pcoef(self):
+        return np.array(eval("["+self.coef+"]"))
+    # def xtrain(self):
+    #     return np.array(eval("["+self.x_train+"]"))
+    #
+    # def ytrain(self):
+    #     return np.array(eval("["+self.y_train+"]"))
 
     def ypred(self):
         return np.array(eval("["+self.y_pred+"]"))

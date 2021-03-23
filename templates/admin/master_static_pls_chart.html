@@ -18,7 +18,7 @@
             type: "line",
             data: data,
             options: {
-<!--                onClick:graphClickEvent,-->
+                onClick:graphClickEvent,
                 scales: {
                     yAxes: [{
                         scaleLabel: {
@@ -50,11 +50,12 @@
         });
 
     });
-<!--function graphClickEvent(event, array){-->
-<!--    if(array[0]){-->
-<!--        $.get('{% url "master_pls_element_chart" %}', function(data) {-->
 
-<!--        })-->
-<!--    }-->
-<!--}-->
+function graphClickEvent(event, array){
+    if(array[0]){
+        $.get('{% url "masterplselement" %}', function(data) {
+
+        })
+    }
+}
 </script>
