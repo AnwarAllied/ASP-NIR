@@ -16,9 +16,8 @@
         var ctx = $("#myChart").get(0).getContext("2d");
         chart = new Chart.Scatter(ctx, {
             type: "line",
-            data: data,
+            data:data,
             options: {
-                onClick:graphClickEvent,
                 scales: {
                     yAxes: [{
                         scaleLabel: {
@@ -32,6 +31,13 @@
                             labelString: 'First component'
                         }
                     }]
+                },
+                legend: {
+                    labels:{
+                        filter: function(item, chart){
+                            return item.datasetIndex == data.datasets.length-1;
+                        }
+                    }
                 },
                 tooltips: {
                     callbacks: {
@@ -48,14 +54,11 @@
                 }
             }
         });
-
+        chart.config.data.datasets[data.datasets.length-1].pointStyle='triangle'
+        chart.config.data.datasets[data.datasets.length-1].pointRadius=12
+<!--        chart.config.data.datasets[data.datasets.length-1].pointBackgroundColor='#6a3d9a'-->
+        chart.update()
     });
 
-function graphClickEvent(event, array){
-    if(array[0]){
-        $.get('{% url "master_pca_element" %}', function(data) {
 
-        })
-    }
-}
 </script>
