@@ -18,7 +18,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["https://nirvascan.herokuapp.com/","*"]
 
-
 # Application definition
 
 INSTALLED_APPS = [

@@ -22,9 +22,12 @@ class pls(TemplateView):
     def get_context_data(self, **kwargs):
         model = self.request.GET.get('model', '')
         ids = self.request.GET.get('ids','')
+        components = self.request.GET.get('components','')
         data = super().get_context_data()
         data['model'] = model
         data['ids'] = ids
+        if components:
+            data['components']=components
         if model == 'Spectrum':
             data['figure_header'] = 'PLS model for {}:'.format(Spectrum.objects.get(id=int(ids.split(',')[0])).origin.split(' ')[0])
         elif model == 'NirProfile':
@@ -47,6 +50,7 @@ def pls_save(request):
         pls = PlsModel()
         pls.obtain(request.session['pls_ids'],
                    request.session['trans'],
+                   request.session['components'],
                    request.session['pls_score'],
                    request.session['pls_mse'],
                    request.session['pls_x_rots'],
@@ -59,7 +63,7 @@ def pls_save(request):
 
         content = {"saved": True, "message": "The model saved successfully, as: " + pls.__str__(), "message_class": "success"}
         # print("x-mean:%s, y-mean:%s,x-std:%s" % (pls.x_mean, pls.y_mean, pls.x_std))
-        _=[request.session.pop(i, None) for i in ['pls_ids', 'trans', 'pls_score', 'pls_mse', 'pls_x_rots', 'pls_x_mean','pls_y_mean', 'pls_coef','pls_x_std','pls_y_pred']]
+        _=[request.session.pop(i, None) for i in ['pls_ids', 'trans', 'components', 'pls_score', 'pls_mse', 'pls_x_rots', 'pls_x_mean','pls_y_mean', 'pls_coef','pls_x_std','pls_y_pred']]
     else:
         content = {"message": "Sorry, unable to save the model", "message_class": "warning"}
     return HttpResponse(json.dumps(content), content_type="application/json")
@@ -92,11 +96,22 @@ class PlsScatterChartView(BaseLineChartView):
         default_opt.update({'pointRadius': 5})
         return default_opt
 
+    def get_context_data(self, **kwargs):
+        # context = super(BaseLineChartView, self).get_context_data(**kwargs)
+        model_id=self.request.GET.get('model_id','')
+        content={"labels": self.get_labels(), "datasets": self.get_datasets()}
+        context=self.cont
+        _=[context.pop(i, None) for i in ['Spectrum', 'y_pred', 'trans','model']]
+        context.update(content)
+        context.update({"title": True if model_id else False, 'text': 'Validation set Rsquare= '+ ('00.00' if self.cont['score']< 0 else "{:0.4f}".format(self.cont['score']))} )
+        return context
+
     def spect2context(self, **kwargs):
         model = self.request.GET.get('model', '')
         mode = self.request.GET.get('mode', '')
         model_id=self.request.GET.get('model_id','')
         model_id= int(model_id) if model_id else model_id
+        components = self.request.GET.get('components', '')
         ids = list(map(int, self.request.GET.get('ids', '').split(',')))
         self.request.session['model'] = model
         context = super(BaseLineChartView, self).get_context_data(**kwargs)
@@ -131,27 +146,37 @@ class PlsScatterChartView(BaseLineChartView):
 
         # PLS:
         if 'pls' in locals():
-            if model_id:
-                trans, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred = pls.apply('test', *ids)
+            if model_id: # if avalible: test or show it
+                trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred, ids_filtred = pls.apply('test', pls.order, *ids)
             else:
-                trans, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred = pls.trans(), pls.score, pls.mse, pls.xrots(), pls.xmean(), pls.ymean(), pls.pcoef(), pls.xstd(), pls.ypred()
-                # print('xrots:%s, xmean:%s' % (x_rotations,x_mean))
-        else:
+                trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred = pls.trans(), pls.order, pls.score, pls.mse, pls.xrots(), pls.xmean(), pls.ymean(), pls.pcoef(), pls.xstd(), pls.ypred()
+                # context.update({'model': model, 'Spectra': spectra, 'trans': trans, 'mode': mode, 'y_pred': y_pred})
+                # return context
+        else: # if new pls
             pls = PlsModel()
-            trans, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred = pls.apply('calibration', *ids)
-        # keep a copy at session in case saving it:
-        self.request.session['trans'] = trans.tolist()
-        self.request.session['pls_ids'] = ids
-        self.request.session['pls_score'] = score
-        self.request.session['pls_mse'] = mse
-        self.request.session['pls_x_rots'] = x_rotations.tolist()
-        self.request.session['pls_x_mean'] = x_mean.tolist()
-        self.request.session['pls_y_mean'] = y_mean.tolist()
-        self.request.session['pls_coef'] = coef.tolist()
-        self.request.session['pls_x_std'] = x_std.tolist()
-        self.request.session['pls_y_pred'] = y_pred.tolist()
+            if components:
+                components=int(components)
+                pls.order=components
+                print('Components setted to:',components)
+            else:
+                components = 2
+                
+            trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred, ids_filtred = pls.apply('calibration', components, *ids)
+            spectra = Spectrum.objects.filter(eval('|'.join('Q(id=' + str(pk) + ')' for pk in ids_filtred)))
+            # keep a copy at session in case saving it:
+            self.request.session['trans'] = trans.tolist()
+            self.request.session['pls_ids'] = ids_filtred
+            self.request.session['pls_score'] = score
+            self.request.session['components'] = components
+            self.request.session['pls_mse'] = mse
+            self.request.session['pls_x_rots'] = x_rotations.tolist()
+            self.request.session['pls_x_mean'] = x_mean.tolist()
+            self.request.session['pls_y_mean'] = y_mean.tolist()
+            self.request.session['pls_coef'] = coef.tolist()
+            self.request.session['pls_x_std'] = x_std.tolist()
+            self.request.session['pls_y_pred'] = y_pred.tolist()
         # print("spectra:",spectra)
-        context.update({'model': model, 'Spectra': spectra, 'trans': trans, 'mode': mode, 'y_pred': y_pred})
+        context.update({'model': model, 'Spectra': spectra, 'trans': trans, 'mode': mode, 'y_pred': y_pred, 'score': score})
         # context.update({'dic': dic})
         return context
 
@@ -301,7 +326,7 @@ class ScartterChartView(BaseLineChartView):
                 ids=[i.pk for i in pca]
             # print('Model:',spectra[0])
         elif model == 'Match':
-            print('ids:',ids)
+            # print('ids:',ids)
             if mode == 'detail':
                 match=Match.objects.get(id=ids[0]) # if ',' not in ids else ids.split(',')[0]
             else:

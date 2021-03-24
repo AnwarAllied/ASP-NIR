@@ -6,6 +6,7 @@ from sklearn.decomposition import PCA
 import numpy as np
 from sklearn.cross_decomposition import PLSRegression
 from sklearn.metrics import mean_squared_error as MSE
+from re import findall
 
 class PlsModel(models.Model):
     order = models.IntegerField(default=2)
@@ -21,7 +22,7 @@ class PlsModel(models.Model):
     calibration = models.ManyToManyField(Spectrum)
 
     def __str__(self):
-        fname=self.calibration.all()[0].origin.split(' ')[0]+", score: "+"{:0.2f}".format(self.score)+", mse: " + "{:0.2f}".format(self.mse)
+        fname=self.calibration.all()[0].origin.split(' ')[0]+", score: "+"{:0.2f}".format(self.score)+", mse: " + "{:0.2f}".format(self.mse) + ", comp.: "+str(self.order)
         if self.calibration.count()> 1:
             origin_list=list(set([i.origin.split(' ')[0] for i in self.calibration.all()]))
             if len(origin_list) == 2:
@@ -53,9 +54,10 @@ class PlsModel(models.Model):
     def ypred(self):
         return np.array(eval("["+self.y_pred+"]"))
 
-    def obtain(self, ids, trans, score, mse, xrots, xmean, ymean, plscoef, xstd, ypred):
+    def obtain(self, ids, trans, components, score, mse, xrots, xmean, ymean, plscoef, xstd, ypred):
         self.score = score
         self.mse = mse
+        self.order= components
         self.transform = str(trans)[1:-1]
         self.x_rotations = str(xrots)[1:-1]
         self.x_mean = str(xmean)[1:-1]
@@ -68,29 +70,27 @@ class PlsModel(models.Model):
 
     def scale_y(self,*ids):
         if ids:
-            y=normalize_y([Spectrum.objects.get(id=i).y().tolist() for i in ids])
+            y=to_wavelength_length_scale(np.array([Spectrum.objects.get(id=i).y().tolist() for i in ids]))
         else:
-            y=normalize_y([i.y().tolist() for i in self.calibration.all()])
+            y=to_wavelength_length_scale(np.array([i.y().tolist() for i in self.calibration.all()]))
         return y
 
-    def isDigit(self,x):
-        try:
-            float(x)
-            return True
-        except ValueError:
-            return False
-
-    def apply(self, mode, *ids):
+    def apply(self, mode, components, *ids):
         if mode == 'calibration':
             if ids:
                 spectra = [Spectrum.objects.get(id=i) for i in ids]
             else:
                 spectra = [Spectrum.objects.all()]
-            spectra_filter = [i for i in spectra for j in i.origin.split() if self.isDigit(j)==True]
+            spectra_filter = [i for i in spectra if findall('\d[\d\.]*',i.origin)]
+            # print('spectra_filter:', len(spectra_filter),'from:',len(spectra))
             ids_spec = [i.id for i in spectra_filter]
-            X_train = self.scale_y(*ids_spec).tolist()
-            Y_train = [float(j) for i in spectra_filter for j in i.origin.split() if self.isDigit(j)==True]
-            pls = PLSRegression(n_components=2)
+            X_train = self.scale_y(*ids_spec)
+            # print('X_train shape:', X_train.shape)
+            Y_train = np.array([float(findall('\d[\d\.]*',i.origin)[0]) for i in spectra_filter])
+            # print('Y_train shape:', Y_train.shape,'...', Y_train[:3])
+            # print([type(i) for i in Y_train.tolist()])
+            # print(components,type(components))
+            pls = PLSRegression(n_components=components)
             pls.fit(X_train, Y_train)
             trans = pls.transform(X_train)
             score = pls.score(X_train, Y_train)
@@ -101,29 +101,35 @@ class PlsModel(models.Model):
             y_mean = pls.y_mean_
             coef = pls.coef_
             x_std = pls.x_std_
-            print('calibration-- score: %s, mse: %s' % (score, mse))
+            # print(x_mean[0],x_mean[-1],y_mean[0],y_mean[-1],x_std[0],x_std[-1],coef.shape,coef[0],coef[-1],trans.shape,trans[0,0],trans[5,5],y_pred[0],y_pred[-1,],x_rotations.shape,x_rotations[0,0],x_rotations[5,5])
+            # print('calibration-- score: %s, mse: %s' % (score, mse))
         else:
-            if ids:
-                spectra_testing = [Spectrum.objects.get(id=i) for i in ids]
-                testing_set = [i.y() for i in spectra_testing]
-                testing_set_scaled = to_wavelength_length_scale(testing_set).tolist()
-                pls = PLSRegression(n_components=2)
-                pls.x_rotations_ = self.xrots()
-                pls.x_mean_ = self.xmean()
-                pls.x_std_ = self.xstd()
-                trans = pls.transform(testing_set_scaled)  # transform(x) needs x_mean_, x_std_ and x_rotations_
-                pls.coef_ = self.pcoef()
-                pls.y_mean_ = self.ymean()
-                y_pred = pls.predict(testing_set_scaled)  # predict(x) needs x_mean_, y_mean_, coef_
-                score = pls.score(testing_set_scaled, y_pred)
-                mse = None
-                x_rotations = pls.x_rotations_
-                x_mean = pls.x_mean_
-                y_mean = pls.y_mean_
-                coef = pls.coef_
-                x_std = pls.x_std_
-                # print('testing-- y_pred:%s' % (y_pred))
-        return trans, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred
+            # if ids:
+            spectra_testing = [Spectrum.objects.get(id=i) for i in ids]
+            testing_set = [i.y() for i in spectra_testing]
+            testing_set_scaled = to_wavelength_length_scale(testing_set)
+            components = self.order
+            pls = PLSRegression(n_components=components)
+            pls.x_rotations_ = self.xrots()
+            pls.x_mean_ = self.xmean()
+            pls.x_std_ = self.xstd()
+            trans = pls.transform(testing_set_scaled)  # transform(x) needs x_mean_, x_std_ and x_rotations_
+            pls.coef_ = self.pcoef()
+            pls.y_mean_ = self.ymean()
+            y_pred = pls.predict(testing_set_scaled)  # predict(x) needs x_mean_, y_mean_, coef_
+            y_true = [float(findall('\d[\d\.]*',i.origin)[0]) if findall('\d',i.origin) else None for i in spectra_testing]
+            y_comp = np.array([y_true[i] if y_true[i] else y_pred[i] for i in range(len(y_true))])
+            score = pls.score(testing_set_scaled, y_comp)
+            # print('score:',score)
+            mse = None
+            x_rotations = pls.x_rotations_
+            x_mean = pls.x_mean_
+            y_mean = pls.y_mean_
+            coef = pls.coef_
+            x_std = pls.x_std_
+            ids_spec = ids
+            # print('testing-- y_pred:%s' % (y_pred))
+        return trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred, ids_spec
 
 
 class PcaModel(models.Model):
@@ -161,9 +167,9 @@ class PcaModel(models.Model):
     
     def scale_y(self,*ids):
         if ids:
-            y=normalize_y([Spectrum.objects.get(id=i).y().tolist() for i in ids])
+            y=to_wavelength_length_scale([Spectrum.objects.get(id=i).y().tolist() for i in ids])
         else:
-            y=normalize_y([i.y().tolist() for i in self.calibration.all()])
+            y=to_wavelength_length_scale([i.y().tolist() for i in self.calibration.all()])
         return y
     
     def apply(self,mode,*ids):

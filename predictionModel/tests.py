@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 # Section has to be moved to test.py: 
-from predictionModel.models import PcaModel, to_wavelength_length_scal as scal
+# from predictionModel.models import PcaModel, to_wavelength_length_scale as scal
 from core.models import NirProfile, Spectrum
 from matplotlib import pyplot as plt
 import numpy as np
@@ -36,8 +36,8 @@ def plot(x,*arg):
             _=plt.plot(x);plt.title(arg[0]);plt.ylabel(arg[1]);plt.xlabel(arg[2]);plt.show()
 
 
-# q=Spectrum.objects.filter(nir_profile=4)
-X=min_max_scal(np.array([i.y().tolist() for i in q.all()]))
+# q=Spectrum.objects.filter(nir_profile=10)
+# X=min_max_scal(np.array([i.y().tolist() for i in q.all()]))
 # x_axis=np.reshape(q.first().x(),(228,1))
 # y=np.array([float(re.sub('[^\d\.]+','',i.origin)) for i in q.all()])
 # X2s=np.array(scal([i.y().tolist() for i in q2.all()]))
@@ -45,17 +45,21 @@ X=min_max_scal(np.array([i.y().tolist() for i in q.all()]))
 # y1=[Spectrum.objects.get(id=i).y().tolist() for i in ids]
 # p=PcaModel()
 # p.scale_y(*ids)
-q8=Spectrum.objects.filter(nir_profile=8)
-q7=Spectrum.objects.filter(nir_profile=7)
-X=min_max_scal(np.array([i.y().tolist() for i in q8.all()]+[i.y().tolist() for i in q7.all()] ))
+q9=Spectrum.objects.filter(nir_profile=10)
+q1=Spectrum.objects.filter(nir_profile=9)
+X=np.array([i.y().tolist() for i in q9.all()] )
+V=np.array([i.y().tolist() for i in q1.all()] )
+xl=np.array([float(re.findall('\d+\.\d+',i.origin)[0]) for i in q9.all()])
+vl=np.array([float(i.origin.split(' ')[1]) for i in q1.all()])
+# Y=min_max_scal(np.array([i.y().tolist() for i in q1.all()]+[i.y().tolist() for i in q7.all()] ))
 
 
 #PCA:
-pca = PCA(n_components=2)
-pca.fit(X)
+# pca = PCA(n_components=10)
+# pca.fit(X)
 # C1=pca.components_  # principle component
 # C=P.dot(X.T)      # Coefficient
-T=pca.transform(X)
+# T=pca.transform(X)
 # Pc=C.dot(Xsg)
 # Pd=D.T.dot(Xsg)
 # _=[plt.text(a, b, str(c[0])) for a,b,c in zip(C[0,:],C[1,:],b)];_=plt.plot(C[0,:],C[1,:],'ro');plt.title('1st Vs 2nd Component');plt.ylabel('2ed component');plt.xlabel('1st component');plt.show()
@@ -71,9 +75,11 @@ T=pca.transform(X)
 # _=plt.plot(er.T);plt.ylabel('MSE');plt.xlabel('Component');plt.show()
 
 # PLS analysis:
-# pls2 = PLSRegression(n_components=15)
-# pls2.fit(X, y)
-# y_p = pls2.predict(X)
+pls2 = PLSRegression(n_components=10)
+pls2.fit(X, xl)
+y_p = pls2.predict(V)
+print('model Rsq=',pls2.score(X,pls2.predict(X)))
+print('validation Rsq=',pls2.score(V,y_p))
 # T=pls2.x_scores_   #(54, 10) = pls2.transform(X)
 # U=pls2.y_scores_   #(54, 10)
 # W=pls2.x_weights_  #(228, 10)
@@ -84,6 +90,7 @@ T=pca.transform(X)
 
 # # for prediction:
 # pl.x_mean_=pls2.x_mean_; pl.x_std_=pls2.x_std_; pl.coef_=pls2.coef_; pl.y_mean_=pls2.y_mean_
+# plt.plot(xl);plt.plot(x_p);plt.title('Brix of actual and predicted values, pls_10_com.'),plt.xlabel('the 53 calibration samples');plt.ylabel('Brix');plt.show()
 
 # ['x_scores_','y_scores_','x_weights_','y_weights_','x_loadings_','y_loadings_']
 
