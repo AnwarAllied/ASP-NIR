@@ -1,10 +1,61 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-<h1>test for master static pls model</h1>
-</body>
-</html>
+{% load static %}
+<ul class="messagelist">
+
+</ul>
+<div class="chart-container">
+    <h1>{{ figure_header }}</h1>
+    <canvas id="myChart"></canvas>
+</div>
+
+<script src="{% static 'js/jquery-1.10.0.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
+<script>
+
+    $.get('{% url "masterplschart" %}', function(data) {
+        Gdata = data
+        var ctx = $("#myChart").get(0).getContext("2d");
+        chart = new Chart.Scatter(ctx, {
+            type: "line",
+            data: data,
+            options: {
+                onClick:graphClickEvent,
+                scales: {
+                    yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Second component'
+                        }
+                    }],
+                    xAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'First component'
+                        }
+                    }]
+                },
+                tooltips: {
+                    callbacks: {
+                        label: function(tooltipItem, data) {
+                            var label = data.datasets[tooltipItem.datasetIndex].label || '';
+
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += '(' + Math.round(tooltipItem.xLabel*100)/100 + ', ' + Math.round(tooltipItem.yLabel*100)/100 + ')';
+                            return label;
+                        }
+                    }
+                }
+            }
+        });
+
+    });
+
+function graphClickEvent(event, array){
+    if(array[0]){
+        $.get('{% url "masterplselement" %}', function(data) {
+
+        })
+    }
+}
+</script>
