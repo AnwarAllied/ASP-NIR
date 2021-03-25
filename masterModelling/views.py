@@ -5,7 +5,7 @@ from core.models import Spectrum, NirProfile
 from chartjs.views.lines import BaseLineChartView
 from sklearn.decomposition import PCA
 from sklearn.cross_decomposition import PLSRegression
-from predictionModel.models import min_max_scale, to_wavelength_length_scale, normalize_y
+from predictionModel.models import normalize_y
 
 class master_pca(TemplateView):
     template_name = 'admin/index_plot.html'
@@ -16,7 +16,7 @@ class master_pca(TemplateView):
         data = super().get_context_data()
 
         data['model'] = model
-        # data['index_text'] = 'test for master static'
+        # # data['index_text'] = 'test for master static'
         data['master_static_pca'] = True
         data['has_permission'] = self.request.user.is_authenticated
         data['app_label'] = 'masterModelling' if (model == 'staticModel' or model == 'ingredientsModel') else 'core'
@@ -24,11 +24,11 @@ class master_pca(TemplateView):
         return data
 
 class master_pca_chart(BaseLineChartView):
-    def get_dataset_options(self, index, color):
-        default_opt = super().get_dataset_options(index, color)
-        default_opt.update({"fill": "false"})
-        default_opt.update({'pointRadius': 5})
-        return default_opt
+    # def get_dataset_options(self, index, color):
+    #     default_opt = super().get_dataset_options(index, color)
+    #     default_opt.update({"fill": "false"})
+    #     default_opt.update({'pointRadius': 5})
+    #     return default_opt
 
     def spec2context(self, **kwargs):
         context = super(BaseLineChartView, self).get_context_data(**kwargs)
@@ -38,8 +38,7 @@ class master_pca_chart(BaseLineChartView):
         pca=PCA(n_components=2)
         pca.fit(Y)
         trans=pca.transform(Y)
-        context.update({'spectra': spectra, 'trans': trans})
-        print(self.cont['spectra'])
+        context.update({'spectra': spectra, 'trans':trans})
         return context
 
     def get_labels(self):
@@ -48,41 +47,38 @@ class master_pca_chart(BaseLineChartView):
 
     def get_providers(self):
         messages=self.close_to()
-        return [i.origin+' '+j for i,j in zip(self.cont['spectra'].all(),messages)]
+        return [i.origin + j for i, j in zip(self.cont['spectra'].all(),messages)]
 
     def close_to(self):
         spectra = self.cont['spectra']
         trans = self.cont['trans']
-        messages, distance = [], []
-        for i in trans:
-            for j in trans:
-                distance.append(((i[0]-j[0])**2 + (i[1]-j[1])**2)**0.5)
-            distance=distance[1:]
-            d_min=min(distance)
-            indices=[i for i, x in enumerate(distance) if x==d_min]
-            spectrum=spectra[indices[0]+1]
+        messages = []
+        distances=[[((i[0]-j[0])**2 + (i[1]-j[1])**2)**0.5 for i in trans] for j in trans]
+        for distance in distances:
+            n_distance=sorted(distance)  # sort
+            # indices = [i for i, x in enumerate(distance) if x == distance[1]] # find all indices
+            e_index=distance.index(n_distance[1])  # [0] -> itself, find the index of the shortest distance
+            spectrum = spectra[e_index]  # find the nearest spectrum
+            # print('debug:',spectrum)
             if spectrum.nir_profile_id:
-                s=NirProfile.objects.get(id=spectrum.nir_profile_id)
+                s = NirProfile.objects.get(id=spectrum.nir_profile_id)
                 if s:
-                    messages.append('close to the group: '+s.title)
+                    messages.append(' belongs or is close to ' + s.title)
             else:
-                messages.append('close to: '+spectrum.origin)
-            distance=[]
+                messages.append(' is close to ' + spectrum.origin)
         return messages
-
 
     def get_data(self):
         trans = self.cont['trans']
-        return [[{'x':a, 'y':b}] for a,b in trans[:,:2]]
+        return [[{"x":a,"y":b}] for a,b in trans[:,:2]]
 
-class master_pca_element_chart(BaseLineChartView):
-    pass
-
-
-
-
-class master_pls(TemplateView):
-    pass
+# class master_pca_element_chart(BaseLineChartView):
+#     pass
+#
+#
+#
+#
+# class master_pls(TemplateView):
 #     template_name = 'admin/index_plot.html'
 #
 #     def get_context_data(self, **kwargs):
@@ -97,8 +93,7 @@ class master_pls(TemplateView):
 #         data['verbose_name'] = model
 #         return data
 #
-class master_pls_chart(BaseLineChartView):
-    pass
+# class master_pls_chart(BaseLineChartView):
 #     def get_dataset_options(self, index, color):
 #         default_opt = super().get_dataset_options(index, color)
 #         default_opt.update({"fill": "false"})
@@ -127,11 +122,11 @@ class master_pls_chart(BaseLineChartView):
 #         return [i.origin for i in self.cont['Spectra'].all()]
 #
 #     def close_to(self):
-#         spectra=self.cont['spectra']
+#         pass
 #
 #
 #     def get_data(self):
 #         pass
 #
-class master_pls_element_chart(BaseLineChartView):
-    pass
+# class master_pls_element_chart(BaseLineChartView):
+#     pass
