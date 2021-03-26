@@ -121,6 +121,8 @@ class PlsModel(models.Model):
             y_comp = np.array([y_true[i] if y_true[i] else y_pred[i] for i in range(len(y_true))])
             score = pls.score(testing_set_scaled, y_comp)
             # print('score:',score)
+            # print('y_pred:',y_pred)
+            # print('origin:',[i.origin for i in spectra_testing])
             mse = None
             x_rotations = pls.x_rotations_
             x_mean = pls.x_mean_

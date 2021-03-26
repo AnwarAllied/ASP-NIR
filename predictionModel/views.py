@@ -149,7 +149,7 @@ class PlsScatterChartView(BaseLineChartView):
             if model_id: # if avalible: test or show it
                 trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred, ids_filtred = pls.apply('test', pls.order, *ids)
             else:
-                trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred = pls.trans(), pls.order, pls.score, pls.mse, pls.xrots(), pls.xmean(), pls.ymean(), pls.pcoef(), pls.xstd(), pls.ypred()
+                trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred, ids_filtred = pls.trans(), pls.order, pls.score, pls.mse, pls.xrots(), pls.xmean(), pls.ymean(), pls.pcoef(), pls.xstd(), pls.ypred(), [i.id for i in pls.calibration.all()]
                 # context.update({'model': model, 'Spectra': spectra, 'trans': trans, 'mode': mode, 'y_pred': y_pred})
                 # return context
         else: # if new pls
@@ -162,7 +162,6 @@ class PlsScatterChartView(BaseLineChartView):
                 components = 2
                 
             trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred, ids_filtred = pls.apply('calibration', components, *ids)
-            spectra = Spectrum.objects.filter(eval('|'.join('Q(id=' + str(pk) + ')' for pk in ids_filtred)))
             # keep a copy at session in case saving it:
             self.request.session['trans'] = trans.tolist()
             self.request.session['pls_ids'] = ids_filtred
@@ -175,14 +174,15 @@ class PlsScatterChartView(BaseLineChartView):
             self.request.session['pls_coef'] = coef.tolist()
             self.request.session['pls_x_std'] = x_std.tolist()
             self.request.session['pls_y_pred'] = y_pred.tolist()
-        # print("spectra:",spectra)
-        context.update({'model': model, 'Spectra': spectra, 'trans': trans, 'mode': mode, 'y_pred': y_pred, 'score': score})
+        
+        context.update({'model': model, 'Spectra': spectra, 'trans': trans, 'mode': mode, 'y_pred': y_pred, 'score': score, 'ids_filtred':ids_filtred})
         # context.update({'dic': dic})
         return context
 
     def get_labels(self):
         self.cont=self.spect2context()
-        return self.get_providers()
+        self.cont['providers']= self.get_providers()
+        return self.cont['providers']
 
     def isDigit(self,x):
             try:
@@ -192,6 +192,9 @@ class PlsScatterChartView(BaseLineChartView):
                 return False
 
     def get_providers(self):
+        if 'providers' in self.cont.keys():
+            return self.cont['providers']
+        
         model_id = self.request.GET.get('model_id', '')
         if self.cont['mode'] == 'detail':
             if self.cont['model'] == 'PlsModel':
@@ -199,20 +202,17 @@ class PlsScatterChartView(BaseLineChartView):
             else:
                 return [self.cont['Spectra'].label()] + [i.label() for i in self.cont['Spectra'].similar_pk.all()]
         elif model_id:
-            spectra = self.cont['Spectra'].all()
-            # print(self.cont['y_pred'].tolist()[0])
-            for i in range(len(spectra)):
+            ids_filtred = self.cont['ids_filtred']
+            spectra = list(range(len(ids_filtred)))
+            for i in range(len(ids_filtred)):
+                spectra[i]=Spectrum.objects.get(id=ids_filtred[i])
                 spectra_name_items = spectra[i].origin.split()
                 # modify the origin number of a spectrum
                 if len(spectra_name_items)>1 and self.isDigit(spectra_name_items[1])==True:
-                    spectra_name_items[1] += ' (predicted: '+'{:0.2f}'.format(self.cont['y_pred'].tolist()[i][0])+')'
-                    new_origin = ''
-                    for item in spectra_name_items:
-                        new_origin += item + ' '
-                    # rename a spectrum
-                    spectra[i].origin = new_origin
+                    spectra_name_items[1] += ' (predicted: '+'{:0.2f}'.format(self.cont['y_pred'][i][0])+')'
+                    spectra[i].origin = ' '.join(spectra_name_items)
                 else:
-                    spectra[i].origin += ' (predicted: '+'{:0.2f}'.format(self.cont['y_pred'].tolist()[i][0])+')'
+                    spectrum.origin += ' (predicted: '+'{:0.2f}'.format(self.cont['y_pred'][i][0])+')'
             return [i.label() for i in spectra]
         else:
             return [i.label() for i in self.cont['Spectra']]

@@ -113,3 +113,4 @@ print('validation Rsq=',pls2.score(V,y_p))
 
 # cm=np.array([X[12].tolist(),L[12].tolist()])
 # plot((x_axis,cm),'Compare the RPCA filtered spectrum (# 12)','Absorbance','Wavelength')
+
