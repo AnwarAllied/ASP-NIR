@@ -2,7 +2,7 @@ from django.db import models
 
 class StaticModel(models.Model):
     name=models.CharField(max_length=60)
-    component=models.CharField(max_length=3)
+    component=models.CharField(max_length=3,default=2)
 
     def __str__(self):
         return self.name

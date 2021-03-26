@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView
+
 from .models import StaticModel,IngredientsModel
 from core.models import Spectrum, NirProfile
 from chartjs.views.lines import BaseLineChartView
@@ -11,24 +12,36 @@ class master_pca(TemplateView):
     template_name = 'admin/index_plot.html'
 
     def get_context_data(self, **kwargs):
-        model = self.request.GET.get('model', '')
-
         data = super().get_context_data()
-
-        data['model'] = model
-        # # data['index_text'] = 'test for master static'
+        s = Spectrum.objects.all()
+        n = NirProfile.objects.all()
+        text = [i.title for i in n]
+        data['model'] = 'StaticModel'
+        data['index_text'] = 'master pca'
         data['master_static_pca'] = True
         data['has_permission'] = self.request.user.is_authenticated
-        data['app_label'] = 'masterModelling' if (model == 'staticModel' or model == 'ingredientsModel') else 'core'
-        data['verbose_name'] = model
+        data['app_label'] = 'masterModelling'
+        data['verbose_name'] = 'MasterModellingPca'
+        data['figure_header']='Master model for PCA'
+        data['text']=text
+        data['spec_num']=len(s)
+        data['group_num']=len(text)
+        data['components']=2
+        # data['score']=self.request.session['score']
         return data
 
 class master_pca_chart(BaseLineChartView):
-    # def get_dataset_options(self, index, color):
-    #     default_opt = super().get_dataset_options(index, color)
-    #     default_opt.update({"fill": "false"})
-    #     default_opt.update({'pointRadius': 5})
-    #     return default_opt
+    def get_context_data(self, **kwargs):
+        content = {"labels": self.get_labels()}
+        datasets=self.get_datasets()
+        obj=datasets[len(datasets)-1]
+        # print(obj)
+        obj['label']='Latest uploaded spectrum: '+obj['label']
+        # print(obj['label'])
+        content.update({"datasets": datasets})
+        context=self.cont
+        context.update(content)
+        return context
 
     def spec2context(self, **kwargs):
         context = super(BaseLineChartView, self).get_context_data(**kwargs)
@@ -38,6 +51,12 @@ class master_pca_chart(BaseLineChartView):
         pca=PCA(n_components=2)
         pca.fit(Y)
         trans=pca.transform(Y)
+        # try:  # incase len(Y)<=2:
+        #     score = pca.score(Y)
+        #     print('debug: ',score)
+        # except ValueError:
+        #     score = 00
+        # self.request.session['score']=score
         context.update({'spectra': spectra, 'trans':trans})
         return context
 

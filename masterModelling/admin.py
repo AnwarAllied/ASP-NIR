@@ -9,6 +9,7 @@ from django.urls import path, reverse
 # Register your models here.
 class StaticModelAdmin(admin.ModelAdmin):
     def change_view(self, request, object_id, form_url='', extra_context=None):
+
         obj=StaticModel.objects.get(id=object_id)
         if obj.name=='PCA matching model':
             url='/master_static_pca/'
