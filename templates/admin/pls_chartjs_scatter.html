@@ -26,13 +26,13 @@
                     yAxes: [{
                         scaleLabel: {
                             display: true,
-                            labelString: 'Second component'
+                            labelString: 'Predicted '+(data.axis_unit || 'value')
                         }
                     }],
                     xAxes: [{
                         scaleLabel: {
                             display: true,
-                            labelString: 'First component'
+                            labelString: 'Real '+(data.axis_unit || 'value')
                         }
                     }]
                 },
@@ -48,7 +48,7 @@
                             if (label) {
                                 label += ': ';
                             }
-                            label += '(' + Math.round(tooltipItem.xLabel*100)/100 + ', ' + Math.round(tooltipItem.yLabel*100)/100 + ')';
+                            label += '(real: ' + Math.round(tooltipItem.xLabel*100)/100 + ', predicted: ' + Math.round(tooltipItem.yLabel*100)/100 + ', error: '+ Math.round((tooltipItem.xLabel-tooltipItem.yLabel)*100)/100 +' )';
                             return label;
                         }
                     }

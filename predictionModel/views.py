@@ -100,10 +100,18 @@ class PlsScatterChartView(BaseLineChartView):
         # context = super(BaseLineChartView, self).get_context_data(**kwargs)
         model_id=self.request.GET.get('model_id','')
         content={"labels": self.get_labels(), "datasets": self.get_datasets()}
+        try:
+            if model_id:
+                unit=Spectrum.objects.get(id=int(model_id)).origin.split()[2]
+            else:
+                unit=self.cont['Spectra'].first().origin.split()[2]
+        except:
+            unit=None
+        
         context=self.cont
         _=[context.pop(i, None) for i in ['Spectrum', 'y_pred', 'trans','model']]
         context.update(content)
-        context.update({"title": True if model_id else False, 'text': 'Validation set Rsquare= '+ ('00.00' if self.cont['score']< 0 else "{:0.4f}".format(self.cont['score']))} )
+        context.update({"title": True if model_id else False, 'text': 'Validation set Rsquare= '+ ('00.00' if self.cont['score']< 0 else "{:0.4f}".format(self.cont['score'])), 'axis_unit': unit } )
         return context
 
     def spect2context(self, **kwargs):
@@ -147,9 +155,9 @@ class PlsScatterChartView(BaseLineChartView):
         # PLS:
         if 'pls' in locals():
             if model_id: # if avalible: test or show it
-                trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred, ids_filtred = pls.apply('test', pls.order, *ids)
+                trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred, ids_filtred, y_true = pls.apply('test', pls.order, *ids)
             else:
-                trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred, ids_filtred = pls.trans(), pls.order, pls.score, pls.mse, pls.xrots(), pls.xmean(), pls.ymean(), pls.pcoef(), pls.xstd(), pls.ypred(), [i.id for i in pls.calibration.all()]
+                trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred, ids_filtred, y_true = pls.trans(), pls.order, pls.score, pls.mse, pls.xrots(), pls.xmean(), pls.ymean(), pls.pcoef(), pls.xstd(), pls.ypred(), pls.get_calibration_ids(), pls.get_y_train()
                 # context.update({'model': model, 'Spectra': spectra, 'trans': trans, 'mode': mode, 'y_pred': y_pred})
                 # return context
         else: # if new pls
@@ -161,7 +169,7 @@ class PlsScatterChartView(BaseLineChartView):
             else:
                 components = 2
                 
-            trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred, ids_filtred = pls.apply('calibration', components, *ids)
+            trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred, ids_filtred, y_true = pls.apply('calibration', components, *ids)
             # keep a copy at session in case saving it:
             self.request.session['trans'] = trans.tolist()
             self.request.session['pls_ids'] = ids_filtred
@@ -175,54 +183,61 @@ class PlsScatterChartView(BaseLineChartView):
             self.request.session['pls_x_std'] = x_std.tolist()
             self.request.session['pls_y_pred'] = y_pred.tolist()
         
-        context.update({'model': model, 'Spectra': spectra, 'trans': trans, 'mode': mode, 'y_pred': y_pred, 'score': score, 'ids_filtred':ids_filtred})
+        context.update({'model': model, 'Spectra': spectra, 'trans': trans, 'mode': mode, 'y_pred': y_pred, 'score': score, 'ids_filtred':ids_filtred, 'y_true': y_true})
         # context.update({'dic': dic})
         return context
 
     def get_labels(self):
         self.cont=self.spect2context()
-        self.cont['providers']= self.get_providers()
-        return self.cont['providers']
+        # self.cont['providers']= self.get_providers()
+        # ids_filtred = self.cont['ids_filtred']
+        # print("in lebles")
+        return []#['jhkhj','jkhk','fjhhjff','gyui','iuyiu']#[Spectrum.objects.get(id= i).origin for i in ids_filtred]
 
-    def isDigit(self,x):
-            try:
-                float(x)
-                return True
-            except ValueError:
-                return False
+    # def isDigit(self,x):
+    #     try:
+    #         float(x)
+    #         return True
+    #     except ValueError:
+    #         return False
 
     def get_providers(self):
-        if 'providers' in self.cont.keys():
-            return self.cont['providers']
+        # if 'providers' in self.cont.keys():
+        #     return self.cont['providers']
         
         model_id = self.request.GET.get('model_id', '')
-        if self.cont['mode'] == 'detail':
-            if self.cont['model'] == 'PlsModel':
-                return [i.origin for i in self.cont['Spectra'].all()]
-            else:
-                return [self.cont['Spectra'].label()] + [i.label() for i in self.cont['Spectra'].similar_pk.all()]
-        elif model_id:
-            ids_filtred = self.cont['ids_filtred']
-            spectra = list(range(len(ids_filtred)))
-            for i in range(len(ids_filtred)):
-                spectra[i]=Spectrum.objects.get(id=ids_filtred[i])
-                spectra_name_items = spectra[i].origin.split()
-                # modify the origin number of a spectrum
-                if len(spectra_name_items)>1 and self.isDigit(spectra_name_items[1])==True:
-                    spectra_name_items[1] += ' (predicted: '+'{:0.2f}'.format(self.cont['y_pred'][i][0])+')'
-                    spectra[i].origin = ' '.join(spectra_name_items)
-                else:
-                    spectrum.origin += ' (predicted: '+'{:0.2f}'.format(self.cont['y_pred'][i][0])+')'
-            return [i.label() for i in spectra]
-        else:
-            return [i.label() for i in self.cont['Spectra']]
+        ids_filtred = self.cont['ids_filtred']
+        return [Spectrum.objects.get(id= i).origin for i in ids_filtred]
+        # if self.cont['mode'] == 'detail':
+        #     if self.cont['model'] == 'PlsModel':
+        #         return [i.origin for i in self.cont['Spectra'].all()]
+        #     else:
+        #         return [self.cont['Spectra'].label()] + [i.label() for i in self.cont['Spectra'].similar_pk.all()]
+        # elif model_id:
+        #     ids_filtred = self.cont['ids_filtred']
+        #     spectra = list(range(len(ids_filtred)))
+        #     for i in range(len(ids_filtred)):
+        #         spectra[i]=Spectrum.objects.get(id=ids_filtred[i])
+        #         spectra_name_items = spectra[i].origin.split()
+        #         # modify the origin number of a spectrum
+        #         if len(spectra_name_items)>1 and self.isDigit(spectra_name_items[1])==True:
+        #             spectra_name_items[1] += ' (predicted: '+'{:0.2f}'.format(self.cont['y_pred'][i][0])+')'
+        #             spectra[i].origin = ' '.join(spectra_name_items)
+        #         else:
+        #             spectrum.origin += ' (predicted: '+'{:0.2f}'.format(self.cont['y_pred'][i][0])+')'
+        #     return [Spectrum.objects.get(id= i).origin for i in ids_filtred] #[i.label() for i in spectra]
+        # else:
+        #     return [i.label() for i in self.cont['Spectra']]
 
     def get_data(self):
-        trans=self.cont['trans']
+        y_true=self.cont['y_true'].tolist()
+        y_pred=self.cont['y_pred'].tolist()
+        # trans=self.cont['trans']
         # l=len(trans.T)
         # if l<2:
         #     trans=np.array([list(range(len(trans[0]))),trans[0].tolist()])
-        return [[{"x":a,"y":b}] for a,b in trans[:,:2]]#[{"x":1,"y":2},{"x":5,"y":4}],[{"x":3,"y":4},{"x":3,"y":1}]]#
+        # return [[{"x":a,"y":b}] for a,b in trans[:,:2]]#[{"x":1,"y":2},{"x":5,"y":4}],[{"x":3,"y":4},{"x":3,"y":1}]]#
+        return [[{"x":a,"y":b}] for a,b in zip(y_true,y_pred)]#[{"x":1,"y":2},{"x":5,"y":4}],[{"x":3,"y":4},{"x":3,"y":1}]]#
 
 
 # Create your views here.

@@ -74,6 +74,15 @@ class PlsModel(models.Model):
         else:
             y=to_wavelength_length_scale(np.array([i.y().tolist() for i in self.calibration.all()]))
         return y
+    
+    def get_calibration_ids(self):
+        return [i.id for i in self.calibration.all()]
+
+    def get_y_train(self, spectra=None):
+        # if spectra:
+        return np.array([float(findall('\d[\d\.]*',i.origin)[0]) if findall('\d',i.origin) else None for i in (spectra if spectra else self.calibration.all())])
+        # else:
+        #     return np.[float(findall('\d[\d\.]*',i.origin)[0]) for i in self.calibration.all()]
 
     def apply(self, mode, components, *ids):
         if mode == 'calibration':
@@ -86,7 +95,7 @@ class PlsModel(models.Model):
             ids_spec = [i.id for i in spectra_filter]
             X_train = self.scale_y(*ids_spec)
             # print('X_train shape:', X_train.shape)
-            Y_train = np.array([float(findall('\d[\d\.]*',i.origin)[0]) for i in spectra_filter])
+            Y_train = self.get_y_train(spectra_filter)
             # print('Y_train shape:', Y_train.shape,'...', Y_train[:3])
             # print([type(i) for i in Y_train.tolist()])
             # print(components,type(components))
@@ -101,6 +110,7 @@ class PlsModel(models.Model):
             y_mean = pls.y_mean_
             coef = pls.coef_
             x_std = pls.x_std_
+            y_comp = Y_train
             # print(x_mean[0],x_mean[-1],y_mean[0],y_mean[-1],x_std[0],x_std[-1],coef.shape,coef[0],coef[-1],trans.shape,trans[0,0],trans[5,5],y_pred[0],y_pred[-1,],x_rotations.shape,x_rotations[0,0],x_rotations[5,5])
             # print('calibration-- score: %s, mse: %s' % (score, mse))
         else:
@@ -117,8 +127,11 @@ class PlsModel(models.Model):
             pls.coef_ = self.pcoef()
             pls.y_mean_ = self.ymean()
             y_pred = pls.predict(testing_set_scaled)  # predict(x) needs x_mean_, y_mean_, coef_
-            y_true = [float(findall('\d[\d\.]*',i.origin)[0]) if findall('\d',i.origin) else None for i in spectra_testing]
-            y_comp = np.array([y_true[i] if y_true[i] else y_pred[i] for i in range(len(y_true))])
+            # y_true = [float(findall('\d[\d\.]*',i.origin)[0]) if findall('\d',i.origin) else None for i in spectra_testing]
+            y_true=self.get_y_train(spectra_testing)
+            # print(y_true[6],'\n',y_true[6])
+            # print(y_pred[6],'\n',y_pred[6])
+            y_comp = np.array([y_true[i] if y_true[i] else y_pred[i][0] for i in range(len(y_true))])
             score = pls.score(testing_set_scaled, y_comp)
             # print('score:',score)
             # print('y_pred:',y_pred)
@@ -131,7 +144,7 @@ class PlsModel(models.Model):
             x_std = pls.x_std_
             ids_spec = ids
             # print('testing-- y_pred:%s' % (y_pred))
-        return trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred, ids_spec
+        return trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred, ids_spec, y_comp
 
 
 class PcaModel(models.Model):
