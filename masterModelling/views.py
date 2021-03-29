@@ -53,10 +53,10 @@ class master_pca_chart(BaseLineChartView):
         trans=pca.transform(Y)
         # try:  # incase len(Y)<=2:
         #     score = pca.score(Y)
-        #     print('debug: ',score)
         # except ValueError:
         #     score = 00
         # self.request.session['score']=score
+        # self.request.session['trans']=trans
         context.update({'spectra': spectra, 'trans':trans})
         return context
 
@@ -79,6 +79,9 @@ class master_pca_chart(BaseLineChartView):
             e_index=distance.index(n_distance[1])  # [0] -> itself, find the index of the shortest distance
             spectrum = spectra[e_index]  # find the nearest spectrum
             # print('debug:',spectrum)
+            # save 3 nearest spectra in the session
+            nearest_spectra_ids = [spectrum.id, spectra[distance.index(n_distance[2])].id, spectra[distance.index(n_distance[3])].id]
+            self.request.session['nearest_spectra_ids'] = nearest_spectra_ids
             if spectrum.nir_profile_id:
                 s = NirProfile.objects.get(id=spectrum.nir_profile_id)
                 if s:
@@ -91,11 +94,20 @@ class master_pca_chart(BaseLineChartView):
         trans = self.cont['trans']
         return [[{"x":a,"y":b}] for a,b in trans[:,:2]]
 
-# class master_pca_element_chart(BaseLineChartView):
-#     pass
-#
-#
-#
+class master_pca_element_chart(BaseLineChartView):
+
+    def get_context_data(self, **kwargs):
+        id=self.request.GET.get('id','')
+        spectrum=Spectrum.objects.get(id=id)
+        nearest_spectra_ids=self.request.session['nearest_spectra_ids']
+        spectra=[Spectrum.objects.get(id=i) for i in nearest_spectra_ids]
+        # print(spectra)
+
+
+
+
+
+
 #
 # class master_pls(TemplateView):
 #     template_name = 'admin/index_plot.html'
