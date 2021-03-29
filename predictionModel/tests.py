@@ -5,6 +5,7 @@ from django.test import TestCase
 from core.models import NirProfile, Spectrum
 from matplotlib import pyplot as plt
 import numpy as np
+import pandas as pd
 import re
 # from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import MinMaxScaler
@@ -45,14 +46,22 @@ def plot(x,*arg):
 # y1=[Spectrum.objects.get(id=i).y().tolist() for i in ids]
 # p=PcaModel()
 # p.scale_y(*ids)
-q9=Spectrum.objects.filter(nir_profile=10)
-q1=Spectrum.objects.filter(nir_profile=9)
-X=np.array([i.y().tolist() for i in q9.all()] )
-V=np.array([i.y().tolist() for i in q1.all()] )
-xl=np.array([float(re.findall('\d+\.\d+',i.origin)[0]) for i in q9.all()])
-vl=np.array([float(i.origin.split(' ')[1]) for i in q1.all()])
-# Y=min_max_scal(np.array([i.y().tolist() for i in q1.all()]+[i.y().tolist() for i in q7.all()] ))
-
+# q9=Spectrum.objects.filter(nir_profile=10)
+# q1=Spectrum.objects.filter(nir_profile=9)
+# X=np.array([i.y().tolist() for i in q9.all()] )
+# V=np.array([i.y().tolist() for i in q1.all()] )
+# xl=np.array([float(re.findall('\d+\.\d+',i.origin)[0]) for i in q9.all()])
+# vl=np.array([float(i.origin.split(' ')[1]) for i in q1.all()])
+# # Y=min_max_scal(np.array([i.y().tolist() for i in q1.all()]+[i.y().tolist() for i in q7.all()] ))
+# path='Alan_Ames_calibration_final.xlsx'
+# ex=pd.ExcelFile(path)
+# sh1 = pd.read_excel(ex, ex.sheet_names[0])
+# tl=sh4['Brixlevel'].values
+# X1=np.array([sh1[i] for i in list(sh1)[1:]]).T
+# path1='/mnt/c/Users/ASP_Engineer_6/Desktop/NIR_Quantitative/Grapes/Vingineers_sugar_sampling_data_20200701_test_samples.xlsx'
+# ex=pd.ExcelFile(path1)
+# sh1 = pd.read_excel(ex, ex.sheet_names[2])
+# V=np.array([[i]+sh1[i].values.tolist() for i in list(sh1)[1:]])
 
 #PCA:
 # pca = PCA(n_components=10)
@@ -75,11 +84,11 @@ vl=np.array([float(i.origin.split(' ')[1]) for i in q1.all()])
 # _=plt.plot(er.T);plt.ylabel('MSE');plt.xlabel('Component');plt.show()
 
 # PLS analysis:
-pls2 = PLSRegression(n_components=10)
-pls2.fit(X, xl)
-y_p = pls2.predict(V)
-print('model Rsq=',pls2.score(X,pls2.predict(X)))
-print('validation Rsq=',pls2.score(V,y_p))
+# pls2 = PLSRegression(n_components=10)
+# pls2.fit(X, xl)
+# y_p = pls2.predict(V)
+# print('model Rsq=',pls2.score(X,pls2.predict(X)))
+# print('validation Rsq=',pls2.score(V,y_p))
 # T=pls2.x_scores_   #(54, 10) = pls2.transform(X)
 # U=pls2.y_scores_   #(54, 10)
 # W=pls2.x_weights_  #(228, 10)
@@ -113,4 +122,10 @@ print('validation Rsq=',pls2.score(V,y_p))
 
 # cm=np.array([X[12].tolist(),L[12].tolist()])
 # plot((x_axis,cm),'Compare the RPCA filtered spectrum (# 12)','Absorbance','Wavelength')
+
+# writer = pd.ExcelWriter('testing.xlsx')
+# df3 = pd.DataFrame(xl)
+# df3.to_excel(writer, sheet_name = 'Orientation 1_V_2ndDer_SG')
+# writer.save()
+# writer.close()
 

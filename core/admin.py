@@ -53,7 +53,7 @@ class SpectrumAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         # change the delimiter to ", "
-        delimiter=re.findall("[^\d\,\.\- ]+",obj.y_axis[:100])
+        delimiter=re.findall("[^\d\,\.\- E]+",obj.y_axis[:100])
         if delimiter:
             # print('Delimiter changed from: %r' % delimiter[0])
             obj.y_axis=re.sub(delimiter[0],', ',obj.y_axis)
