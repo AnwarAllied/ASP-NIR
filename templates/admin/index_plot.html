@@ -16,6 +16,8 @@
     &rsaquo; <a href="{% url 'admin:app_list' app_label=app_label %}">{{ verbose_name }}</a>
     {% if model_id %}
     &rsaquo; <a href="{% url 'admin:app_list' app_label=app_label %}{{ model|lower }}/{{ model_id }}/change/">{{ index_text|title }}</a>
+    {% elif master_static_pca %}
+      <a href="{% url 'admin:app_list' app_label=app_label %}{{ model|lower }}/{{ model_id }}/change/">{{ index_text|title }}</a>
     {% endif %}
     &rsaquo; {{ verbose_name_plural|capfirst }}
     
@@ -33,6 +35,8 @@
         {% include "admin/pls_chartjs_scatter.html" %}
     {% elif master_static_pca %}
         {% include "admin/master_static_pca_chart.html" %}
+    {% elif master_pca_element %}
+        {% include "admin/master_pca_element_chart.html" %}
     {% elif master_static_pls %}
         {% include "admin/master_static_pls_chart.html" %}
     {% else %}

@@ -1,9 +1,30 @@
 {% load static %}
+<style>
+    .chart-container ul li{
+        display:inline-block;
+        margin-right:15px;
+        background: url
+    }
+    .chart-container ul li::before{
+        content:"- ";
+        color:#447e9b;
+    }
+    h4{
+        color:#447e9b;
+    }
+
+</style>
 <ul class="messagelist">
 
 </ul>
 <div class="chart-container">
     <h1>{{ figure_header }}</h1>
+    <h4>We have {{ spec_num }} spectra and {{ group_num }} groups, comp. of PCA model is {{ components }} </h4>
+    <ul>
+        {% for t in text %}
+        <li>{{ t }}</li>
+        {% endfor %}
+    </ul>
     <canvas id="myChart"></canvas>
 </div>
 
@@ -13,7 +34,8 @@
 
     $.get('{% url "master_pca_chart" %}', function(data) {
         Gdata = data
-        var ctx = $("#myChart").get(0).getContext("2d");
+        var cv = $("#myChart").get(0)
+        var ctx = cv.getContext("2d");
         chart = new Chart.Scatter(ctx, {
             type: "line",
             data:data,
@@ -34,6 +56,7 @@
                 },
                 legend: {
                     labels:{
+                        usePointStyle: true,
                         filter: function(item, chart){
                             return item.datasetIndex == data.datasets.length-1;
                         }
@@ -51,12 +74,24 @@
                             return label;
                         }
                     }
+                },
+                hover:{
+                    onHover:function(e){
+                        var point = this.getElementAtEvent(e);
+                        if(point.length) e.target.style.cursor = 'pointer';
+                        else e.target.style.cursor = 'default';
+                    }
                 }
             }
         });
-        chart.config.data.datasets[data.datasets.length-1].pointStyle='triangle'
+        cv.onclick = function(e){
+            var activePoint = chart.getElementAtEvent(e);
+            console.log('activePoint',activePoint);
+            pointIndex = activePoint[0]['_datasetIndex'];
+            window.location = '{% url "master_pca_element_chart" %}?id='+pointIndex;
+        };
+        chart.config.data.datasets[data.datasets.length-1].pointStyle='rect'
         chart.config.data.datasets[data.datasets.length-1].pointRadius=8
-<!--        chart.config.data.datasets[data.datasets.length-1].pointBackgroundColor='#6a3d9a'-->
         chart.update()
     });
 
