@@ -121,7 +121,11 @@ class master_pca_element_chart(BaseLineChartView):
 
     def spec2context(self,**kwargs):
         context=super(BaseLineChartView, self).get_context_data(**kwargs)
-        id=int(self.request.session['id'])
+        model=self.request.GET.get('model','')
+        if model=='match':
+            id=self.request.GET.get('id','')
+        else:
+            id=int(self.request.session['id'])
         print(id)
         spectrum=Spectrum.objects.all()[id]
         nearest_spectra_ids_all=self.request.session['nearest_spectra_ids_all']
