@@ -74,40 +74,62 @@ class master_pca_chart(BaseLineChartView):
         trans = self.cont['trans']
         messages = []
         distances=[[((i[0]-j[0])**2 + (i[1]-j[1])**2)**0.5 for i in trans] for j in trans]
+        nearest_spectra_ids_all = []
         for distance in distances:
             n_distance=sorted(distance)  # sort
             # indices = [i for i, x in enumerate(distance) if x == distance[1]] # find all indices
             e_index=distance.index(n_distance[1])  # [0] -> itself, find the index of the shortest distance
             spectrum = spectra[e_index]  # find the nearest spectrum
-            # print('debug:',spectrum)
             # save 3 nearest spectra in the session
-            nearest_spectra_ids = [spectrum.id, spectra[distance.index(n_distance[2])].id, spectra[distance.index(n_distance[3])].id]
-            self.request.session['nearest_spectra_ids'] = nearest_spectra_ids
+            nearest_spectra_ids_all.append([spectrum.id, spectra[distance.index(n_distance[2])].id, spectra[distance.index(n_distance[3])].id])
             if spectrum.nir_profile_id:
                 s = NirProfile.objects.get(id=spectrum.nir_profile_id)
                 if s:
                     messages.append(' belongs or is close to ' + s.title)
             else:
                 messages.append(' is close to ' + spectrum.origin)
+        self.request.session['nearest_spectra_ids_all'] = nearest_spectra_ids_all
+        # print('debug: ',nearest_spectra_ids_all, len(nearest_spectra_ids_all))
         return messages
 
     def get_data(self):
         trans = self.cont['trans']
         return [[{"x":a,"y":b}] for a,b in trans[:,:2]]
 
-class master_pca_element_chart(BaseLineChartView):
+
+class master_pca_element(TemplateView):
     template_name = 'admin/index_plot.html'
+
     def get_context_data(self, **kwargs):
         data=super().get_context_data()
+        data['app_label'] = 'masterModelling'
+        data['model'] = 'StaticModel'
+        data['index_text'] = 'master-pca-element'
+        data['has_permission'] = self.request.user.is_authenticated
+        data['verbose_name'] = 'MasterModellingPca'
+        data['figure_header'] = 'Spectrum and its nearest spectra'
         data['master_pca_element'] = True
+        id=self.request.GET.get('id','')
+        self.request.session['id']=id
+        return data
+
+class master_pca_element_chart(BaseLineChartView):
+    def get_dataset_options(self, index, color):
+        default_opt = super().get_dataset_options(index, color)
+        default_opt.update({"fill": "false"})
+        return default_opt
 
     def spec2context(self,**kwargs):
         context=super(BaseLineChartView, self).get_context_data(**kwargs)
-        id=self.request.GET.get('id','')
-        spectrum=Spectrum.objects.get(id=id)
-        nearest_spectra_ids=self.request.session['nearest_spectra_ids']
+        id=int(self.request.session['id'])
+        print(id)
+        spectrum=Spectrum.objects.all()[id]
+        nearest_spectra_ids_all=self.request.session['nearest_spectra_ids_all']
+        nearest_spectra_ids=nearest_spectra_ids_all[id]
+        print('nearest ids:',nearest_spectra_ids)
         spectra=[Spectrum.objects.get(id=i) for i in nearest_spectra_ids]
-        spectra.append(spectrum)
+        spectra.insert(0,spectrum)
+        print(spectra)
         context.update({'spectra':spectra})
         return context
         # print(spectra)

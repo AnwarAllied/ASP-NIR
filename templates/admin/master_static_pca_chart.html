@@ -88,7 +88,7 @@
             var activePoint = chart.getElementAtEvent(e);
             console.log('activePoint',activePoint);
             pointIndex = activePoint[0]['_datasetIndex'];
-            window.location = '{% url "master_pca_element_chart" %}?id='+pointIndex;
+            window.location = '{% url "master_pca_element" %}?id='+pointIndex;
         };
         chart.config.data.datasets[data.datasets.length-1].pointStyle='rect'
         chart.config.data.datasets[data.datasets.length-1].pointRadius=8
