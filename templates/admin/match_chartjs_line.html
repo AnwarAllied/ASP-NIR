@@ -1,5 +1,23 @@
 {% load static %}
+<style>
+#myChart{
+margin-top:15px;
+}
+#match_go{
+background: #79aec8;
+border: none;
+border-radius: 4px;
+color: #fff;
+margin: 2px 0;
+padding: 2px 3px;
+vertical-align: middle;
+font-family: "Roboto", "Lucida Grande", Verdana, Arial, sans-serif;
+font-weight: normal;
+font-size: 13px;
+cursor:pointer;
+}
 
+</style>
 <div class="chart-container">
     <h1>{{ figure_header }}</h1>
     <span>Click to change method for matching:</span>
@@ -8,10 +26,8 @@
         <option value="pca">PCA method</option>
         <option value="pls">PLS method</option>
     </select>
-    <button id="match_go" onclick="change_method()">Go</button>
-    <div id="test_match">
+    <button id="match_go" onclick="change_method(this)">Go</button>
     <canvas id="myChart"></canvas>
-    </div>
 </div>
 
 <button onclick="reset_data(this)" class="">Reset</button>
@@ -19,12 +35,12 @@
 <script src="{% static 'js/jquery-1.10.0.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
 <script>
-
     $.get('{% url "line_chart_json" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}', function(data) {
         Gdata = data
         var ctx = $("#myChart").get(0).getContext("2d");
         chart = new Chart(ctx, {
-            type: 'line', data: data,
+            type: 'line',
+            data: data,
             options: {
                 scales: {
                     yAxes: [{
@@ -48,7 +64,7 @@
 
     function reset_data() {
         $.get('{% url "line_chart_json" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}', function(data) {
-            Gdata = data
+            Gdata = data;
             chart.data.datasets.forEach(function(dataset, index) {
                 dataset.data = Gdata['datasets'][index]["data"];
             });
@@ -58,22 +74,39 @@
     };
             
     function reverse() {
-            // var ds = JSON.parse(Gdata['datasets'])
-			chart.data.datasets.forEach(function(dataset, index) {
-                const u=[];
-                // Gdata['datasets'][index]["data"].forEach( function (val){u.push(val*val)});
-                dataset.data = Gdata['datasets'][index]["data"].reverse();
-			});
-			chart.update();
-		}
+		chart.data.datasets.forEach(function(dataset, index) {
+            const u=[];
+            dataset.data = Gdata['datasets'][index]["data"].reverse();
+		});
+		chart.update();
+    };
 
-	function change_method(){
-	    var method=$('#match_method').val();
-	    if(method=='pca'){
-            
-
-	    }
+function change_method(){
+	var method=$('#match_method').val();
+	if(method=='poly'){
+	    $.get('{% url "line_chart_json" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}',function(data){
+            Gdata = data;
+            chart.data.datasets.forEach(function(dataset, index) {
+                dataset.data = Gdata['datasets'][index]["data"];
+                dataset.label = Gdata['datasets'][index]['label'];
+            });
+            chart.update();
+	    });
 	}
+	else if(method=='pca'){
+	    $.get('{% url "master_pca_element_chart" %}?model={{ model }}&id={{ ids }}',function(data){
+            Gdata = data
+            chart.data.datasets.forEach(function(dataset, index) {
+                dataset.data = Gdata['datasets'][index]["data"];
+                dataset.label = Gdata['datasets'][index]['label'];
+            });
+            chart.update();
+	    });
+	}
+
+}
+
+
 
 </script>
 

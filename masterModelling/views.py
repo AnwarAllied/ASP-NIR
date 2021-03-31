@@ -8,6 +8,7 @@ from sklearn.decomposition import PCA
 from sklearn.cross_decomposition import PLSRegression
 from predictionModel.models import normalize_y
 import numpy as np
+from spectraModelling.models import Match
 
 class master_pca(TemplateView):
     template_name = 'admin/index_plot.html'
@@ -52,6 +53,9 @@ class master_pca_chart(BaseLineChartView):
         pca=PCA(n_components=2)
         pca.fit(Y)
         trans=pca.transform(Y)
+        static_model=StaticModel.objects.first()
+        static_model.component=str(pca.components_.tolist())[1:-1]
+        static_model.save()
         # try:  # incase len(Y)<=2:
         #     score = pca.score(Y)
         # except ValueError:
@@ -122,21 +126,37 @@ class master_pca_element_chart(BaseLineChartView):
     def spec2context(self,**kwargs):
         context=super(BaseLineChartView, self).get_context_data(**kwargs)
         model=self.request.GET.get('model','')
-        if model=='match':
+        spectra=[]
+        if model=='Match':
             id=self.request.GET.get('id','')
+            spectrum = Match.objects.get(id=id)
+            spectra_all = [i for i in Spectrum.objects.all()]
+            spectra_all.insert(0, spectrum)
+            y = normalize_y([i.y().tolist() for i in spectra_all])
+            pca = PCA(n_components=2)
+            pca.n_components_ = 2
+            sm = StaticModel.objects.first()
+            pca.components_ = sm.comp()
+            pca.mean_ = np.mean(y, axis=0)
+            trans = pca.transform(y)
+            # print(trans)
+            distances=[((trans[0][0]-i[0])**2+(trans[0][1]-i[1])**2)**0.5 for i in trans[1:]]
+            # print('match distance:',distances)
+            n_distances=sorted(distances)
+            spectra=[spectra_all[distances.index(n_distances[i])+1] for i in [0,1,2]]
+            spectra.insert(0,spectrum)
         else:
             id=int(self.request.session['id'])
-        print(id)
-        spectrum=Spectrum.objects.all()[id]
-        nearest_spectra_ids_all=self.request.session['nearest_spectra_ids_all']
-        nearest_spectra_ids=nearest_spectra_ids_all[id]
-        print('nearest ids:',nearest_spectra_ids)
-        spectra=[Spectrum.objects.get(id=i) for i in nearest_spectra_ids]
-        spectra.insert(0,spectrum)
-        print(spectra)
+            print(id)
+            spectrum=Spectrum.objects.all()[id]
+            nearest_spectra_ids_all=self.request.session['nearest_spectra_ids_all']
+            nearest_spectra_ids=nearest_spectra_ids_all[id]
+            print('nearest ids:',nearest_spectra_ids)
+            spectra=[Spectrum.objects.get(id=i) for i in nearest_spectra_ids]
+            spectra.insert(0,spectrum)
+            print(spectra)
         context.update({'spectra':spectra})
         return context
-        # print(spectra)
 
     def get_labels(self):
         self.cont = self.spec2context()
@@ -152,57 +172,3 @@ class master_pca_element_chart(BaseLineChartView):
         x_length=self.cont['x_length']
         return [[i.y().tolist()[a] for a in np.linspace(0, len(i.y().tolist()) - 1, x_length).astype(int)] for i in
                 self.cont['spectra']]
-
-#
-# class master_pls(TemplateView):
-#     template_name = 'admin/index_plot.html'
-#
-#     def get_context_data(self, **kwargs):
-#         model = self.request.GET.get('model', '')
-#         print('test master:', model)
-#         data = super().get_context_data()
-#         data['model'] = model
-#         # data['index_text'] = 'test for master static'
-#         data['master_static_pls'] = True
-#         data['has_permission'] = self.request.user.is_authenticated
-#         data['app_label'] = 'masterModelling' if (model == 'staticModel' or model == 'ingredientsModel') else 'core'
-#         data['verbose_name'] = model
-#         return data
-#
-# class master_pls_chart(BaseLineChartView):
-#     def get_dataset_options(self, index, color):
-#         default_opt = super().get_dataset_options(index, color)
-#         default_opt.update({"fill": "false"})
-#         default_opt.update({'pointRadius': 5})
-#         return default_opt
-#
-#     def spec2context(self, **kwargs):
-#         # model = self.request.GET.get('model', '')
-#         # mode = self.request.GET.get('mode', '')
-#         # model_id=self.request.GET.get('model_id','')
-#         # model_id= int(model_id) if model_id else model_id
-#         # ids = [i.id for i in Spectrum.objects.all()]
-#         # ids = list(map(int, self.request.GET.get('ids', '').split(',')))
-#         # self.request.session['model'] = model
-#         context = super(BaseLineChartView, self).get_context_data(**kwargs)
-#         spectra = Spectrum.objects.all()
-#         # print("spectra:",spectra)
-#         context.update({'Spectra': spectra})
-#         return context
-#
-#     def get_labels(self):
-#         self.cont=self.spec2context()
-#         return self.get_providers()
-#
-#     def get_providers(self):
-#         return [i.origin for i in self.cont['Spectra'].all()]
-#
-#     def close_to(self):
-#         pass
-#
-#
-#     def get_data(self):
-#         pass
-#
-# class master_pls_element_chart(BaseLineChartView):
-#     pass
