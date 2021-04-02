@@ -127,10 +127,7 @@ class PlsModel(models.Model):
             pls.coef_ = self.pcoef()
             pls.y_mean_ = self.ymean()
             y_pred = pls.predict(testing_set_scaled)  # predict(x) needs x_mean_, y_mean_, coef_
-            # y_true = [float(findall('\d[\d\.]*',i.origin)[0]) if findall('\d',i.origin) else None for i in spectra_testing]
             y_true=self.get_y_train(spectra_testing)
-            # print(y_true[6],'\n',y_true[6])
-            # print(y_pred[6],'\n',y_pred[6])
             y_comp = np.array([y_true[i] if y_true[i] else y_pred[i][0] for i in range(len(y_true))])
             score = pls.score(testing_set_scaled, y_comp)
             # print('score:',score)

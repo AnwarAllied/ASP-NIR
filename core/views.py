@@ -174,39 +174,64 @@ class LineChartJSONView(BaseLineChartView):
         else:
             x=self.cont['Spectra'].first().x()
         # x= [sorted(list(set(int(round(x[i]/10)*10)))) for i in range(0,len(x),10)]
+        self.request.session['plot_x_h']=x.astype(int).tolist()
         x=np.unique((np.round(x/50)*50).astype(int))
         self.cont['x_length']=len(x)
+        self.request.session['plot_x_l']=x.tolist()
         return x.tolist()
 
     def get_providers(self):
         if self.cont['mode'] == 'detail':
             if self.cont['model'] == 'Match':
-                return [self.cont['Spectra'].label()] + [i.label() for i in self.cont['Spectra'].poly.all()]
+                label = [self.cont['Spectra'].label()] + [i.label() for i in self.cont['Spectra'].poly.all()]
             else:
-                return [self.cont['Spectra'].label()] + [i.label() for i in self.cont['Spectra'].similar_pk.all()]
+                lable = [self.cont['Spectra'].label()] + [i.label() for i in self.cont['Spectra'].similar_pk.all()]
         else:
         # st='i.spectrum.origin' if self.cont['model'] =="Poly" else 'i.origin'
-            return [i.label() for i in self.cont['Spectra']]
+            label =[i.label() for i in self.cont['Spectra']]
+        self.request.session['plot_label_h']=label
+        return label
         # return [eval(st) if isinstance(eval(st), str) else eval(st+'()') for i in self.cont['Spectra']]
 
     def get_data(self):
         # self.limits={'max','min'}
         x_length=self.cont['x_length']
-        # yn=[y[int(a)] for a in np.linspace(0,len(y)-1,x_length)] 
         if self.cont['mode'] == 'detail':
-            y=self.cont['Spectra'].y_all()[0]
-            # return [i.tolist()[0:-1:10] for i in self.cont['Spectra'].y_all()]
-            return [[i.tolist()[a] for a in np.linspace(0,len(i.tolist())-1,x_length).astype(int)] for i in self.cont['Spectra'].y_all()]
+            # y=self.cont['Spectra'].y_all()[0]
+            y= np.array([i.tolist() for i in self.cont['Spectra'].y_all()])
+            ys= [[i.tolist()[a] for a in np.linspace(0,len(i.tolist())-1,x_length).astype(int)] for i in self.cont['Spectra'].y_all()]
         elif self.cont['model']== 'SgFilter':
             y= self.cont['SG_y']
-            # return [[i.y().tolist()[a] for a in np.linspace(0,len(i.y.tolist())-1,x_length).astype(int)] for i in y]
-            return y[:,np.linspace(0,y.shape[1]-1,x_length).astype(int)].tolist()
+            ys=y[:,np.linspace(0,y.shape[1]-1,x_length).astype(int)].tolist()
 
         else:
-            y=self.cont['Spectra'][0].y()
-            return [[i.y().tolist()[a] for a in np.linspace(0,len(i.y().tolist())-1,x_length).astype(int)] for i in self.cont['Spectra']]
+            # y=self.cont['Spectra'][0].y()
+            y= np.array([i.y().tolist() for i in self.cont['Spectra']])
+            ys=[[i.y().tolist()[a] for a in np.linspace(0,len(i.y().tolist())-1,x_length).astype(int)] for i in self.cont['Spectra']]
+        self.request.session['plot_y_h']=y.tolist()
+        self.request.session['plot_y_l']=ys
+        return ys
 
+class LineChartResl(BaseLineChartView):
+    def get_dataset_options(self, index, color):
+        default_opt = super().get_dataset_options(index, color)
+        default_opt.update({"fill": "false"})
+        return default_opt
 
+    def get_resl(self):
+        resl= self.request.GET.get('resl', '').lower()
+        self.resl = resl
+        return resl
+
+    def get_labels(self):
+        resl= self.get_resl()
+        return self.request.session['plot_x_'+resl]
+
+    def get_providers(self):
+        return self.request.session['plot_label_h']
+
+    def get_data(self):
+        return self.request.session['plot_y_'+self.resl]
 
 
 # line_chart = TemplateView.as_view(template_name='admin/index1.html')

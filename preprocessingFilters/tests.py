@@ -41,16 +41,16 @@ def plot(x,*arg):
             _=plt.plot(x);plt.title(arg[0]);plt.ylabel(arg[1]);plt.xlabel(arg[2]);plt.show()
 
 q1=Spectrum.objects.filter(nir_profile=10)
-q9=Spectrum.objects.filter(nir_profile=9)
+q8=Spectrum.objects.filter(nir_profile=8)
 X=np.array([i.y().tolist() for i in q1.all()] )
-V=np.array([i.y().tolist() for i in q9.all()] )
+V=np.array([i.y().tolist() for i in q8.all()] )
 
-Xs=savgol_average(X, 13, 2)
-Xs.shape
-Xs.mean
+# Xs=savgol_average(V, 13, 2)
+# Xs.shape
+# Xs.mean
 
 Sg=SgFilter(polyorder=2)
-Sg.obtain(ids=[10])
+Sg.obtain(ids=[8])
 
 Ss=Sg.y()
 Ss.shape

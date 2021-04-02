@@ -6,6 +6,8 @@
 </div>
 <button onclick="reset_data(this)" class="">Reset</button>
 <button onclick="reverse(this)" class="">Reverse</button>
+<button onclick="full_resl(this,'H')" class="">High resloution</button>
+<button onclick="full_resl(this,'L')" class="">Low resloution</button>
 <script src="{% static 'js/jquery-1.10.0.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
 <script>
@@ -39,6 +41,7 @@
     function reset_data() {
         $.get('{% url "line_chart_json" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}', function(data) {
             Gdata = data
+            chart.data.labels = Gdata['labels'];
             chart.data.datasets.forEach(function(dataset, index) {
                 dataset.data = Gdata['datasets'][index]["data"];
             });
@@ -55,7 +58,21 @@
                 dataset.data = Gdata['datasets'][index]["data"].reverse();
 			});
 			chart.update();
-		}
+		};
+
+    function full_resl(obj,resl) {
+        $.get('{% url "line_chart_resl" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}&resl='+resl, function(data) {
+            Gdata = data;
+            chart.data.labels = Gdata['labels'];
+            chart.data.datasets.forEach(function(dataset, index) {
+                dataset.data = Gdata['datasets'][index]["data"];
+            });
+            chart.update();
+        });
+
+    };
+
+    
 
 </script>
 
