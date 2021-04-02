@@ -11,8 +11,14 @@ from django.views.generic import TemplateView
 from chartjs.views.lines import BaseLineChartView
 from .models import Spectrum, NirProfile
 from spectraModelling.models import Poly, Match
+from preprocessingFilters.models import SgFilter
+from django.utils import timezone
+import os, re
+from django.conf import settings
+from django.http import HttpResponse, Http404
 from itertools import chain
 import numpy as np
+import pandas as pd
 
 
 # def index(request):
@@ -37,6 +43,39 @@ def index(request):
 def error_404(request, exception):
         data = {}
         return render(request,'admin/404.html', data)
+
+def download_xlsx(request):
+    now = timezone.now().__str__()[8:19]
+    ids=list(map(int,request.GET.get('ids','').split(',')))
+    obj=SgFilter.objects.get(id=ids[0])
+    title=obj.nirprofile.first().title
+    path=settings.STATICFILES_DIRS[0].__str__()+'/temp/'+title+'-'+now+'.xlsx'
+    writer = pd.ExcelWriter(path, engine = 'xlsxwriter')
+    print(ids,path)
+
+    # save the file
+    for i in ids:
+        print(i)
+        obj=SgFilter.objects.get(id=i)
+        title=" ".join(obj.nirprofile.first().title.split()[:3])
+        x_axis=obj.nirprofile.first().spectrum_set.first().x()
+        label=[re.findall('\d[\d\.]*',i.origin)[0] if re.findall('\d',i.origin) else '' for i in obj.nirprofile.first().spectrum_set.all()]
+        df1 = pd.DataFrame(obj.y())
+        df1.columns=x_axis
+        df1.index=label
+        df1.to_excel(writer, sheet_name = title)
+    
+    writer.save()
+    writer.close()
+
+    # prepare the download
+    if os.path.exists(path):
+        with open(path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(path)
+            return response
+        os.remove(path)
+    raise Http404
 
 class plot(TemplateView):
     template_name = "admin/index_plot.html"
@@ -89,8 +128,13 @@ class LineChartJSONView(BaseLineChartView):
         ids=list(map(int,self.request.GET.get('ids','').split(',')))
         # print('spct2con:',model,ids)
         context=super(BaseLineChartView, self).get_context_data(**kwargs)
-        if model == "NirProfile":  #nir_profile=np.objects.get(id=4))
-            nirprofiles=NirProfile.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
+        if model == "NirProfile" or model == 'SgFilter':  #nir_profile=np.objects.get(id=4))
+            if model == 'SgFilter':
+                SG=SgFilter.objects.get(id= ids[0])
+                nirprofiles = SG.nirprofile.all()
+                context.update({'SG_y': SG.y(),})
+            else:
+                nirprofiles=NirProfile.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
             context.update({'max': nirprofiles[0].y_max,})
             spectra=Spectrum.objects.filter(nir_profile= nirprofiles[0])
             for obj in nirprofiles[1:]:
@@ -112,7 +156,8 @@ class LineChartJSONView(BaseLineChartView):
                 match=Match.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
             spectra=match   # need better overall strcture
             # print('Model:',match)
-
+        # elif model == 'SgFilter':
+        #     spectra = SgFilter.objects.get(id= ids[0])
         # print("spectra:",spectra)
         context.update({'model':model ,'Spectra': spectra, 'mode': mode})
         # context.update({'dic': dic})
@@ -122,6 +167,10 @@ class LineChartJSONView(BaseLineChartView):
         self.cont=self.spect2context()
         if self.cont['mode'] == 'detail':
             x=self.cont['Spectra'].x()
+        # elif self.cont['model']== 'SgFilter':
+        #     self.cont['x_length']=self.cont['Spectra'].y().shape[0]
+        #     return self.cont['Spectra'].nirprofile.first().title
+
         else:
             x=self.cont['Spectra'].first().x()
         # x= [sorted(list(set(int(round(x[i]/10)*10)))) for i in range(0,len(x),10)]
@@ -148,6 +197,11 @@ class LineChartJSONView(BaseLineChartView):
             y=self.cont['Spectra'].y_all()[0]
             # return [i.tolist()[0:-1:10] for i in self.cont['Spectra'].y_all()]
             return [[i.tolist()[a] for a in np.linspace(0,len(i.tolist())-1,x_length).astype(int)] for i in self.cont['Spectra'].y_all()]
+        elif self.cont['model']== 'SgFilter':
+            y= self.cont['SG_y']
+            # return [[i.y().tolist()[a] for a in np.linspace(0,len(i.y.tolist())-1,x_length).astype(int)] for i in y]
+            return y[:,np.linspace(0,y.shape[1]-1,x_length).astype(int)].tolist()
+
         else:
             y=self.cont['Spectra'][0].y()
             return [[i.y().tolist()[a] for a in np.linspace(0,len(i.y().tolist())-1,x_length).astype(int)] for i in self.cont['Spectra']]

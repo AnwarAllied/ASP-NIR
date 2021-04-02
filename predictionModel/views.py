@@ -12,6 +12,7 @@ from chartjs.views.lines import BaseLineChartView
 from .models import PcaModel, PlsModel
 from core.models import Spectrum, NirProfile
 from spectraModelling.models import Poly, Match
+from preprocessingFilters.models import SgFilter
 import json
 from itertools import chain
 import numpy as np
@@ -32,6 +33,8 @@ class pls(TemplateView):
             data['figure_header'] = 'PLS model for {}:'.format(Spectrum.objects.get(id=int(ids.split(',')[0])).origin.split(' ')[0])
         elif model == 'NirProfile':
             data['figure_header'] = 'PLS model for {}:'.format(NirProfile.objects.get(id=int(ids.split(',')[0])).title)
+        elif model == 'SgFilter':
+            data['figure_header'] = 'PLS model SG filter for{}:'.format(SgFilter.objects.get(id=int(ids.split(',')[0])).nirfilter.first().title)   
         elif model == 'Ploy':
             data['figure_header'] = 'PLS model for {}:'.format(Poly.objects.get(pk=int(ids.split(',')[0])).spectrum.origin.split(' ')[0])
         elif model == 'Match':
@@ -126,6 +129,14 @@ class PlsScatterChartView(BaseLineChartView):
         if model == "NirProfile":
             nirprofiles = NirProfile.objects.filter(eval('|'.join('Q(id=' + str(pk) + ')' for pk in ids)))
             context.update({'max': nirprofiles[0].y_max, })
+            spectra = Spectrum.objects.filter(nir_profile=nirprofiles[0])
+            for obj in nirprofiles[1:]:
+                spectra |= Spectrum.objects.filter(nir_profile=obj)
+            ids = [i.id for i in spectra]
+        elif model == 'SgFilter':  #nir_profile=np.objects.get(id=
+            SG=SgFilter.objects.get(id= ids[0])
+            nirprofiles = SG.nirprofile.all()
+            context.update({'SG_y': SG.y(),'max': nirprofiles[0].y_max})
             spectra = Spectrum.objects.filter(nir_profile=nirprofiles[0])
             for obj in nirprofiles[1:]:
                 spectra |= Spectrum.objects.filter(nir_profile=obj)

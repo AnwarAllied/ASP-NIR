@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'core.apps.CoreConfig',
     'spectraModelling.apps.SpectramodellingConfig',
     'predictionModel.apps.PredictionmodelConfig',
+    'preprocessingFilters.apps.PreprocessingfiltersConfig',
     'django_dropbox_storage'
 ]
 

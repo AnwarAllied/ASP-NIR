@@ -51,7 +51,7 @@ class myPolyAdmin(admin.ModelAdmin):
 
 
 # to remove unwanted actions:
-def remove_action(response,remove = ['PCA_model','PLS_model']):
+def remove_action(response,remove = ['PCA_model','PLS_model','Download_as_excel_file']):
     if 'context_data' in dir(response):
         if 'action_form' in response.context_data.keys():
             action_choices=response.context_data['action_form'].fields['action'].choices

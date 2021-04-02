@@ -3,6 +3,7 @@ from .models import Spectrum, NirProfile
 from spectraModelling.models import Poly, Match
 from predictionModel.admin import PcaModel, myPcaModelAdmin, PlsModel, myPlsModelAdmin
 from spectraModelling.admin import myMatchAdmin, myPolyAdmin
+from preprocessingFilters.admin import *
 
 from ASP_NIR.settings import DROPBOX_ACCESS_TOKEN
 from .forms import NirProfileForm, SpectrumForm
@@ -83,7 +84,8 @@ class SpectrumAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(request.get_full_path())
         else:
             # cutomize the changelist page of spectrum
-            response = super().changelist_view(request, extra_context=None)
+            # response = super().changelist_view(request, extra_context=None)
+            response = remove_action(super().changelist_view(request, extra_context=None), remove = ['Download_as_excel_file'])
             try:
                 qs = response.context_data['cl'].queryset  # get_queryset
             except (AttributeError, KeyError):
@@ -102,6 +104,7 @@ class SpectrumAdmin(admin.ModelAdmin):
             #         result=list(results(cl))   # this is the results found in the changelist_results html.
             #         response.context_data['items']=[[i for i in r]+[q.spec_image()] for r,q in zip(result,qs.all())]
             return response
+
 
 class NirProfileAdmin(admin.ModelAdmin):
     view_on_site = False
@@ -151,6 +154,9 @@ class NirProfileAdmin(admin.ModelAdmin):
         # pd.read_excel(request.FILES['upload_dataset'].file, index_col=False, error_bad_lines=False, encoding='utf-8')
         return super().response_change(request, obj, **kwargs)
 
+        # to remove action Download:
+    def changelist_view(self, request):
+        return remove_action(super().changelist_view(request), remove = ['Download_as_excel_file'])
 
 class MyAdminSite(admin.AdminSite):
     default_site = 'myproject.admin.MyAdminSite'
@@ -189,6 +195,14 @@ class MyAdminSite(admin.AdminSite):
             model, ','.join(str(pk) for pk in selected),
         ))
 
+    def xlsx_export_selected_objects(self, request, queryset):
+        model=queryset.model.__name__
+        selected = queryset.values_list('pk', flat=True)
+        ct =eval(model+".objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in selected)))")
+        return HttpResponseRedirect('/xlsx/?model=%s&ids=%s' % (
+            model, ','.join(str(pk) for pk in selected),
+        ))
+
     def plot_spectra(self, request, queryset):
         short_description = "Plot selected spectra"
 
@@ -198,11 +212,15 @@ class MyAdminSite(admin.AdminSite):
     def pls_model(self, request, queryset):
         short_description = "PLS of selected spectra"
 
+    def download_xlsx(self, request, queryset):
+        short_description = "Download selected spectra as xlsx"
+
     # plot_spectra.short_description = "Plot selected spectra"
     di1={'Poly':('Plot_spectra',plot_export_selected_objects)}
     di2={'PCA':('PCA_model', pca_export_selected_objects)}
     di3 = {'PLS': ('PLS_model', pls_export_selected_objects)}
-    actions = [di1['Poly'],di2['PCA'],di3['PLS']]+[('delete_selected', dict(admin.AdminSite().actions)['delete_selected'])]
+    di4 = {'XISX': ('Download_as_excel_file', xlsx_export_selected_objects)}
+    actions = [di1['Poly'],di2['PCA'],di3['PLS'],di4['XISX']]+[('delete_selected', dict(admin.AdminSite().actions)['delete_selected'])]
 
 class NoPlot(admin.ModelAdmin):
     view_on_site = False
@@ -212,7 +230,7 @@ class NoPlot(admin.ModelAdmin):
         return remove_action(super().changelist_view(request))
 
 # to remove action plot:
-def remove_action(response,remove = ['Plot_spectra','PCA_model','PLS_model']):
+def remove_action(response,remove = ['Plot_spectra','PCA_model','PLS_model', 'Download_as_excel_file']):
     # response=super().changelist_view(request)
     if 'action_form' in response.context_data.keys():
         if 'action_form' in response.context_data.keys():
@@ -261,4 +279,5 @@ admin_site.register(Poly,myPolyAdmin)
 admin_site.register(Match,myMatchAdmin)
 admin_site.register(PlsModel,myPlsModelAdmin)
 admin_site.register(PcaModel,myPcaModelAdmin)
+admin_site.register(SgFilter,mySgFilterAdmin)
 # admin_site.register(NirProfileAdmin)
