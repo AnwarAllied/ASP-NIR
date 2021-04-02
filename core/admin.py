@@ -232,7 +232,7 @@ class NoPlot(admin.ModelAdmin):
 # to remove action plot:
 def remove_action(response,remove = ['Plot_spectra','PCA_model','PLS_model', 'Download_as_excel_file']):
     # response=super().changelist_view(request)
-    if 'action_form' in response.context_data.keys():
+    if 'context_data' in dir(response):
         if 'action_form' in response.context_data.keys():
             action_choices=response.context_data['action_form'].fields['action'].choices
             action_choices=[i for i in action_choices if i[0] not in remove ]
