@@ -44,6 +44,7 @@
             chart.data.labels = Gdata['labels'];
             chart.data.datasets.forEach(function(dataset, index) {
                 dataset.data = Gdata['datasets'][index]["data"];
+                dataset.pointRadius = 3
             });
             chart.update();
         });
@@ -66,6 +67,8 @@
             chart.data.labels = Gdata['labels'];
             chart.data.datasets.forEach(function(dataset, index) {
                 dataset.data = Gdata['datasets'][index]["data"];
+                if (resl == 'H') { dataset.pointRadius = 0 }
+                else { dataset.pointRadius = 3}
             });
             chart.update();
         });

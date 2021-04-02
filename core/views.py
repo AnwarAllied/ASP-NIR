@@ -116,6 +116,7 @@ class LineChartJSONView(BaseLineChartView):
     def get_dataset_options(self, index, color):
         default_opt = super().get_dataset_options(index, color)
         default_opt.update({"fill": "false"})
+        # default_opt.update({'pointRadius': 0})
         return default_opt
 
 
@@ -174,7 +175,7 @@ class LineChartJSONView(BaseLineChartView):
         else:
             x=self.cont['Spectra'].first().x()
         # x= [sorted(list(set(int(round(x[i]/10)*10)))) for i in range(0,len(x),10)]
-        self.request.session['plot_x_h']=x.astype(int).tolist()
+        self.request.session['plot_x_h']=x[np.linspace(0,len(x)-1,228).astype(int)].astype(int).tolist()
         x=np.unique((np.round(x/50)*50).astype(int))
         self.cont['x_length']=len(x)
         self.request.session['plot_x_l']=x.tolist()
@@ -206,7 +207,8 @@ class LineChartJSONView(BaseLineChartView):
 
         else:
             # y=self.cont['Spectra'][0].y()
-            y= np.array([i.y().tolist() for i in self.cont['Spectra']])
+            # y= np.array([i.y().tolist() for i in self.cont['Spectra']])
+            y=np.array([[i.y().tolist()[a] for a in np.linspace(0,len(i.y().tolist())-1,228).astype(int)] for i in self.cont['Spectra']])
             ys=[[i.y().tolist()[a] for a in np.linspace(0,len(i.y().tolist())-1,x_length).astype(int)] for i in self.cont['Spectra']]
         self.request.session['plot_y_h']=y.tolist()
         self.request.session['plot_y_l']=ys
