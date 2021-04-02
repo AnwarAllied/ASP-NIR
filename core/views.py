@@ -74,7 +74,7 @@ def download_xlsx(request):
             response = HttpResponse(fh.read(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
             response['Content-Disposition'] = 'inline; filename=' + os.path.basename(path)
             return response
-        os.remove(path)
+        os.remove(path)  # not trigered, need Signal.
     raise Http404
 
 class plot(TemplateView):
