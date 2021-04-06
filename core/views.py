@@ -51,16 +51,18 @@ def download_xlsx(request):
     title=obj.nirprofile.first().title
     path=settings.STATICFILES_DIRS[0].__str__()+'/temp/'+title+'-'+now+'.xlsx'
     writer = pd.ExcelWriter(path, engine = 'xlsxwriter')
-    print(ids,path)
+    # print(ids,path)
 
     # save the file
     for i in ids:
-        print(i)
+        # print(i)
         obj=SgFilter.objects.get(id=i)
         title=" ".join(obj.nirprofile.first().title.split()[:3])
         x_axis=obj.nirprofile.first().spectrum_set.first().x()
         label=[re.findall('\d[\d\.]*',i.origin)[0] if re.findall('\d',i.origin) else '' for i in obj.nirprofile.first().spectrum_set.all()]
+        # print(x_axis[:3],x_axis.shape)
         df1 = pd.DataFrame(obj.y())
+        # print(obj.y().shape)
         df1.columns=x_axis
         df1.index=label
         df1.to_excel(writer, sheet_name = title)

@@ -53,6 +53,7 @@
             
     function reverse() {
             // var ds = JSON.parse(Gdata['datasets'])
+            chart.data.labels.reverse();
 			chart.data.datasets.forEach(function(dataset, index) {
                 const u=[];
                 // Gdata['datasets'][index]["data"].forEach( function (val){u.push(val*val)});
@@ -74,8 +75,6 @@
         });
 
     };
-
-    
 
 </script>
 

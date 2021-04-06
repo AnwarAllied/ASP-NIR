@@ -34,7 +34,7 @@ class pls(TemplateView):
         elif model == 'NirProfile':
             data['figure_header'] = 'PLS model for {}:'.format(NirProfile.objects.get(id=int(ids.split(',')[0])).title)
         elif model == 'SgFilter':
-            data['figure_header'] = 'PLS model SG filter for{}:'.format(SgFilter.objects.get(id=int(ids.split(',')[0])).nirfilter.first().title)   
+            data['figure_header'] = 'PLS model SG filter for {}:'.format(SgFilter.objects.get(id=int(ids.split(',')[0])).nirprofile.first().title)   
         elif model == 'Ploy':
             data['figure_header'] = 'PLS model for {}:'.format(Poly.objects.get(pk=int(ids.split(',')[0])).spectrum.origin.split(' ')[0])
         elif model == 'Match':
@@ -50,6 +50,8 @@ class pls(TemplateView):
 
 def pls_save(request):
     if "pls_ids" in request.session.keys():
+        if 'preprocessed' not in request.session.keys():
+            request.session['preprocessed'] =None
         pls = PlsModel()
         pls.obtain(request.session['pls_ids'],
                    request.session['trans'],
@@ -61,12 +63,13 @@ def pls_save(request):
                    request.session['pls_y_mean'],
                    request.session['pls_coef'],
                    request.session['pls_x_std'],
-                   request.session['pls_y_pred']
+                   request.session['pls_y_pred'],
+                   request.session['preprocessed'],
         )
 
         content = {"saved": True, "message": "The model saved successfully, as: " + pls.__str__(), "message_class": "success"}
         # print("x-mean:%s, y-mean:%s,x-std:%s" % (pls.x_mean, pls.y_mean, pls.x_std))
-        _=[request.session.pop(i, None) for i in ['pls_ids', 'trans', 'components', 'pls_score', 'pls_mse', 'pls_x_rots', 'pls_x_mean','pls_y_mean', 'pls_coef','pls_x_std','pls_y_pred']]
+        _=[request.session.pop(i, None) for i in ['pls_ids', 'trans', 'components', 'pls_score', 'pls_mse', 'pls_x_rots', 'pls_x_mean','pls_y_mean', 'pls_coef','pls_x_std','pls_y_pred','preprocessed']]
     else:
         content = {"message": "Sorry, unable to save the model", "message_class": "warning"}
     return HttpResponse(json.dumps(content), content_type="application/json")
@@ -133,40 +136,57 @@ class PlsScatterChartView(BaseLineChartView):
             for obj in nirprofiles[1:]:
                 spectra |= Spectrum.objects.filter(nir_profile=obj)
             ids = [i.id for i in spectra]
+            query=nirprofiles
         elif model == 'SgFilter':  #nir_profile=np.objects.get(id=
             SG=SgFilter.objects.get(id= ids[0])
+            # print(ids,SG)
             nirprofiles = SG.nirprofile.all()
             context.update({'SG_y': SG.y(),'max': nirprofiles[0].y_max})
-            spectra = Spectrum.objects.filter(nir_profile=nirprofiles[0])
+            spectra = nirprofiles[0].spectrum_set.all()
+            # must consider nirprofilres with no Spectra
             for obj in nirprofiles[1:]:
                 spectra |= Spectrum.objects.filter(nir_profile=obj)
             ids = [i.id for i in spectra]
+            # print('SG ids:',ids)
+            query=SG
+            self.request.session['preprocessed']= model+','+str(SG.id)
         elif model == 'Spectrum':
             spectra = Spectrum.objects.filter(eval('|'.join('Q(id=' + str(pk) + ')' for pk in ids)))
-
+            query=None
         elif model == 'PlsModel':
             if mode == 'detail':
                 pls = PlsModel.objects.get(pk=ids[0])
                 spectra = pls.calibration
+                
                 # print([i.id for i in spectra.all()])
             elif model_id:
                 pls = PlsModel.objects.get(id=model_id)
                 spectra = Spectrum.objects.filter(eval('|'.join('Q(pk=' + str(pk) + ')' for pk in ids)))
+                
             else:
                 pls = PlsModel.objects.filter(eval('|'.join('Q(pk=' + str(pk) + ')' for pk in ids)))
+                # if pls.preprocessed:
+                #     SG=SgFilter.objects.get(id=int(pls.preprocessed.split(',')[1]))
+                #     spectra= SG.nirprofile.first().spectrum_set.all()
+                #     ids = [i.id for i in spectra]
+                #     query=SG
+                # else:
                 spectra = pls.calibration
+            query=None
             # print('Model:',spectra.all()[0])
+            
         elif model == 'Match':
             if mode == 'detail':
                 match = Match.objects.get(id=ids[0])  # if ',' not in ids else ids.split(',')[0]
             else:
                 match = Match.objects.filter(eval('|'.join('Q(id=' + str(pk) + ')' for pk in ids)))
             spectra = match
+            query=None
 
         # PLS:
         if 'pls' in locals():
             if model_id: # if avalible: test or show it
-                trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred, ids_filtred, y_true = pls.apply('test', pls.order, *ids)
+                trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred, ids_filtred, y_true = pls.apply('test', pls.order, *ids, model=query)
             else:
                 trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred, ids_filtred, y_true = pls.trans(), pls.order, pls.score, pls.mse, pls.xrots(), pls.xmean(), pls.ymean(), pls.pcoef(), pls.xstd(), pls.ypred(), pls.get_calibration_ids(), pls.get_y_train()
                 # context.update({'model': model, 'Spectra': spectra, 'trans': trans, 'mode': mode, 'y_pred': y_pred})
@@ -180,7 +200,7 @@ class PlsScatterChartView(BaseLineChartView):
             else:
                 components = 2
                 
-            trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred, ids_filtred, y_true = pls.apply('calibration', components, *ids)
+            trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred, ids_filtred, y_true = pls.apply('calibration', components, *ids, model=query)
             # keep a copy at session in case saving it:
             self.request.session['trans'] = trans.tolist()
             self.request.session['pls_ids'] = ids_filtred

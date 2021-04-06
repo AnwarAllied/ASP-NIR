@@ -1,6 +1,7 @@
 from django.contrib import admin
 # from spectraModelling.models import Poly, Match
 from predictionModel.models import PcaModel, PlsModel
+from preprocessingFilters.models import SgFilter
 from core.models import Spectrum, NirProfile
 from spectraModelling.models import Poly
 
@@ -40,7 +41,9 @@ class myPlsModelAdmin(admin.ModelAdmin):
         extra_context['plot_mode']='detail'
         extra_context['title']='PLS model:'
         extra_context['index_text']= 'Calibration set of %s of the model' % (obj.__str__())
-        extra_context['group'] = profile2group(NirProfile)
+        extra_context['group'] = profile2group(SgFilter if obj.preprocessed else NirProfile)
+        
+
         extra_context['pls_modeling'] = True
 
         rn= super().change_view(
@@ -68,7 +71,10 @@ def remove_action(response,remove = ['Plot_spectra','PCA_model','PLS_model','Dow
     return response
 
 def profile2group(profile):
-    gp=[{'id':i.id,'name':i.title, 'spectra': [{'id':j.id,'origin':j.origin} for j in i.spectrum_set.all()]} for i in profile.objects.all() if i.spectrum_set.count()>0]
-    # include spectra with no profiles:
-    gp.append({'id':'O','name':'Others','spectra':[{'id':j.id,'origin':j.origin} for j in Spectrum.objects.filter(nir_profile=None)]})
+    if profile._meta.model_name == 'nirprofile':
+        gp=[{'id':i.id,'name':i.title, 'spectra': [{'id':j.id,'origin':j.origin} for j in i.spectrum_set.all()]} for i in profile.objects.all() if i.spectrum_set.count()>0]
+        # include spectra with no profiles:
+        gp.append({'id':'O','name':'Others','spectra':[{'id':j.id,'origin':j.origin} for j in Spectrum.objects.filter(nir_profile=None)]})
+    else:
+        gp=[{'id':'O','name':profile._meta.model_name.capitalize(),'spectra':[{'id':j.id,'origin':j.nirprofile.first().title} for j in SgFilter.objects.all()]}]
     return gp

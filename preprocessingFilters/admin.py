@@ -6,17 +6,18 @@ class mySgFilterAdmin(admin.ModelAdmin):
     form = SgFilterForm
     def save_model(self, request, obj, form, change):
         # add y_axis
-        # print(obj.__dict__)
-        # print(request.POST['nirprofile'])
-        ids=list(map(int,request.POST['nirprofile']))
+        ids=request.POST.getlist('nirprofile','')
+        ids=list(map(int,ids)) if ids else None
+        # print(ids)
         obj.obtain(ids=ids)
+        # print('obj:',obj.y_axis[:100])
         super().save_model(request, obj, form, change)
 
     def changelist_view(self, request):
         return remove_action(super().changelist_view(request))
 
 # to remove unwanted actions:
-def remove_action(response,remove = ['PCA_model','PLS_model']):
+def remove_action(response,remove = ['PCA_model',]):
     if 'context_data' in dir(response):
         if 'action_form' in response.context_data.keys():
             action_choices=response.context_data['action_form'].fields['action'].choices

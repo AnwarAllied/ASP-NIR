@@ -49,11 +49,14 @@ class SgFilter(models.Model): # for SavitzkyGolay filter
             exec('self.'+i+'= kwargs["'+i+'"]')
         # self.save()
         spectra=[]
+        # print('nirprofile:',NirProfile.objects.get(id=ids[0]))
         for i in ids:
             spectra.extend([j.y().tolist() for j in NirProfile.objects.get(id=i).spectrum_set.all()])
         spectra=np.array(spectra)
+        # print('spectra :',spectra.shape)
         # self.save()
         self.y_axis=str(self.savgol(spectra).tolist())
+        print('y_axis :',self.savgol(spectra).shape)
         # self.nirprofile.set(ids)
         # self.save()
 

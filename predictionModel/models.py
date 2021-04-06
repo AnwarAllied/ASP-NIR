@@ -6,6 +6,7 @@ from sklearn.decomposition import PCA
 import numpy as np
 from sklearn.cross_decomposition import PLSRegression
 from sklearn.metrics import mean_squared_error as MSE
+from preprocessingFilters.models import SgFilter
 from re import findall
 
 class PlsModel(models.Model):
@@ -19,6 +20,7 @@ class PlsModel(models.Model):
     coef = models.TextField(blank=True, null=True)
     transform = models.TextField(blank=True, null=True)
     y_pred = models.TextField(blank=True, null=True)
+    preprocessed = models.CharField(max_length=20, blank=True, null=True)
     calibration = models.ManyToManyField(Spectrum)
 
     def __str__(self):
@@ -31,6 +33,7 @@ class PlsModel(models.Model):
                 fname= "%s, %s and %d others, score: %s, mse: %s" % (origin_list[0], origin_list[1],self.calibration.count()-2, "{:0.2f}".format(self.score), "{:0.2f}".format(self.mse))
         else:
             fname = "%s, score: %s, score: %s" % (fname, "{:0.2f}".format(self.score), "{:0.2f}".format(self.mse))
+        fname= fname + ' - SG filtred' if self.preprocessed else fname
         return fname
 
     def trans(self):
@@ -54,7 +57,7 @@ class PlsModel(models.Model):
     def ypred(self):
         return np.array(eval("["+self.y_pred+"]"))
 
-    def obtain(self, ids, trans, components, score, mse, xrots, xmean, ymean, plscoef, xstd, ypred):
+    def obtain(self, ids, trans, components, score, mse, xrots, xmean, ymean, plscoef, xstd, ypred, preprocessed):
         self.score = score
         self.mse = mse
         self.order= components
@@ -65,6 +68,7 @@ class PlsModel(models.Model):
         self.coef = str(plscoef)[1:-1]
         self.x_std = str(xstd)[1:-1]
         self.y_pred = str(ypred)[1:-1]
+        self.preprocessed=preprocessed
         self.save()
         self.calibration.set(ids)
 
@@ -84,7 +88,7 @@ class PlsModel(models.Model):
         # else:
         #     return np.[float(findall('\d[\d\.]*',i.origin)[0]) for i in self.calibration.all()]
 
-    def apply(self, mode, components, *ids):
+    def apply(self, mode, components, *ids, **kwargs):
         if mode == 'calibration':
             if ids:
                 spectra = [Spectrum.objects.get(id=i) for i in ids]
@@ -93,7 +97,10 @@ class PlsModel(models.Model):
             spectra_filter = [i for i in spectra if findall('\d[\d\.]*',i.origin)]
             # print('spectra_filter:', len(spectra_filter),'from:',len(spectra))
             ids_spec = [i.id for i in spectra_filter]
-            X_train = self.scale_y(*ids_spec)
+            if 'SgFilter' in str(type(kwargs['model'])):
+                X_train = kwargs['model'].y()
+            else:
+                X_train = self.scale_y(*ids_spec)
             # print('X_train shape:', X_train.shape)
             Y_train = self.get_y_train(spectra_filter)
             # print('Y_train shape:', Y_train.shape,'...', Y_train[:3])
@@ -115,9 +122,16 @@ class PlsModel(models.Model):
             # print('calibration-- score: %s, mse: %s' % (score, mse))
         else:
             # if ids:
-            spectra_testing = [Spectrum.objects.get(id=i) for i in ids]
-            testing_set = [i.y() for i in spectra_testing]
-            testing_set_scaled = to_wavelength_length_scale(testing_set)
+            # print(ids,'\n',self.preprocessed)
+            if self.preprocessed:
+                SG=SgFilter.objects.get(id=ids[0])#self.preprocessed.split(',')[1])
+                spectra_testing = SG.nirprofile.first().spectrum_set.all()#[Spectrum.objects.get(id=i) for i in ids]
+                ids = [i.id for i in spectra_testing]
+                testing_set_scaled = SG.y()
+            else:
+                spectra_testing = [Spectrum.objects.get(id=i) for i in ids]
+                testing_set = [i.y() for i in spectra_testing]
+                testing_set_scaled = to_wavelength_length_scale(testing_set)
             components = self.order
             pls = PLSRegression(n_components=components)
             pls.x_rotations_ = self.xrots()
