@@ -125,11 +125,24 @@ class NirProfileAdmin(admin.ModelAdmin):
         }),
         ('Included Spectra', {
             'classes': ('collapse',),
-            'fields': ("upload_dataset",),
+            'fields': ("upload_dataset","upload_picture"),
         }),
     )
 
     def response_change(self, request, obj, **kwargs):
+        if 'upload_picture' in request.FILES.keys():
+            dsFile=request.FILES['upload_picture']
+            elm=obj.spectrum_set.all()[0]
+            elm.spec_pic.save(dsFile.name,dsFile)
+            pic_path = getDropboxImgUrl()
+            elm.pic_path=pic_path
+            elm.save()
+            for elem in obj.spectrum_set.all()[1:]:
+                elem.spec_pic=elm.spec_pic
+                elem.pic_path=pic_path
+                elem.save()
+            messages.success(request, "Picture set to Spectra" )
+
         if 'upload_dataset' in request.FILES.keys():
             dsFile=request.FILES['upload_dataset'].file
             dsFile.seek(0)

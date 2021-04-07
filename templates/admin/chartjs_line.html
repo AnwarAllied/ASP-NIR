@@ -8,8 +8,10 @@
 <button onclick="reverse(this)" class="">Reverse</button>
 <button onclick="full_resl(this,'H')" class="">High resloution</button>
 <button onclick="full_resl(this,'L')" class="">Low resloution</button>
+<button onclick="toggle_label(this)" class="">Label</button>
 <script src="{% static 'js/jquery-1.10.0.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
+
 <script>
 
     $.get('{% url "line_chart_json" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}', function(data) {
@@ -52,15 +54,15 @@
     };
             
     function reverse() {
-            // var ds = JSON.parse(Gdata['datasets'])
-            chart.data.labels.reverse();
-			chart.data.datasets.forEach(function(dataset, index) {
-                const u=[];
-                // Gdata['datasets'][index]["data"].forEach( function (val){u.push(val*val)});
-                dataset.data = Gdata['datasets'][index]["data"].reverse();
-			});
-			chart.update();
-		};
+        // var ds = JSON.parse(Gdata['datasets'])
+        chart.data.labels.reverse();
+        chart.data.datasets.forEach(function(dataset, index) {
+            const u=[];
+            // Gdata['datasets'][index]["data"].forEach( function (val){u.push(val*val)});
+            dataset.data = Gdata['datasets'][index]["data"].reverse();
+        });
+        chart.update();
+	};
 
     function full_resl(obj,resl) {
         $.get('{% url "line_chart_resl" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}&resl='+resl, function(data) {
@@ -73,8 +75,12 @@
             });
             chart.update();
         });
+    
+    };
 
+    function toggle_label(obj) {
+        chart.options.legend.display= !chart.options.legend.display;
+        chart.update();
     };
 
 </script>
-

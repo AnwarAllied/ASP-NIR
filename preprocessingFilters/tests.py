@@ -1,6 +1,7 @@
 from django.test import TestCase
 
 # from predictionModel.models import PcaModel, to_wavelength_length_scale as scal
+from predictionModel.models import PlsModel
 from core.models import NirProfile, Spectrum
 from preprocessingFilters.models import SgFilter
 from scipy.signal import savgol_filter
@@ -41,19 +42,28 @@ def plot(x,*arg):
             _=plt.plot(x);plt.title(arg[0]);plt.ylabel(arg[1]);plt.xlabel(arg[2]);plt.show()
 
 q1=Spectrum.objects.filter(nir_profile=10)
-q9=Spectrum.objects.filter(nir_profile=9)
+q2=Spectrum.objects.filter(nir_profile=11)
 X=np.array([i.y().tolist() for i in q1.all()] )
-V=np.array([i.y().tolist() for i in q9.all()] )
-Y=np.array([float(re.findall('\d[\d\.]*',i.origin)[0]) for i in q1.all()])
+V=np.array([i.y().tolist() for i in q2.all()] )
+lx=np.array([float(re.findall('\d[\d\.]*',i.origin)[0]) for i in q1.all()])
+lv=np.array([float(re.findall('\d[\d\.]*',i.origin)[0]) for i in q2.all()])
 
-Xs=savgol_average(X, 13, 2)
+# Xs=savgol_average(X, 13, 2)
 # Xs.shape
 # Xs.mean
 
-Sg=SgFilter(polyorder=2)
-Sg.obtain(ids=[8])
+# Sg=SgFilter(polyorder=2)
+# Sg.obtain(ids=[8])
 
 # Ss=Sg.y()
 # Ss.shape
 # Ss.mean
 pls=PLSRegression(n_components=10)
+pls.fit(X,lx)
+pls.score(V,lv)
+
+Xs=savgol_average(X, 13, 2)
+Vs=savgol_average(V, 13, 2)
+pls2=PLSRegression(n_components=10)
+pls2.fit(Xs,lx)
+pls2.score(Vs,lv)
