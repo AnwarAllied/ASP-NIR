@@ -108,6 +108,7 @@ sudo apt-get install -y libpq-dev
 pipenv install django-heroku
 heroku git:remote -a nirvascan
 git push heroku predict_model:master
+heroku run python manage.py makemigrations
 heroku run python manage.py migrate
 heroku buildpacks
 heroku ps
