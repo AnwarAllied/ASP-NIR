@@ -198,7 +198,7 @@ class PlsScatterChartView(BaseLineChartView):
                 pls.order=components
                 print('Components setted to:',components)
             else:
-                components = 2
+                components = 10 if spectra.count()>20 else 2
                 
             trans, components, score, mse, x_rotations, x_mean, y_mean, coef, x_std, y_pred, ids_filtred, y_true = pls.apply('calibration', components, *ids, model=query)
             # keep a copy at session in case saving it:
@@ -213,7 +213,7 @@ class PlsScatterChartView(BaseLineChartView):
             self.request.session['pls_coef'] = coef.tolist()
             self.request.session['pls_x_std'] = x_std.tolist()
             self.request.session['pls_y_pred'] = y_pred.tolist()
-        
+            
         context.update({'model': model, 'Spectra': spectra, 'trans': trans, 'mode': mode, 'y_pred': y_pred, 'score': score, 'ids_filtred':ids_filtred, 'y_true': y_true})
         # context.update({'dic': dic})
         return context
