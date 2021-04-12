@@ -114,6 +114,7 @@ heroku buildpacks
 heroku ps
 heroku ps:stop run.9768
 heroku logs --tail
+heroku config:set DISABLE_COLLECTSTATIC=1
 
 ```
 #### reference:

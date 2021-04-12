@@ -57,7 +57,7 @@ def download_xlsx(request):
     for i in ids:
         # print(i)
         obj=SgFilter.objects.get(id=i)
-        title=" ".join(obj.nirprofile.first().title.split()[:3])
+        title=" ".join(obj.nirprofile.first().title.split()[:3])[:12]
         x_axis=obj.nirprofile.first().spectrum_set.first().x()
         label=[re.findall('\d[\d\.]*',i.origin)[0] if re.findall('\d',i.origin) else '' for i in obj.nirprofile.first().spectrum_set.all()]
         # print(x_axis[:3],x_axis.shape)
