@@ -41,12 +41,12 @@ def plot(x,*arg):
         else:
             _=plt.plot(x);plt.title(arg[0]);plt.ylabel(arg[1]);plt.xlabel(arg[2]);plt.show()
 
-q1=Spectrum.objects.filter(nir_profile=10)
-q2=Spectrum.objects.filter(nir_profile=11)
-X=np.array([i.y().tolist() for i in q1.all()] )
-V=np.array([i.y().tolist() for i in q2.all()] )
-lx=np.array([float(re.findall('\d[\d\.]*',i.origin)[0]) for i in q1.all()])
-lv=np.array([float(re.findall('\d[\d\.]*',i.origin)[0]) for i in q2.all()])
+# q1=Spectrum.objects.filter(nir_profile=10)
+# q2=Spectrum.objects.filter(nir_profile=11)
+# X=np.array([i.y().tolist() for i in q1.all()] )
+# V=np.array([i.y().tolist() for i in q2.all()] )
+# lx=np.array([float(re.findall('\d[\d\.]*',i.origin)[0]) for i in q1.all()])
+# lv=np.array([float(re.findall('\d[\d\.]*',i.origin)[0]) for i in q2.all()])
 
 # Xs=savgol_average(X, 13, 2)
 # Xs.shape
@@ -58,12 +58,16 @@ lv=np.array([float(re.findall('\d[\d\.]*',i.origin)[0]) for i in q2.all()])
 # Ss=Sg.y()
 # Ss.shape
 # Ss.mean
-pls=PLSRegression(n_components=10)
-pls.fit(X,lx)
-pls.score(V,lv)
+# pls=PLSRegression(n_components=10)
+# pls.fit(X,lx)
+# pls.score(V,lv)
 
-Xs=savgol_average(X, 35, 2)
-Vs=savgol_average(V, 35, 2)
-pls2=PLSRegression(n_components=10)
-pls2.fit(Xs,lx)
-pls2.score(Vs,lv)
+# Xs=savgol_average(X, 35, 2)
+# Vs=savgol_average(V, 35, 2)
+# pls2=PLSRegression(n_components=10)
+# pls2.fit(Xs,lx)
+# pls2.score(Vs,lv)
+
+from predictionModel.models import PlsModel
+import numpy as np
+l=PlsModel.objects.last()
