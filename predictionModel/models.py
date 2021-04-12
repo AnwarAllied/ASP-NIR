@@ -74,9 +74,9 @@ class PlsModel(models.Model):
 
     def scale_y(self,*ids):
         if ids:
-            y=to_wavelength_length_scale(np.array([Spectrum.objects.get(id=i).y().tolist() for i in ids]))
+            y=to_wavelength_length_scale(np.array([Spectrum.objects.get(id=i).y().tolist() for i in sorted(ids)]))
         else:
-            y=to_wavelength_length_scale(np.array([i.y().tolist() for i in self.calibration.all()]))
+            y=to_wavelength_length_scale(np.array([i.y().tolist() for i in self.calibration.all().order_by('id')]))
         return y
     
     def get_calibration_ids(self):
@@ -91,7 +91,7 @@ class PlsModel(models.Model):
     def apply(self, mode, components, *ids, **kwargs):
         if mode == 'calibration':
             if ids:
-                spectra = [Spectrum.objects.get(id=i) for i in ids]
+                spectra = [Spectrum.objects.get(id=i) for i in sorted(ids)]
             else:
                 spectra = [Spectrum.objects.all()]
             spectra_filter = [i for i in spectra if findall('\d[\d\.]*',i.origin)]
