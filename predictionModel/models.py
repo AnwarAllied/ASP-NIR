@@ -99,13 +99,11 @@ class PlsModel(models.Model):
             ids_spec = [i.id for i in spectra_filter]
             if 'SgFilter' in str(type(kwargs['model'])):
                 X_train = kwargs['model'].y()
+                Y_train = kwargs['model'].ingr()
             else:
                 X_train = self.scale_y(*ids_spec)
-            # print('X_train shape:', X_train.shape)
-            Y_train = self.get_y_train(spectra_filter)
-            # print('Y_train shape:', Y_train.shape,'...', Y_train[:3])
-            # print([type(i) for i in Y_train.tolist()])
-            # print(components,type(components))
+                Y_train = self.get_y_train(spectra_filter)
+            
             pls = PLSRegression(n_components=components)
             pls.fit(X_train, Y_train)
             trans = pls.transform(X_train)
@@ -128,10 +126,12 @@ class PlsModel(models.Model):
                 spectra_testing = SG.nirprofile.first().spectrum_set.all()#[Spectrum.objects.get(id=i) for i in ids]
                 ids = [i.id for i in spectra_testing]
                 testing_set_scaled = SG.y()
+                y_true=SG.ingr()
             else:
                 spectra_testing = [Spectrum.objects.get(id=i) for i in ids]
                 testing_set = [i.y() for i in spectra_testing]
                 testing_set_scaled = to_wavelength_length_scale(testing_set)
+                y_true=self.get_y_train(spectra_testing)
             components = self.order
             pls = PLSRegression(n_components=components)
             pls.x_rotations_ = self.xrots()
@@ -141,7 +141,6 @@ class PlsModel(models.Model):
             pls.coef_ = self.pcoef()
             pls.y_mean_ = self.ymean()
             y_pred = pls.predict(testing_set_scaled)  # predict(x) needs x_mean_, y_mean_, coef_
-            y_true=self.get_y_train(spectra_testing)
             y_comp = np.array([y_true[i] if y_true[i] else y_pred[i][0] for i in range(len(y_true))])
             score = pls.score(testing_set_scaled, y_comp)
             # print('score:',score)

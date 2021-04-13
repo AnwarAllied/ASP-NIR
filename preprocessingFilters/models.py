@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 # from sklearn.cross_decomposition import PLSCanonical, PLSRegression, CCA
 # from sklearn.decomposition import PCA
 from scipy.signal import savgol_filter
+from re import findall
 
 # def moving_average(x, w):
 #     return np.convolve(x, np.ones(w), 'valid') / w
@@ -27,32 +28,40 @@ class SgFilter(models.Model): # for SavitzkyGolay filter
         ('I', 'Interp'),
     ]
     
-    # title = models.TextField(blank=True, null=True, max_length=100)
+    title = models.TextField(blank=True, null=True, max_length=100)
     window_length = models.IntegerField(default= 13, validators=[validate_window])
     polyorder = models.IntegerField(default = 2)
     deriv = models.IntegerField(default = 2)
     mode = models.CharField(max_length=1, choices=MODEL_CHOICES, default='M')
     y_axis = models.TextField(blank=True, null=True)
-    
+    ingrediant = models.TextField(blank=True, null=True, max_length=300)
     nirprofile = models.ManyToManyField(NirProfile) #on_delete=DO_NOTHING
 
     def __str__(self):
-        return self.nirprofile.first().title + ', window: '+ str(self.window_length)
+        return str(self.title) + ', window: '+ str(self.window_length)
 
     def y(self):
         return np.array(eval(self.y_axis))
+
+    def ingr(self):
+        return np.array(eval(self.ingrediant))
 
     def obtain(self, **kwargs):  #ips,window_length,polyorder,deriv,mode
         ids=kwargs['ids']
         _=kwargs.pop('ids')
         for i in kwargs:
             exec('self.'+i+'= kwargs["'+i+'"]')
-        # self.save()
+        self.title=NirProfile.objects.get(id=ids[0]).title
         spectra=[]
+        ingrediant=[]
         # print('nirprofile:',NirProfile.objects.get(id=ids[0]))
         for i in ids:
-            spectra.extend([j.y().tolist() for j in NirProfile.objects.get(id=i).spectrum_set.all()])
+            for spectrum in NirProfile.objects.get(id=i).spectrum_set.all():
+                spectra.extend([spectrum.y().tolist()])
+                flt=findall('\d[\d\.]*',spectrum.origin)[0]
+                ingrediant.extend([float(flt) if flt else 0])
         spectra=np.array(spectra)
+        self.ingrediant=str(ingrediant)
         # print('spectra :',spectra.shape)
         # self.save()
         self.y_axis=str(self.savgol(spectra).tolist())

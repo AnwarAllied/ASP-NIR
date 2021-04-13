@@ -76,5 +76,5 @@ def profile2group(profile):
         # include spectra with no profiles:
         gp.append({'id':'O','name':'Others','spectra':[{'id':j.id,'origin':j.origin} for j in Spectrum.objects.filter(nir_profile=None)]})
     else:
-        gp=[{'id':'O','name':profile._meta.model_name.capitalize(),'spectra':[{'id':j.id,'origin':j.nirprofile.first().title} for j in SgFilter.objects.all()]}]
+        gp=[{'id':'O','name':profile._meta.model_name.capitalize(),'spectra':[{'id':j.id,'origin':j.__str__()} for j in SgFilter.objects.all()]}]
     return gp
