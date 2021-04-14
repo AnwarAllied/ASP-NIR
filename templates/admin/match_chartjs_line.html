@@ -23,8 +23,8 @@ cursor:pointer;
     <span>Click to change method for matching:</span>
     <select id="match_method">
         <option value="poly" selected>Poly (default)</option>
-        <option value="pca">PCA method</option>
-        <option value="pls">PLS method</option>
+        <option value="pca">Master PCA</option>
+<!--        <option value="pls">Master PLS</option>-->
     </select>
     <button id="match_go" onclick="change_method(this)">Go</button>
     <canvas id="myChart"></canvas>
@@ -66,7 +66,7 @@ cursor:pointer;
         $.get('{% url "line_chart_json" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}', function(data) {
             Gdata = data;
             chart.data.datasets.forEach(function(dataset, index) {
-                dataset.data = Gdata['datasets'][index]["data"];
+                dataset.data = data['datasets'][index]["data"];
             });
             chart.update();
         });

@@ -19,7 +19,7 @@ class StaticModel(models.Model):
 
 class IngredientsModel(models.Model):
     name = models.CharField(max_length=60)
-    component = models.CharField(max_length=3)
+    component = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.name
