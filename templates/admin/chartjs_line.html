@@ -2,7 +2,9 @@
 
 <div class="chart-container" style="width:70vw">
     <h1>{{ figure_header }}</h1>
+    <progress id="animationProgress" max="1" value="0" style="width: 100%"></progress>
     <canvas id="myChart"></canvas>
+    
 </div>
 <button onclick="reset_data(this)" class="">Reset</button>
 <button onclick="reverse(this)" class="">Reverse</button>
@@ -13,8 +15,16 @@
 <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
 
 <script>
+    var progress = document.getElementById('animationProgress');
 
+    function start_progress() {
+        step=0.1;
+        this.progress.value= ((this.progress.value + step) >1) ? 0 : (this.progress.value + step) ;
+    }; 
+    var setProg = setInterval(start_progress, 900);
+    
     $.get('{% url "line_chart_json" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}', function(data) {
+        clearInterval(setProg)
         Gdata = data
         var ctx = $("#myChart").get(0).getContext("2d");
         chart = new Chart(ctx, {
@@ -33,10 +43,18 @@
                             labelString: 'Wavelength (nm)'
                         }
                     }]
+                },
+                animation: {
+                    duration: 2000,
+                    onProgress: function(animation) {
+                        progress.value = (animation.currentStep / animation.numSteps)*(1-progress.value) +progress.value;
+                    },
+                    onComplete: function(animation) {
+                        $( "progress#animationProgress" ).hide();
+                    }
                 }
             }
         });
-        // eslint-disable-next-line no-unused-vars
 
     });
 

@@ -73,14 +73,12 @@ def plot(x,*arg):
 # l=PlsModel.objects.last()
 
 # obtain GS title:
-for i in SgFilter.objects.all():
-    ingrediant=[]
-    i.title= i.nirprofile.first().title
-    for sp in i.nirprofile.first().spectrum_set.all():
-        try:
-            flt=re.findall('\d[\d\.]*',sp.origin)[0]
-        except:
-            flt='0'
-        ingrediant.extend([float(flt) if flt else 0])
-    i.ingrediant=str(ingrediant)
-    i.save()
+def gh():
+    for i in SgFilter.objects.all():
+        ingrediant=[]
+        i.title= i.nirprofile.first().title
+        for sp in i.nirprofile.first().spectrum_set.all():
+            flt=re.findall('\d[\d\.]+',sp.origin)[0]
+            ingrediant.extend([float(flt) if flt else 0])
+        i.ingrediant=str(ingrediant)
+        i.save()

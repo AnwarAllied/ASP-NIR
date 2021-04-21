@@ -49,6 +49,7 @@ class myFlatPageAdmin(FlatPageAdmin):
 class SpectrumAdmin(admin.ModelAdmin):
     view_on_site = False
     form = SpectrumForm
+    list_per_page = 300
     change_list_template = 'admin/spectra_display_list.html'
     list_display = ('__str__','spec_image')
 
@@ -90,7 +91,7 @@ class SpectrumAdmin(admin.ModelAdmin):
                 qs = response.context_data['cl'].queryset  # get_queryset
             except (AttributeError, KeyError):
                 return response
-
+            
             if 'smallPic' in request.POST.keys():
                 response.context_data['is_big_pic'] = False
             else:
