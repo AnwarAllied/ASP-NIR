@@ -117,7 +117,7 @@ class PlsScatterChartView(BaseLineChartView):
         context=self.cont
         _=[context.pop(i, None) for i in ['Spectrum', 'y_pred', 'trans','model']]
         context.update(content)
-        context.update({"title": True if model_id else False, 'text': 'Validation set Rsquare= '+ ('00.00' if self.cont['score']< 0 else "{:0.4f}".format(self.cont['score'])), 'axis_unit': unit } )
+        context.update({"title": True if model_id else False, 'text': 'Validation set Rsquared= '+ ('00.00' if self.cont['score']< 0 else "{:0.4f}".format(self.cont['score'])), 'axis_unit': unit } )
         return context
 
     def spect2context(self, **kwargs):
