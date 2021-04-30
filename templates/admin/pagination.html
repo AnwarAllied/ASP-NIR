@@ -1,12 +1,63 @@
-{% load admin_list %}
+{% load new_admin_list %}
 {% load i18n %}
 <p class="paginator">
 {% if pagination_required %}
+<div id="page_choices">
 {% for i in page_range %}
     {% paginator_number cl i %}
 {% endfor %}
+
 {% endif %}
 {{ cl.result_count }} {% if cl.result_count == 1 %}{{ cl.opts.verbose_name }}{% else %}{{ cl.opts.verbose_name_plural }}{% endif %}
 {% if show_all_url %}<a href="{{ show_all_url }}" class="showall">{% translate 'Show all' %}</a>{% endif %}
 {% if cl.formset and cl.result_count %}<input type="submit" name="_save" class="default" value="{% translate 'Save' %}">{% endif %}
+</div>
 </p>
+<script>
+    choices=[];
+    page_choices=[];
+    target_num='';
+    allCheckboxes=document.querySelectorAll('input[name="_selected_action"]');
+    document.getElementById('page_choices').addEventListener('click',function(e){
+        var event=e||window.event;
+        var target=event.target||event.srcElement;
+        if(target.nodeName.toLocaleLowerCase()==='a'){
+            target_num=target.innerHTML;
+        }
+
+    });
+
+        if(sessionStorage.getItem('p_'+target_num)){
+            var getChoices=sessionStorage.getItem('p_'+target_num).split(',');
+            for(var i of getChoices){
+               i=parseInt(i)
+               allCheckboxes[i].checked=true;
+            }
+        }
+        else{
+            var page_num= {{cl.page_num}}+1;
+            var p_choices='p_'+page_num;
+            for(var i=0; i<allCheckboxes.length;i++){
+                if(allCheckboxes[i].checked==true){
+                    choices.push(i);
+                }
+            }
+            sessionStorage.setItem(p_choices, choices);
+        }
+
+
+<!--function test(){-->
+<!--var xhttp = new XMLHttpRequest();-->
+<!--  xhttp.onreadystatechange = function() {-->
+<!--    if (this.readyState == 4 && this.status == 200) {-->
+<!--     var allCheckboxes=document.querySelectorAll('input[name="_selected_action"]');-->
+<!--     allCheckboxes.checked=true;-->
+<!--    }-->
+<!--  };-->
+<!--  var pageNum=getPageNum();-->
+<!--  alert(pageNum);-->
+<!--  xhttp.open("GET", "http://127.0.0.1:8000/admin/core/spectrum/?p="+pageNum, true);-->
+<!--  xhttp.send();-->
+
+<!--}-->
+</script>

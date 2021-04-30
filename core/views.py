@@ -13,6 +13,7 @@ from .models import Spectrum, NirProfile
 from spectraModelling.models import Poly, Match
 from itertools import chain
 import numpy as np
+from django.core.paginator import Paginator
 
 
 # def index(request):
@@ -152,7 +153,9 @@ class LineChartJSONView(BaseLineChartView):
             y=self.cont['Spectra'][0].y()
             return [[i.y().tolist()[a] for a in np.linspace(0,len(i.y().tolist())-1,x_length).astype(int)] for i in self.cont['Spectra']]
 
-
+# def MpageChecker(request):
+#     qset=item.objects.all()
+#     paginator=Paginator(qset,30)
 
 
 # line_chart = TemplateView.as_view(template_name='admin/index1.html')

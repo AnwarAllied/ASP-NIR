@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 # Section has to be moved to test.py: 
-from predictionModel.models import PcaModel, to_wavelength_length_scal as scal
+from predictionModel.models import PcaModel, to_wavelength_length_scale as scal
 from core.models import NirProfile, Spectrum
 from matplotlib import pyplot as plt
 import numpy as np

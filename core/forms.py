@@ -2,6 +2,8 @@ from django import forms
 from .models import NirProfile, Spectrum
 from django.core.exceptions import ValidationError
 
+
+
 def validate_file_extension(value):
     ext = value.name.split('.')[-1]  # [0] returns path+filename
     valid_extensions = ['csv','xlsx', 'xls']
@@ -17,9 +19,23 @@ class NirProfileForm(forms.ModelForm):
         fields = ['nir_type', 'nir_method', 'nir_configuration','figure_id', 'figure_title', 'figure_caption', 'x_label', 'y_label', 'x_min', 'x_max','y_min', 'y_max','reference_type', 'reference_title', 'reference_link']
 
 class SpectrumForm(forms.ModelForm):
+
     class Meta:
         model = Spectrum
         exclude = ['pic_path']
+
+
+# def MPageFormMaker(paginator):
+#     def Sform(this_q):
+#         class _PageForm(forms.Form):
+#             items=forms.ModelMultipleChoiceField(queryset=this_q,
+#                                                  widget=forms.CheckboxSelectMultiple)
+#         return _PageForm
+#     for i in range(1,paginator.num_pages+1):
+#         yield Sform(paginator.page(i).object_list)
+
+
+
 # Creating a form to add an article.
 # form = ArticleForm()
 

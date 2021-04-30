@@ -86,7 +86,7 @@
         });
         cv.onclick = function(e){
             var activePoint = chart.getElementAtEvent(e);
-            console.log('activePoint',activePoint);
+<!--            console.log('activePoint',activePoint);-->
             pointIndex = activePoint[0]['_datasetIndex'];
             window.location = '{% url "master_pca_element" %}?id='+pointIndex;
         };
