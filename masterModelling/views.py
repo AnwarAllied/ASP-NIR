@@ -172,3 +172,31 @@ class master_pca_element_chart(BaseLineChartView):
         x_length=self.cont['x_length']
         return [[i.y().tolist()[a] for a in np.linspace(0, len(i.y().tolist()) - 1, x_length).astype(int)] for i in
                 self.cont['spectra']]
+
+
+class master_pls_brix(TemplateView):
+    template_name = 'admin/index_plot.html'
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data()
+        s = Spectrum.objects.all()
+        n = NirProfile.objects.all()
+        text = [i.title for i in n]
+        data['model'] = 'StaticModel'
+        # data['index_text'] = 'master pca'
+        data['master_pls_brix'] = True
+        data['has_permission'] = self.request.user.is_authenticated
+        data['app_label'] = 'masterModelling'
+        data['verbose_name'] = 'MasterPlsBrix'
+        data['figure_header'] = 'Master model for PLS Brix'
+        data['text'] = text
+        data['spec_num'] = len(s)
+        data['group_num'] = len(text)
+        data['components'] = 2
+        # data['score']=self.request.session['score']
+        return data
+
+class master_pls_brix_chart(BaseLineChartView):
+    # get latest uploaded spectrum of Match
+    spectrum=Match.objects.last()
+    spectra=Spectrum.objects.all()
