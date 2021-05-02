@@ -151,7 +151,7 @@ class LineChartJSONView(BaseLineChartView):
                 spectra=Poly.objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in ids)))
             # print('Model:',spectra[0])
         elif model == 'Match':
-            print('ids:',ids)
+            # print('ids:',ids)
             if mode == 'detail':
                 match=Match.objects.get(id=ids[0]) # if ',' not in ids else ids.split(',')[0]
             else:

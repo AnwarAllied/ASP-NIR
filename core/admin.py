@@ -1,8 +1,8 @@
 from django.contrib import admin
 from .models import Spectrum, NirProfile
-from spectraModelling.models import Poly, Match
 from predictionModel.admin import PcaModel, myPcaModelAdmin, PlsModel, myPlsModelAdmin
-from spectraModelling.admin import myMatchAdmin, myPolyAdmin
+from spectraModelling.admin import Poly, Match, myMatchAdmin, myPolyAdmin
+from masterModelling.admin import StaticModel, IngredientsModel, StaticModelAdmin, IngredientsModelAdmin
 from preprocessingFilters.admin import *
 
 from ASP_NIR.settings import DROPBOX_ACCESS_TOKEN
@@ -19,12 +19,7 @@ from django.contrib.flatpages.admin import FlatPageAdmin
 from django.utils.translation import gettext_lazy as _
 from django.contrib.admin.templatetags.admin_list import results
 import re, json, dropbox, requests
-# import pickle
 
-
-# class FlatInline(admin.TabularInline):
-#     model = FlatPage
-#     verbose_name = "Static page"
 
 # Define a new FlatPageAdmin
 class myFlatPageAdmin(FlatPageAdmin):
@@ -294,4 +289,6 @@ admin_site.register(Match,myMatchAdmin)
 admin_site.register(PlsModel,myPlsModelAdmin)
 admin_site.register(PcaModel,myPcaModelAdmin)
 admin_site.register(SgFilter,mySgFilterAdmin)
+admin_site.register(StaticModel,StaticModelAdmin)
+admin_site.register(IngredientsModel,IngredientsModelAdmin)
 # admin_site.register(NirProfileAdmin)

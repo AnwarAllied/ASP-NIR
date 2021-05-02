@@ -22,6 +22,13 @@ ALLOWED_HOSTS = ["https://nirvascan.herokuapp.com/","*"]
 
 INSTALLED_APPS = [
 
+    'core.apps.CoreConfig',
+    'core.apps.FlatPagesConfig',
+    'predictionModel.apps.PredictionmodelConfig',
+    'masterModelling.apps.MastermodellingConfig',
+    'spectraModelling.apps.SpectramodellingConfig',
+    'preprocessingFilters.apps.PreprocessingfiltersConfig',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -29,14 +36,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    # 'django.contrib.flatpages',
+
     'django_matplotlib',
     'chartjs',
-    'core.apps.FlatPagesConfig',
-    'core.apps.CoreConfig',
-    'spectraModelling.apps.SpectramodellingConfig',
-    'predictionModel.apps.PredictionmodelConfig',
-    'preprocessingFilters.apps.PreprocessingfiltersConfig',
     'django_dropbox_storage'
 ]
 
