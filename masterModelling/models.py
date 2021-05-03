@@ -34,17 +34,21 @@ class StaticModel(models.Model):
         # scale along x:
         Xx=scale_x([X])
         # find its mean&std gruop:
-        mn,st=X.mean(),X.std()
         prep=self.get_prep()
-        gp=prep.predict(np.c_[mn,st*3])[0]
-        # scale along y of its group
-        stat=self.get_stat()
-        gm=stat[gp]['mean']
-        gs=stat[gp]['std']
-        Xy=(Xx-gm)/gs
+        if prep: # incase preprocessed
+            mn,st=X.mean(),X.std()
+            gp=prep.predict(np.c_[mn,st*3])[0]
+            # scale along y of its group
+            stat=self.get_stat()
+            gm=stat[gp]['mean']
+            gs=stat[gp]['std']
+            Xy=(Xx-gm)/gs
+        else:
+            Xy=X.reshape(1,-1)
+
         #apply the model:
         mod=self.get_mod()
-        return mod.transform(Xy).tolist()
+        return mod.transform(Xy.T).tolist()
 
     def get_prep(self):
         prep=self.prep()

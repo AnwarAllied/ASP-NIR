@@ -126,16 +126,14 @@ class master_pca_element_chart(BaseLineChartView):
         model=self.request.GET.get('model','')
         spectra=[]
         if model=='Match':
-            id=self.request.GET.get('id','')
+            id=int(self.request.GET.get('id',''))
             spectrum = Match.objects.get(id=id)
-            # spectra_all = [i for i in Spectrum.objects.all()]
-            # spectra_all.insert(0, spectrum)
-            # y = normalize_y([i.y().tolist() for i in spectra_all])
-            # pca = PCA(n_components=2)
-            # pca.n_components_ = 2
-            sm = StaticModel.objects.first()
-            # pca.components_ = sm.comp()
-            # pca.mean_ = np.mean(y, axis=0)
+            pca_method=self.request.GET.get('pca_method','')
+            if pca_method == 'pca':
+                sm=StaticModel.objects.filter(preprocessed='{}').first()
+            elif pca_method == 'pca_kmScaled': 
+                sm = StaticModel.objects.first()
+
             tran=sm.transform(spectrum.y())
             trans = np.array(eval(sm.trans))
             # print(trans)

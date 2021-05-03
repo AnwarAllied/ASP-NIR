@@ -24,6 +24,7 @@ cursor:pointer;
     <select id="match_method">
         <option value="poly" selected>Poly (default)</option>
         <option value="pca">Master PCA</option>
+        <option value="pca_kmScaled">Master PCA scaled</option>
 <!--        <option value="pls">Master PLS</option>-->
     </select>
     <button id="match_go" onclick="change_method(this)">Go</button>
@@ -93,8 +94,8 @@ function change_method(){
             chart.update();
 	    });
 	}
-	else if(method=='pca'){
-	    $.get('{% url "master_pca_element_chart" %}?model={{ model }}&id={{ ids }}',function(data){
+	else if(method.slice(0,3)=='pca'){
+	    $.get('{% url "master_pca_element_chart" %}?model={{ model }}&id={{ ids }}&pca_method='+method,function(data){
             Gdata = data
             chart.data.datasets.forEach(function(dataset, index) {
                 dataset.data = Gdata['datasets'][index]["data"];
