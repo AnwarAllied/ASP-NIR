@@ -11,7 +11,7 @@ class StaticModelAdmin(admin.ModelAdmin):
     def change_view(self, request, object_id, form_url='', extra_context=None):
 
         obj=StaticModel.objects.get(id=object_id)
-        if obj.name=='PCA matching model':
+        if obj.name=='pca (whole database)':
             url='/master_static_pca/'
         elif obj.name=='PLS matching model':
             url='/master_static_pls'

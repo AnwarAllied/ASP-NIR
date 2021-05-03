@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView
-
+import re
 from .models import StaticModel,IngredientsModel
 from core.models import Spectrum, NirProfile
 from chartjs.views.lines import BaseLineChartView
@@ -19,7 +19,7 @@ class master_pca(TemplateView):
         n = NirProfile.objects.all()
         text = [i.title for i in n]
         data['model'] = 'StaticModel'
-        data['index_text'] = 'master pca'
+        # data['index_text'] = 'master pca'
         data['master_static_pca'] = True
         data['has_permission'] = self.request.user.is_authenticated
         data['app_label'] = 'masterModelling'
@@ -56,12 +56,6 @@ class master_pca_chart(BaseLineChartView):
         static_model=StaticModel.objects.first()
         static_model.component=str(pca.components_.tolist())[1:-1]
         static_model.save()
-        # try:  # incase len(Y)<=2:
-        #     score = pca.score(Y)
-        # except ValueError:
-        #     score = 00
-        # self.request.session['score']=score
-        # self.request.session['trans']=trans
         context.update({'spectra': spectra, 'trans':trans})
         return context
 
@@ -89,7 +83,7 @@ class master_pca_chart(BaseLineChartView):
             if spectrum.nir_profile_id:
                 s = NirProfile.objects.get(id=spectrum.nir_profile_id)
                 if s:
-                    messages.append(' belongs or is close to ' + s.title)
+                    messages.append(' belongs or is close to the group ' + s.title)
             else:
                 messages.append(' is close to ' + spectrum.origin)
         self.request.session['nearest_spectra_ids_all'] = nearest_spectra_ids_all
@@ -147,14 +141,14 @@ class master_pca_element_chart(BaseLineChartView):
             spectra.insert(0,spectrum)
         else:
             id=int(self.request.session['id'])
-            print(id)
+            # print(id)
             spectrum=Spectrum.objects.all()[id]
             nearest_spectra_ids_all=self.request.session['nearest_spectra_ids_all']
             nearest_spectra_ids=nearest_spectra_ids_all[id]
-            print('nearest ids:',nearest_spectra_ids)
+            # print('nearest ids:',nearest_spectra_ids)
             spectra=[Spectrum.objects.get(id=i) for i in nearest_spectra_ids]
             spectra.insert(0,spectrum)
-            print(spectra)
+            # print(spectra)
         context.update({'spectra':spectra})
         return context
 
@@ -174,29 +168,56 @@ class master_pca_element_chart(BaseLineChartView):
                 self.cont['spectra']]
 
 
-class master_pls_brix(TemplateView):
+class master_pls(TemplateView):
+    pass
+
+
+class master_brix(TemplateView):
     template_name = 'admin/index_plot.html'
 
     def get_context_data(self, **kwargs):
-        data = super().get_context_data()
-        s = Spectrum.objects.all()
-        n = NirProfile.objects.all()
-        text = [i.title for i in n]
-        data['model'] = 'StaticModel'
-        # data['index_text'] = 'master pca'
-        data['master_pls_brix'] = True
-        data['has_permission'] = self.request.user.is_authenticated
+        data=super().get_context_data()
         data['app_label'] = 'masterModelling'
-        data['verbose_name'] = 'MasterPlsBrix'
-        data['figure_header'] = 'Master model for PLS Brix'
-        data['text'] = text
-        data['spec_num'] = len(s)
-        data['group_num'] = len(text)
-        data['components'] = 2
-        # data['score']=self.request.session['score']
+        data['model'] = 'IngredientModel'
+        data['has_permission'] = self.request.user.is_authenticated
+        data['verbose_name'] = 'Master_Brix'
+        data['figure_header'] = 'Master modelling of ingredient Brix'
+        data['master_brix'] = True
         return data
 
-class master_pls_brix_chart(BaseLineChartView):
-    # get latest uploaded spectrum of Match
-    spectrum=Match.objects.last()
-    spectra=Spectrum.objects.all()
+class master_brix_chart(BaseLineChartView):
+    def get_context_data(self, **kwargs):
+        content = {"labels": self.get_labels()}
+        datasets = self.get_datasets()
+        obj = datasets[len(datasets) - 1]
+        obj['label'] = 'Latest uploaded spectrum: ' + obj['label']
+        content.update({"datasets": datasets})
+        context = self.cont
+        context.update(content)
+        return context
+
+    def spec2context(self,**kwargs):
+        context=super(BaseLineChartView, self).get_context_data(**kwargs)
+        # select all spectra contain Brix
+        nirprofile=NirProfile.objects.get(title='Grapes calibraition dataset - Alan Ames')
+        spectra=[i for i in Spectrum.objects.filter(nir_profile_id=nirprofile.id)]
+        # train pls model with Brix dataset
+        X_train=normalize_y([i.y().tolist() for i in Spectrum.objects.all()])
+        Y_train=np.array([float(re.findall('\d[\d\.]*', i.origin)[0]) for i in spectra])
+        pls=PLSRegression(n_components=10)
+        pls.fit(X_train,Y_train)
+        Y_pred=pls.predict(Y_train)
+        score=pls.score(Y_train)
+        context.update({'Y_train':Y_train,'Y_pred':Y_pred,'score':score})
+        return context
+
+
+    def get_labels(self):
+        pass
+
+    def get_providers(self):
+        pass
+
+    def get_data(self):
+        pass
+

@@ -23,6 +23,9 @@ import re
 import dropbox
 import requests
 import json
+from django.core.paginator import Paginator
+
+from django.contrib.admin.templatetags.admin_list import paginator_number
 # from django.contrib.admin.views.main import ChangeList
 # import pickle
 
@@ -55,6 +58,7 @@ class SpectrumAdmin(admin.ModelAdmin):
     view_on_site = False
     change_list_template = 'admin/spectra_display_list.html'
     list_display = ('__str__','spec_image')
+    list_per_page = 20
 
     # readonly_fields = ('spec_image',)
     def save_model(self, request, obj, form, change):
@@ -97,10 +101,15 @@ class SpectrumAdmin(admin.ModelAdmin):
         # response.context_data['total_counter'] = len(qs)
         # response.context_data['pic'] = getDropboxImgUrl()
 
-        if 'smallPic' in request.POST.keys():
-            response.context_data['is_big_pic'] = False
-        else:
-            response.context_data['is_big_pic'] = True
+        # if 'smallPic' in request.POST.keys():
+        #     response.context_data['is_big_pic'] = True
+        # else:
+        #     response.context_data['is_big_pic'] = False
+        #
+        # print('debug:',response.context_data['is_big_pic'])
+
+
+
 
         # to disable 1 spectrum selection for PCA and PLS model
         is_single_selected, message=single_item_selected(request, *['PCA_model','PLS_model'])
@@ -177,9 +186,12 @@ class MyAdminSite(admin.AdminSite):
         model=queryset.model.__name__
         selected = queryset.values_list('pk', flat=True)
         ct =eval(model+".objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in selected)))")
+        # print('queryset is:',queryset)
         return HttpResponseRedirect('/plot/?model=%s&ids=%s' % (
             model, ','.join(str(pk) for pk in selected),
         ))
+
+
 
     def pca_export_selected_objects(self, request, queryset):
         model=queryset.model.__name__
@@ -274,6 +286,8 @@ def isDigit(x):
         return True
     except ValueError:
         return False
+
+
 
 admin_site = MyAdminSite(name='myadmin')
 # Re-register FlatPageAdmin

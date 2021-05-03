@@ -117,43 +117,44 @@
             checkbox.checked=source.checked;
           }
         }
+
+
+
         </script>
 
         {% if action_form and actions_on_top and cl.show_admin_actions %}{% admin_actions %}{% endif %}
             <div class="results">
                 <div id="result_list">
-
-                    {% if is_big_pic %}
-                    <div class="selectAll">
-                        <input id="allSelector" type="checkbox" onclick="toggle(this)" style="margin-right:10px" /><span id="togglePic">Select all spectra</span>
-                        <input id="changeToSmallPic" type="submit" name="smallPic" value="Switch to small picture view"  />
-                    </div>
-                     <div id='listContainer'>
-                          {% for spectrum in cl.queryset %}
-                          <div class='gallery'>
-                            <a href="/admin/core/spectrum/{{spectrum.id}}/change">
-                              {% if spectrum.spec_pic != '' and spectrum.spec_pic != None %}
-                              <img src={{spectrum.pic_path}}  alt="" width="240" height="160">
-
-                                {% else %}
-                              <img src="{% static 'admin/media/spectrum_default.png' %}" alt="" width="240" height="160">
-                              {% endif %}
-                            </a>
-                            <div class="action-checkbox">
-                              <input type="checkbox" name="_selected_action" value="{{spectrum.id}}" class="action-select" style="margin:20px 10px 20px">
-                              <a href="/admin/core/spectrum/{{spectrum.id}}/change"><label style="font-weight:700">{{spectrum.origin}}</label></a>
-                            </div>
-                          </div>
-                          {% endfor %}
-                    </div>
-                    {% else %}
-                    <div class="changeToBigPic">
-                        <img src="{% static 'admin/img/image.svg'%}" style="width:15px;margin:0 10px -3px 10px">
-                        <a href="/admin/core/spectrum/">Switch to big picture view</a>
-                    </div>
+<!--                    {% if not is_big_pic %}-->
+<!--                        <div class="changeToBigPic">-->
+<!--                        <img src="{% static 'admin/img/image.svg'%}" style="width:15px;margin:0 10px -3px 10px">-->
+<!--&lt;!&ndash;                        <a href="/admin/core/spectrum/">Switch to big picture view</a>&ndash;&gt;-->
+<!--                    </div>-->
                     {% result_list cl %}
-                    {% endif %}
-                </div>
+                    </div>
+<!--                    {% else %}-->
+<!--                        <div class="selectAll">-->
+<!--                        <input id="allSelector" type="checkbox" onclick="toggle(this)" style="margin-right:10px" /><span id="togglePic">Select all spectra</span>-->
+<!--                        <input id="changeToSmallPic" type="submit" name="smallPic" value="Switch to small picture view"  />-->
+<!--                    </div>-->
+<!--                     <div id='listContainer'>-->
+<!--                          {% for spectrum in cl.queryset %}-->
+<!--                          <div class='gallery'>-->
+<!--                            <a href="/admin/core/spectrum/{{spectrum.id}}/change">-->
+<!--                              {% if spectrum.spec_pic != '' and spectrum.spec_pic != None %}-->
+<!--                              <img src={{spectrum.pic_path}}  alt="" width="240" height="160">-->
+<!--                                {% else %}-->
+<!--                              <img src="{% static 'admin/media/spectrum_default.png' %}" alt="" width="240" height="160">-->
+<!--                              {% endif %}-->
+<!--                            </a>-->
+<!--                            <div class="action-checkbox">-->
+<!--                              <input type="checkbox" name="_selected_action" value="{{spectrum.id}}" class="action-select" style="margin:20px 10px 20px">-->
+<!--                              <a href="/admin/core/spectrum/{{spectrum.id}}/change"><label style="font-weight:700">{{spectrum.origin}}</label></a>-->
+<!--                            </div>-->
+<!--                          </div>-->
+<!--                          {% endfor %}-->
+<!--                    {% endif %}-->
+<!--                </div>-->
             </div>
         {% if action_form and actions_on_bottom and cl.show_admin_actions %}{% admin_actions %}{% endif %}
         {% endblock %}

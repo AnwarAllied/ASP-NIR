@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 # Section has to be moved to test.py: 
-from predictionModel.models import PcaModel, to_wavelength_length_scal as scal
+from predictionModel.models import PcaModel, to_wavelength_length_scale as scal
 from core.models import NirProfile, Spectrum
 from matplotlib import pyplot as plt
 import numpy as np
@@ -36,7 +36,7 @@ def plot(x,*arg):
             _=plt.plot(x);plt.title(arg[0]);plt.ylabel(arg[1]);plt.xlabel(arg[2]);plt.show()
 
 
-# q=Spectrum.objects.filter(nir_profile=4)
+q=Spectrum.objects.filter(nir_profile=4)
 X=min_max_scal(np.array([i.y().tolist() for i in q.all()]))
 # x_axis=np.reshape(q.first().x(),(228,1))
 # y=np.array([float(re.sub('[^\d\.]+','',i.origin)) for i in q.all()])

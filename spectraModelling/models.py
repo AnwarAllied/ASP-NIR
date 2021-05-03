@@ -57,10 +57,10 @@ class Poly(models.Model):
     def param(self):
         return np.array(eval("["+self.parameter+"]"))
         
-    def get_absolute_url(self):
-        return reverse("spectraModelling", kwargs={
-            'slug': self.slug()
-        })
+    # def get_absolute_url(self):
+    #     return reverse("spectraModelling", kwargs={
+    #         'slug': self.slug()
+    #     })
 
     def obtain(self):
         ms=1;pm=50
