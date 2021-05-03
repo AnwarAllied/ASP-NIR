@@ -49,7 +49,7 @@ class master_pca_chart(BaseLineChartView):
             if profile['ids'][i]: # if has profile
                 f1=profile['ids'][i]
                 if f1 in color:
-                    datasets[i]['pointBackgroundColor']=f2
+                    datasets[i]['pointBackgroundColor']=color[f1]
         content.update({"datasets": datasets})
         context=self.cont
         context.update(content)
