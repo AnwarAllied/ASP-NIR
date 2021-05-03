@@ -37,10 +37,16 @@ class master_pca_chart(BaseLineChartView):
     def get_context_data(self, **kwargs):
         content = {"labels": self.get_labels()}
         datasets=self.get_datasets()
-        obj=datasets[len(datasets)-1]
-        # print(obj)
-        obj['label']='Latest uploaded spectrum: '+obj['label']
-        # print(obj['label'])
+        last_uploded=datasets[len(datasets)-1]
+        last_uploded['label']='Latest uploaded spectrum: '+last_uploded['label']
+        # sort by profile color:
+        profile=eval(self.cont['obj'].profile)
+        ids=list(set(profile['ids']))
+        color={ids[i]:datasets[i*6]['pointBackgroundColor'] for i in range(len(profile['titles']))}
+        # print(profile['ids'])
+        for i in range(len(profile['ids'])):
+            if profile['ids'][i]: # if has profile
+                datasets[i]['pointBackgroundColor']=color[profile['ids'][i]]
         content.update({"datasets": datasets})
         context=self.cont
         context.update(content)
@@ -177,6 +183,7 @@ class master_pca_element_chart(BaseLineChartView):
         x_length=self.cont['x_length']
         return [[i.y().tolist()[a] for a in np.linspace(0, len(i.y().tolist()) - 1, x_length).astype(int)] for i in
                 self.cont['spectra']]
+
 
 
 class master_pls(TemplateView):
