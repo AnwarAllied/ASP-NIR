@@ -7,6 +7,7 @@
 
 <button onclick="reset_data(this)" class="">Reset</button>
 <button onclick="reverse(this)" class="">Reverse</button>
+<button onclick="toggle_label(this)" class="">Label</button>
 <script src="{% static 'js/jquery-1.10.0.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
 <script>
@@ -56,6 +57,11 @@
                 dataset.data = Gdata['datasets'][index]["data"].reverse();
 			});
 			chart.update();
-		}
+    };
+
+    function toggle_label(obj) {
+        chart.options.legend.display= !chart.options.legend.display;
+        chart.update();
+    };
 
 </script>

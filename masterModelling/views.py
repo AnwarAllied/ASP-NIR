@@ -142,7 +142,12 @@ class master_pca_element_chart(BaseLineChartView):
             ids=eval(sm.spectra)['ids'][0]
             n_distances=sorted(distances)
             ix=[distances.index(n_distances[i]) for i in [0,1,2]]
-            spectra=[Spectrum.objects.get(id=ids[i]) for i in ix]
+            spectra=[]
+            for i in ix:
+                try:
+                    spectra.append(Spectrum.objects.get(id=ids[i]))
+                except:
+                    pass
             # spectra=Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ix)))
             spectra.insert(0,spectrum)
         else:
