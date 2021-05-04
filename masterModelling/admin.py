@@ -10,11 +10,11 @@ from django.urls import path, reverse
 class StaticModelAdmin(admin.ModelAdmin):
     def change_view(self, request, object_id, form_url='', extra_context=None):
 
-        obj=StaticModel.objects.get(id=object_id)
-        if obj.name=='pca (whole database)':
-            url='/master_static_pca/'
-        elif obj.name=='PLS matching model':
-            url='/master_static_pls'
+        obj = StaticModel.objects.get(id=object_id)
+        if 'PCA' in obj.title:
+            url = '/master_static_pca?id=%s' % object_id
+        elif 'PLS' in obj.title:
+            url = '/master_static_pls?id=%s' % object_id
         return HttpResponseRedirect(url)
 
 

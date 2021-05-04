@@ -14,21 +14,21 @@ class master_pca(TemplateView):
     template_name = 'admin/index_plot.html'
 
     def get_context_data(self, **kwargs):
+        obj_id = int(self.request.GET.get('id', ''))
         data = super().get_context_data()
-        s = Spectrum.objects.all()
-        n = NirProfile.objects.all()
-        text = [i.title for i in n]
-        data['model'] = 'StaticModel'
-        # data['index_text'] = 'master pca'
+        obj = StaticModel.objects.get(id=obj_id)
+        text = eval(obj.profile)['titles']
+        data['obj_id'] = obj_id
+        data['model'] = obj._meta.model_name
         data['master_static_pca'] = True
         data['has_permission'] = self.request.user.is_authenticated
         data['app_label'] = 'masterModelling'
         data['verbose_name'] = 'MasterModellingPca'
-        data['figure_header']='Master model for PCA'
-        data['text']=text
-        data['spec_num']=len(s)
-        data['group_num']=len(text)
-        data['components']=2
+        data['figure_header'] = 'Master model: ' + obj.title
+        data['text'] = text
+        data['spec_num'] = obj.count
+        data['group_num'] = len(text)
+        data['components'] = obj.n_comp
         # data['score']=self.request.session['score']
         return data
 

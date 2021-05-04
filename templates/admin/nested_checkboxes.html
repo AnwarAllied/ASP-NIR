@@ -3,7 +3,6 @@
 <style>
 body {
   color: #555;
-  font-size: 1.25em;
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
@@ -16,20 +15,38 @@ ul {
 }
 
 .container {
-  margin: 40px auto;
   max-width: 700px;
+}
+
+ul{
+  list-style-type:none;
 }
 
 li {
   margin-top: 1em;
 }
 
-label {
-  font-weight: bold;
-}  
+label{
+font-size:14px;
+font-weight:700;
+}
 </style>
 
-<h1> Apply the model to the selected spectra (testing set):<h1>
+{% block content %}
+<h1> Apply this model to match an uploaded spectrum:<h1>
+    <div class="chart-container">
+        <form action="{% url 'spectraModelling:upload' %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form }}
+            <input type="hidden" name="pca_for_matching">
+            <input type="hidden" name="pca_id" value="{{ ids }}">
+            <input type="submit" value="Upload">
+        </form>
+    </div>
+
+{% endblock %}
+
+<h1> Or apply this model to match the selected spectra:<h1>
 <div class="container">
     <ul>
     {% for profile in group %}
