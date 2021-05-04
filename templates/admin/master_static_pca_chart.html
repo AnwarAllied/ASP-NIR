@@ -20,19 +20,43 @@
 <div class="chart-container">
     <h1>{{ figure_header }}</h1>
     <h4>This model includes {{ spec_num }} spectra and {{ group_num }} groups, components of PCA model is {{ components }} </h4>
-    <ul>
+    <!-- <ul>
         {% for t in text %}
         <li>{{ t }}</li>
         {% endfor %}
-    </ul>
+    </ul> -->
     <canvas id="myChart"></canvas>
 </div>
-
+<button onclick="toggle_label(this)" class="">Label</button>
 <script src="{% static 'js/jquery-1.10.0.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
 <script>
 
+    var hide_by_color = function (e, legendItem) {
+    // var hide_by_color = function (chart) {
+        var index = legendItem.datasetIndex;
+        let ci = this.chart;
+        // var index = chart.legend.legendItems;
+        var color=ci.data.datasets[index].pointBackgroundColor
+        
+        // console.log(e)
+        
+        ci.data.datasets.forEach(function(meta) {
+            
+            if (meta.pointBackgroundColor == color) {
+                // console.log(color)
+                // console.log(meta.pointBackgroundColor)
+                meta.hidden = meta.hidden === null ? !meta.hidden : null;
+                console.log(meta.hidden)
+            
+            }
+        });
+        // this.chart.update();
+        ci.update();
+    };
+
     $.get('{% url "master_pca_chart" %}?id={{ obj_id }}', function(data) {
+        color=data.color_ix
         Gdata = data
         var cv = $("#myChart").get(0)
         var ctx = cv.getContext("2d");
@@ -58,9 +82,13 @@
                     labels:{
                         usePointStyle: true,
                         filter: function(item, chart){
-                            return item.datasetIndex == data.datasets.length-1;
+                    
+                            return color.includes(item.datasetIndex);
+                            // return item.datasetIndex == data.datasets.length-1;
                         }
-                    }
+                    },
+                    onClick: hide_by_color,
+                    
                 },
                 tooltips: {
                     callbacks: {
@@ -84,16 +112,22 @@
                 }
             }
         });
-        cv.onclick = function(e){
-            var activePoint = chart.getElementAtEvent(e);
-            console.log('activePoint',activePoint);
-            pointIndex = activePoint[0]['_datasetIndex'];
-            window.location = '{% url "master_pca_element" %}?id='+pointIndex;
-        };
+        // cv.onclick = function(e){
+        //     var activePoint = chart.getElementAtEvent(e);
+        //     console.log('activePoint',activePoint);
+        //     pointIndex = activePoint[0]['_datasetIndex'];
+        //     window.location = '{% url "master_pca_element" %}?id='+pointIndex;
+        // };
         chart.config.data.datasets[data.datasets.length-1].pointStyle='rect'
         chart.config.data.datasets[data.datasets.length-1].pointRadius=8
         chart.update()
     });
 
+    function toggle_label(obj) {
+        chart.options.legend.display= !chart.options.legend.display;
+        chart.update();
+    };
 
+    // function filter_color() {}
+    // if ()
 </script>

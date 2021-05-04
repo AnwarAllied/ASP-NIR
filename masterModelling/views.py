@@ -43,14 +43,19 @@ class master_pca_chart(BaseLineChartView):
         profile=eval(self.cont['obj'].profile)
         ids=list(set(profile['ids']))
         color={ids[i]:datasets[i*6]['pointBackgroundColor'] for i in range(len(profile['titles']))}
-
+        color_ix={}
         # print(profile['ids'])
         for i in range(len(profile['ids'])):
             if profile['ids'][i]: # if has profile
                 f1=profile['ids'][i]
                 if f1 in color:
                     datasets[i]['pointBackgroundColor']=color[f1]
-        content.update({"datasets": datasets})
+            if datasets[i]['pointBackgroundColor'] not in color_ix:
+                color_ix.update({datasets[i]['pointBackgroundColor']:i})
+        
+        content.update({"datasets": datasets,"color_ix":list(color_ix.values())+[len(profile['ids'])-1]})
+        print(content['color_ix'])
+        # print(datasets)
         context=self.cont
         context.update(content)
         return context
@@ -96,7 +101,7 @@ class master_pca_chart(BaseLineChartView):
             if profile['ids'][e_index]:
                 s = NirProfile.objects.get(id=profile['ids'][e_index])
                 if s:
-                    messages.append(' belongs or is close to the group ' + s.title)
+                    messages.append(s.title)
             else:
                 messages.append(' is close to ' + spectra['titles'][e_index])
         self.request.session['nearest_spectra_ids_all'] = nearest_spectra_ids_all
