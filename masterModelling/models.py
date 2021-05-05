@@ -35,56 +35,64 @@ class StaticModel(models.Model):
         return eval(self.applied_model)
 
     def get_stat(self):
-        prep = self.prep()
+        prep=self.prep()
         return prep['stat']
 
-    def transform(self, X):
+    def transform(self,X):
         # scale along x:
-        Xx = scale_x([X])
+        Xx=scale_x([X])
         # find its mean&std gruop:
-        mn, st = X.mean(), X.std()
-        prep = self.get_prep()
-        gp = prep.predict(np.c_[mn, st * 3])[0]
-        # scale along y of its group
-        stat = self.get_stat()
-        gm = stat[gp]['mean']
-        gs = stat[gp]['std']
-        Xy = (Xx - gm) / gs
-        # apply the model:
-        mod = self.get_mod()
-        return mod.transform(Xy).tolist()
+        prep=self.get_prep()
+        if prep: # incase preprocessed
+            mn,st=X.mean(),X.std()
+            gp=prep.predict(np.c_[mn,st*3])[0]
+            # scale along y of its group
+            stat=self.get_stat()
+            gm=stat[gp]['mean']
+            gs=stat[gp]['std']
+            Xy=(Xx-gm)/gs
+        else:
+            Xy=X.reshape(1,-1)
+
+        #apply the model:
+        mod=self.get_mod()
+        return mod.transform(Xy.T).tolist()
 
     def get_prep(self):
-        prep = self.prep()
-        prep_obj = None
-        kys = list(prep.keys())
+        prep=self.prep()
+        prep_obj =None
+        kys=list(prep.keys())
         if 'kmean' in kys:
-            km_dc = prep['kmean']
-            kmeans = KMeans()
+            km_dc=prep['kmean']
+            kmeans=KMeans()
             for i in km_dc:
-                val = km_dc[i]
+                val=km_dc[i]
                 if type(val) is list:
-                    exec("kmeans." + i + "=np.array(val)")
+                    exec("kmeans."+i+"=np.array(val)")
                 else:
-                    exec("kmeans." + i + "=val")
+                    exec("kmeans."+i+"=val")
             prep_obj = kmeans
         return prep_obj
 
     def get_mod(self):
-        mod = self.mod()
-        mod_obj = None
-        kys = mod.keys()
+        mod=self.mod()
+        mod_obj=None
+        kys=mod.keys()
         if 'pca' in kys:
-            pc_dc = mod['pca']
-            pca = PCA()
+            pc_dc=mod['pca']
+            pca=PCA()
             for i in pc_dc:
-                val = pc_dc[i]
+                val=pc_dc[i]
                 if type(val) is list:
-                    exec("pca." + i + "=np.array(val)")
+                    exec("pca."+i+"=np.array(val)")
                 else:
-                    exec("pca." + i + "=val")
+                    exec("pca."+i+"=val")
             mod_obj = pca
         return mod_obj
+
+    def color(self):
+        sp=eval(self.spectra)
+        return sp['colors'],sp['color_titles']
 
     class Meta:
         verbose_name = 'Static Model'

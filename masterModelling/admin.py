@@ -12,9 +12,9 @@ class StaticModelAdmin(admin.ModelAdmin):
 
         obj = StaticModel.objects.get(id=object_id)
         if 'PCA' in obj.title:
-            url = '/master_static_pca?id=%s' % object_id
+            url = '/master_static_pca?model=master_pca&id=%s' % object_id
         elif 'PLS' in obj.title:
-            url = '/master_static_pls?id=%s' % object_id
+            url = '/master_static_pls?model=master_pca&id=%s' % object_id
         return HttpResponseRedirect(url)
 
 

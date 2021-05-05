@@ -9,10 +9,12 @@ urlpatterns = [
     path('', include('spectraModelling.urls')),
     path('', include('predictionModel.urls')),
     path('', include('masterModelling.urls')),
+    path('preprocessing', include('preprocessingFilters.urls')),
     # path('404/', permission_denied_view),
     # path('pages/', include('django.contrib.flatpages.urls')),
     # path('djadmin/', admin.site.urls),
-    url(r'^media/(?P<path>.*)$', serve, {"document_root":MEDIA_ROOT})
+    url(r'^media/(?P<path>.*)$', serve, {"document_root":MEDIA_ROOT}),
+
 ]
 
 handler404 = 'core.views.error_404'

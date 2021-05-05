@@ -19,7 +19,11 @@
 </ul>
 <div class="chart-container">
     <h1>{{ figure_header }}</h1>
+    {% if not pca_model %}
     <h4>We have {{ spec_num }} spectra and {{ group_num }} groups, comp. of PCA model is {{ components }} </h4>
+    {% else %}
+    <h4>The number of components of this PCA model is {{ components }} </h4>
+    {% endif %}
     <ul>
         {% for t in text %}
         <li>{{ t }}</li>

@@ -12,6 +12,7 @@ from sklearn.decomposition import PCA
 from scipy.signal import savgol_filter
 from sklearn.cross_decomposition import PLSCanonical, PLSRegression, CCA
 from sklearn.cluster import KMeans
+from chartjs.colors import next_color
 
 # exec(open('masterModelling/tests.py','r').read())
 
@@ -49,14 +50,15 @@ def cnsp(data, stepsize=1e-7, glob=1): #consecutive split
 
 ql=Spectrum.objects.all()
 Xa=scal([i.y().tolist() for i in ql])
-# Xs=savgol(Xa,31,2)
-# vr=np.var(Xs,axis=1)
 ids=[i.nir_profile_id for i in ql.all()]
 profile={'ids':ids,'titles':[NirProfile.objects.get(id=i).title for i in set(ids) if i]}
 
 def obtain_pca_scaled(Xa):
     # split based on mean and std using KMean:
     #https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html
+
+    titles= [i.origin for i in ql.all()]
+    colors,co_titles=obtain_colors(titles)
     mn, st=Xa.mean(axis=1), Xa.std(axis=1)
 
     # find the group size (K):
@@ -97,7 +99,6 @@ def obtain_pca_scaled(Xa):
     ix=[i[0] for i in ix]
     Xn=np.array(norm)[np.argsort(ix)].squeeze()
 
-
     # Apply PCA:
     pca=PCA(n_components=30)
     pca.fit(Xn)
@@ -110,7 +111,11 @@ def obtain_pca_scaled(Xa):
 
     output={
         'title':'PCA kmean-scaled spectra',
-        'spectra':{'ids': [[i.id for i in ql.all()]],'titles':[i.origin for i in ql.all()]},
+        'spectra':{'ids': [[i.id for i in ql.all()]],
+        'titles':titles,
+            'colors':colors,
+            'color_titles':co_titles
+            },
         'profile':profile,
         'count':ql.count(),
         'score':pca.score(Xn),
@@ -128,7 +133,8 @@ def obtain_pca_scaled(Xa):
 
 def obtain_pca(Xa):
     # split based on mean and std using KMean:
-
+    titles= [i.origin for i in ql.all()]
+    colors,co_titles=obtain_colors(titles)
     # Apply PCA:
     pca=PCA(n_components=30)
     pca.fit(Xa)
@@ -139,7 +145,11 @@ def obtain_pca(Xa):
 
     output={
         'title':'PCA spectra',
-        'spectra':{'ids': [[i.id for i in ql.all()]],'titles':[i.origin for i in ql.all()]},
+        'spectra':{'ids': [[i.id for i in ql.all()]],
+            'titles':titles,
+            'colors':colors,
+            'color_titles':co_titles
+            },
         'profile':profile,
         'count':ql.count(),
         'score':pca.score(Xa),
@@ -152,3 +162,55 @@ def obtain_pca(Xa):
     return output
 
 kwargs=obtain_pca(Xa)
+# sm=StaticModel(**kwargs)
+# sm.save()
+def obtain_colors(titles):
+    color_set={ 'wheat':'255, 165, 0', 'durum':'235, 97, 35', 'narcotic':'120,120,120', 'tomato':'216, 31, 42', 'garlic':'128,128,128', 'grape':'0, 176, 24', 'other': '241 170 170' }
+    # sp=kwargs['spectra']
+    # s1=str(sp['titles']).lower()
+    s1=str(titles).lower()
+    s2=re.sub('[^\w ]+','',s1)
+    s3=re.sub(r'\d+|\b\w{1,2}\b','',s2)
+    s4=re.sub('brix|protein|moisture|data|test|validation|calibration|asp','',s3)
+    s5=re.sub(' +',' ',s4)
+    s6=re.findall('\w{3,}',s5)
+    s7={s6.count(i):i for i in list(set(s6))}
+    ls=sorted(s7.keys(),reverse=True)
+    gp=[]
+    for i in eval(s1):
+        has_origin=False
+        for j in ls:
+            if s7[j] in i and not has_origin:
+                has_origin=True
+                gp.append(s7[j])
+        if not has_origin:
+            gp.append('other')
+    co=[]
+    ti=[]
+    ls=list(color_set.keys())
+    for i in gp:
+        has_origin=False
+        for j in ls:
+            if j in i and not has_origin:
+                has_origin=True
+                co.append('rgba(%s, 1)' % color_set[j])
+                ti.append(j)
+        if not has_origin:
+            new_color=str(tuple(next(next_color())))
+            co.append('rgba%s' %new_color)
+            ti.append(i)
+            ls.append(i)
+            color_set.update({i:new_color[1:-1]})
+    return co, ti
+
+
+
+
+# sm=StaticModel.objects.first()
+# sm.update(titles=kwargs['titles'],profile=kwargs['profile'])
+sp=kwargs['spectra']
+co,ti=obtain_colors(sp['titles'])
+
+kw= obtain_pca(Xa) # or obtain_pca_scaled(Xa)
+sm=StaticModel(**kw)
+sm.save()
