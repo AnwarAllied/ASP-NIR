@@ -20,17 +20,24 @@
 <div class="chart-container">
     <h1>{{ figure_header }}</h1>
     <h4>This model includes {{ spec_num }} spectra and {{ group_num }} groups, components of PCA model is {{ components }} </h4>
-    <!-- <ul>
-        {% for t in text %}
-        <li>{{ t }}</li>
-        {% endfor %}
-    </ul> -->
+    <progress id="animationProgress" max="1" value="0" style="width: 100%"></progress>
     <canvas id="myChart"></canvas>
 </div>
 <button onclick="toggle_label(this)" id="toggle_label">Hide Label</button>
 <script src="{% static 'js/jquery-1.10.0.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
 <script>
+
+    var progress = document.getElementById('animationProgress');
+
+    function start_progress() {
+        step=0.1;
+        this.progress.value= this.progress.value + step ;
+        if (this.progress.value >1) {
+            clearInterval(setProg) 
+        }
+    }; 
+    var setProg = setInterval(start_progress, 300);
 
     var hide_by_color = function (e, legendItem) {
     // var hide_by_color = function (chart) {
@@ -41,18 +48,14 @@
         // console.log(e)
         ci.data.datasets.forEach(function(meta) {
             if (meta.pointBackgroundColor == color) {
-                // console.log(color)
-                // console.log(meta.pointBackgroundColor)
                 meta.hidden = meta.hidden === null ? !meta.hidden : null;
-                // console.log(meta.hidden)
-
             }
         });
-        // this.chart.update();
         ci.update();
     };
 
     $.get('{% url "master_pca_chart" %}?id={{ obj_id }}', function(data) {
+        clearInterval(setProg)
         color=data.color_ix
         Gdata = data
         var cv = $("#myChart").get(0)
@@ -105,15 +108,18 @@
                         if(point.length) e.target.style.cursor = 'pointer';
                         else e.target.style.cursor = 'default';
                     }
+                },
+                animation: {
+                    duration: 100,
+                    onProgress: function(animation) {
+                        progress.value = (animation.currentStep / animation.numSteps)*(1-progress.value) +progress.value;
+                    },
+                    onComplete: function(animation) {
+                        $( "progress#animationProgress" ).hide();
+                    }
                 }
             }
         });
-        // cv.onclick = function(e){
-        //     var activePoint = chart.getElementAtEvent(e);
-        //     console.log('activePoint',activePoint);
-        //     pointIndex = activePoint[0]['_datasetIndex'];
-        //     window.location = '{% url "master_pca_element" %}?id='+pointIndex;
-        // };
         chart.config.data.datasets[data.datasets.length-1].pointStyle='rect'
         chart.config.data.datasets[data.datasets.length-1].pointRadius=8
         chart.update()

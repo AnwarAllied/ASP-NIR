@@ -37,8 +37,7 @@ class master_pca_chart(BaseLineChartView):
     def get_context_data(self, **kwargs):
         content = {"labels": self.get_labels()}
         datasets=self.get_datasets()
-        last_uploded=datasets[len(datasets)-1]
-        last_uploded['label']='Latest uploaded spectrum: '+last_uploded['label']
+        
         # sort by profile color:
         # profile=eval(self.cont['obj'].profile)
         # ids=list(set(profile['ids']))
@@ -60,11 +59,13 @@ class master_pca_chart(BaseLineChartView):
             datasets[i]['pointBackgroundColor']=colors[i]
             if colors[i] not in color_ix:
                 color_ix.update({datasets[i]['pointBackgroundColor']:i})
-        
         for i in color_ix.values():
             datasets[i]['label']=co_titles[i].capitalize()
         datasets[len(colors)-1]['pointBackgroundColor']=datasets[len(colors)-1]['pointBackgroundColor'][:-2]+'0.5)'
         content.update({"datasets": datasets,"color_ix":list(color_ix.values())+[len(colors)-1]})
+        last_uploded=datasets[len(datasets)-1]
+        last_uploded['label']='Latest uploaded spectrum: '+last_uploded['label']
+        
         # print(content['color_ix'])
         # print(datasets)
         context=self.cont
@@ -100,7 +101,7 @@ class master_pca_chart(BaseLineChartView):
         obj = self.cont['obj']
         spectra=eval(obj.spectra)
         profile=eval(obj.profile)
-        obj_ids=spectra['ids'][0]
+        obj_ids=spectra['ids']
         trans = np.array(eval(self.cont['trans']))
         messages = []
         distances=[[((i[0]-j[0])**2 + (i[1]-j[1])**2)**0.5 for i in trans] for j in trans]
@@ -161,10 +162,9 @@ class master_pca_element_chart(BaseLineChartView):
 
             tran=sm.transform(spectrum.y())
             trans = np.array(eval(sm.trans))
-            # print(trans)
-            distances=[((tran[0][0]-i[0])**2+(tran[0][1]-i[1])**2)**0.5 for i in trans]
+            distances=[((tran[0][0]-i[0])**2+(tran[1][0]-i[1])**2)**0.5 for i in trans]
             # print('match distance:',distances)
-            ids=eval(sm.spectra)['ids'][0]
+            ids=eval(sm.spectra)['ids']
             n_distances=sorted(distances)
             ix=[distances.index(n_distances[i]) for i in [0,1,2]]
             spectra=[]
