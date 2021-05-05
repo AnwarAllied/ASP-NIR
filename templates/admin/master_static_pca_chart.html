@@ -27,7 +27,7 @@
     </ul> -->
     <canvas id="myChart"></canvas>
 </div>
-<button onclick="toggle_label(this)" class="">Label</button>
+<button onclick="toggle_label(this)" id="toggle_label">Hide Label</button>
 <script src="{% static 'js/jquery-1.10.0.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
 <script>
@@ -37,18 +37,15 @@
         var index = legendItem.datasetIndex;
         let ci = this.chart;
         // var index = chart.legend.legendItems;
-        var color=ci.data.datasets[index].pointBackgroundColor
-        
+        var color=ci.data.datasets[index].pointBackgroundColor 
         // console.log(e)
-        
         ci.data.datasets.forEach(function(meta) {
-            
             if (meta.pointBackgroundColor == color) {
                 // console.log(color)
                 // console.log(meta.pointBackgroundColor)
                 meta.hidden = meta.hidden === null ? !meta.hidden : null;
-                console.log(meta.hidden)
-            
+                // console.log(meta.hidden)
+
             }
         });
         // this.chart.update();
@@ -82,7 +79,6 @@
                     labels:{
                         usePointStyle: true,
                         filter: function(item, chart){
-                    
                             return color.includes(item.datasetIndex);
                             // return item.datasetIndex == data.datasets.length-1;
                         }
@@ -125,6 +121,7 @@
 
     function toggle_label(obj) {
         chart.options.legend.display= !chart.options.legend.display;
+        $("#toggle_label").text($("#toggle_label").text()==="Hide Label"?"Show Label":"Hide Label");
         chart.update();
     };
 

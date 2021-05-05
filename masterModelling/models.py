@@ -80,7 +80,11 @@ class StaticModel(models.Model):
                 else:
                     exec("pca."+i+"=val")
             mod_obj = pca
-        return mod_obj 
+        return mod_obj
+
+    def color(self):
+        sp=eval(self.spectra)
+        return sp['colors'],sp['color_titles']
 
 
 

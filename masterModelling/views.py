@@ -40,21 +40,32 @@ class master_pca_chart(BaseLineChartView):
         last_uploded=datasets[len(datasets)-1]
         last_uploded['label']='Latest uploaded spectrum: '+last_uploded['label']
         # sort by profile color:
-        profile=eval(self.cont['obj'].profile)
-        ids=list(set(profile['ids']))
-        color={ids[i]:datasets[i*6]['pointBackgroundColor'] for i in range(len(profile['titles']))}
+        # profile=eval(self.cont['obj'].profile)
+        # ids=list(set(profile['ids']))
+        # color={ids[i]:datasets[i*6]['pointBackgroundColor'] for i in range(len(profile['titles']))}
+        # color_ix={}
+        # # print(profile['ids'])
+        # for i in range(len(profile['ids'])):
+        #     if profile['ids'][i]: # if has profile
+        #         f1=profile['ids'][i]
+        #         if f1 in color:
+        #             datasets[i]['pointBackgroundColor']=color[f1]
+        #     if datasets[i]['pointBackgroundColor'] not in color_ix:
+        #         color_ix.update({datasets[i]['pointBackgroundColor']:i})
+        
+        # content.update({"datasets": datasets,"color_ix":list(color_ix.values())+[len(profile['ids'])-1]})
         color_ix={}
-        # print(profile['ids'])
-        for i in range(len(profile['ids'])):
-            if profile['ids'][i]: # if has profile
-                f1=profile['ids'][i]
-                if f1 in color:
-                    datasets[i]['pointBackgroundColor']=color[f1]
-            if datasets[i]['pointBackgroundColor'] not in color_ix:
+        colors, co_titles=self.cont['obj'].color()
+        for i in range(len(colors)):
+            datasets[i]['pointBackgroundColor']=colors[i]
+            if colors[i] not in color_ix:
                 color_ix.update({datasets[i]['pointBackgroundColor']:i})
         
-        content.update({"datasets": datasets,"color_ix":list(color_ix.values())+[len(profile['ids'])-1]})
-        print(content['color_ix'])
+        for i in color_ix.values():
+            datasets[i]['label']=co_titles[i].capitalize()
+        datasets[len(colors)-1]['pointBackgroundColor']=datasets[len(colors)-1]['pointBackgroundColor'][:-2]+'0.5)'
+        content.update({"datasets": datasets,"color_ix":list(color_ix.values())+[len(colors)-1]})
+        # print(content['color_ix'])
         # print(datasets)
         context=self.cont
         context.update(content)

@@ -14,6 +14,7 @@ from sklearn.decomposition import PCA
 from scipy.signal import savgol_filter
 from sklearn.cross_decomposition import PLSCanonical, PLSRegression, CCA
 from sklearn.cluster import KMeans
+from chartjs.colors import next_color
 
 # exec(open('masterModelling/tests.py','r').read())
 
@@ -156,9 +157,57 @@ def obtain_pca(Xa):
 kwargs=obtain_pca(Xa)
 # sm=StaticModel(**kwargs)
 # sm.save()
+def obtain_colors(titles):
+    color_set={ 'wheat':'255, 165, 0', 'durum':'235, 97, 35', 'narcotic':'120,120,120', 'tomato':'216, 31, 42', 'garlic':'128,128,128', 'grape':'0, 176, 24', 'other': '241 170 170' }
+    # sp=kwargs['spectra']
+    # s1=str(sp['titles']).lower()
+    s1=str(titles).lower()
+    s2=re.sub('[^\w ]+','',s1)
+    s3=re.sub(r'\d+|\b\w{1,2}\b','',s2)
+    s4=re.sub('brix|protein|moisture|data|test|validation|calibration','',s3)
+    s5=re.sub(' +',' ',s4)
+    s6=re.findall('\w{3,}',s5)
+    s7={s6.count(i):i for i in list(set(s6))}
+    ls=sorted(s7.keys(),reverse=True)
+    gp=[]
+    for i in eval(s1):
+        has_origin=False
+        for j in ls:
+            if s7[j] in i and not has_origin:
+                has_origin=True
+                gp.append(s7[j])
+        if not has_origin:
+            gp.append('other')
+    co=[]
+    ti=[]
+    ls=list(color_set.keys())
+    for i in gp:
+        has_origin=False
+        for j in ls:
+            if j in i and not has_origin:
+                has_origin=True
+                co.append('rgba(%s)' % color_set[j])
+                ti.append(j)
+        if not has_origin:
+            new_color=str(tuple(next(next_color())))
+            co.append('rgba%s' %new_color)
+            ti.append(i)
+            ls.append(i)
+            color_set.update({i:new_color[1:-1]})
+    return co, ti
+
 
 # sm=StaticModel.objects.first()
 # sm.update(titles=kwargs['titles'],profile=kwargs['profile'])
+sp=kwargs['spectra']
+co,ti=obtain_colors(sp['titles'])
+
+for sm in StaticModel.objects.all():
+    sp=eval(sm.spectra)
+    sp['colors']=co
+    sp['color_titles']=ti
+    sm.spectra=sp
+    sm.save()
 
 # lda.fit(Xa,np.c_[mn,st*3].sum(axis=1))
 # # split spectrum to 4 groups [very low absorbance, low, high, very high]
