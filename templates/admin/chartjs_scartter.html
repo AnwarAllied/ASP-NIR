@@ -9,6 +9,7 @@
 {% if not plot_mode %}
 <p> Model can be saved to be available for testing it on another dataset :</p>
 <button onclick="save_model(this)" id="save_btn">Save</button>
+<button onclick="hide_legends()" id="hide_legends">Hide Legends</button>
 {% endif %}
 <!-- <button onclick="reverse(this)" class="">Reverse</button>disabled -->
 <script src="{% static 'js/jquery-1.10.0.min.js' %}"></script>
@@ -63,6 +64,18 @@
         });
 
     };
+
+    function hide_legends() {
+        $.get('{% url "scartter_chart_json" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}{% if model_id %}&model_id={{ model_id }}{% endif %}', function(data) {
+            Sdata = data
+            chart.data.datasets.forEach(function(dataset, index) {
+                Gdata['datasets'][index]["data"]["options"]["legend"].display=false;
+			});
+            chart.update();
+        });
+
+    };
+
             
     function reverse() {
 			chart.data.datasets.forEach(function(dataset, index) {
