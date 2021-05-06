@@ -106,7 +106,7 @@ class StaticModel(models.Model):
     def add_match(self,obj):
         sp=eval(self.spectra)
         pr=eval(self.profile)
-        color = {'unknown': 'grba(254, 254, 254, 1)'}
+        color = {'unknown': 'grba(77, 77, 77, 1)'}
         #update spectra:
         sp['ids']=sp['ids']+[obj.pk]
         sp['titles']=sp['titles']+['unknown']

@@ -160,7 +160,7 @@ class Match(models.Model):
                 self.poly.add(*[q[int(i)] for i in range(len(pra))])
 
     class Meta:
-        verbose_name_plural = "Matches"
+        verbose_name_plural = "Match history"
 
 
 # auto create and save poly whenever Spectrum created.

@@ -42,7 +42,7 @@ class master_pca_chart(BaseLineChartView):
         
         color_ix={}
         colors, co_titles=self.cont['obj'].color()
-    
+        
         for i in range(len(colors)):
             datasets[i]['pointBackgroundColor']=colors[i]
             if colors[i] not in color_ix:
@@ -78,8 +78,9 @@ class master_pca_chart(BaseLineChartView):
             match_obj=Match.objects.get(id=match_id)
             context.update({'match_obj':match_obj})
             obj=obj.add_match(match_obj)
-        
+
         trans=obj.trans
+        # print(np.array(eval(trans)).shape,obj.count, len(eval(obj.spectra)['ids']))
         context.update({'model':model,'obj': obj, 'trans':trans})
         return context
 
@@ -119,7 +120,6 @@ class master_pca_chart(BaseLineChartView):
 
     def get_data(self):
         trans = np.array(eval(self.cont['trans']))
-        print('-',trans.shape)
         return [[{"x":a,"y":b}] for a,b in trans[:,:2]]
 
 

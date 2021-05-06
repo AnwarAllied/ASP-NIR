@@ -50,7 +50,9 @@ def cnsp(data, stepsize=1e-7, glob=1): #consecutive split
         rs=np.split(list(range(len(data))), np.where(np.diff(data) > stepsize)[0]+1)
     return rs
 
-ql=Spectrum.objects.all()
+# def remove_from_mod(query):
+
+ql=Spectrum.objects.all().exclude(origin__contains='SG').exclude(origin__contains='apple').exclude(origin__contains='Pear')
 Xa=scal([i.y().tolist() for i in ql])
 ids=[i.nir_profile_id for i in ql.all()]
 titles= [i.origin for i in ql.all()]
@@ -164,7 +166,8 @@ def obtain_pca(Xa):
 # sm=StaticModel(**kwargs)
 # sm.save()
 def obtain_colors(titles):
-    color_set={ 'wheat':'255, 165, 0', 'durum':'235, 97, 35', 'narcotic':'120,120,120', 'tomato':'216, 31, 42', 'garlic':'128,128,128', 'grape':'0, 176, 24', 'other': '241 170 170' }
+    color_set={ 'wheat':'255, 165, 0', 'durum':'35, 125, 235', 'narcotic':'190,190,190', 'tomato':'216, 31, 42', 'garlic':'211,211,211', 'grape':'0, 176, 24', 'other': '170 170 170' }
+    narcotic=['phenacetin','lidocaine','levamisole','cocaine','caffeine','benzocaine']
     # sp=kwargs['spectra']
     # s1=str(sp['titles']).lower()
     s1=str(titles).lower()
@@ -179,9 +182,14 @@ def obtain_colors(titles):
     for i in eval(s1):
         has_origin=False
         for j in ls:
+            if i in narcotic and not has_origin:
+                has_origin=True
+                gp.append('narcotic')
+                print(i, 'in narcotic')
             if s7[j] in i and not has_origin:
                 has_origin=True
                 gp.append(s7[j])
+            
         if not has_origin:
             gp.append('other')
     co=[]
