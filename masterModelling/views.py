@@ -93,7 +93,12 @@ class master_pca_chart(BaseLineChartView):
 
     def get_providers(self):
         messages=self.close_to()
-        titles = eval(self.cont['obj'].spectra)['titles']
+        model = self.request.GET.get('model', '')
+        titles=''
+        if model=='master_pca':
+            titles = eval(self.cont['obj'].spectra)['titles']
+        elif model=='PcaModel':
+            titles=eval(self.cont['obj'])
         return [i + j for i, j in zip(titles, messages)]
 
     def close_to(self):

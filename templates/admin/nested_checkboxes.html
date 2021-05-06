@@ -35,7 +35,7 @@ font-weight:700;
 {% block content %}
 <h1> Apply this model to match an uploaded spectrum:</h1>
     <div class="chart-container">
-        <form action="{% url 'spectraModelling:upload' %}" method="post" enctype="multipart/form-data">
+        <form action="{% url 'pca_upload' %}" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             {{ form }}
             <input type="hidden" id="pca_for_matching" name="pca_for_matching">

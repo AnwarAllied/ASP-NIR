@@ -11,7 +11,7 @@ from .admin import myMatchAdmin
 
 
 def match(request):
-    template = loader.get_template('admin/match.html')
+    template = loader.get_template('admin/pca_match.html')
     flat_page=FlatPage.objects.get(url= '/match/')
     context = {
         'has_permission': request.user.is_authenticated,

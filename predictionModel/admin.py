@@ -3,14 +3,14 @@ from django.contrib import admin
 from predictionModel.models import PcaModel, PlsModel
 from core.models import Spectrum, NirProfile
 from spectraModelling.models import Poly
-from spectraModelling.forms import MatchForm
+from predictionModel.forms import PcaMatchForm
 
 class myPcaModelAdmin(admin.ModelAdmin):
     view_on_site = False
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
         obj = PcaModel.objects.get(id=object_id)
-        extra_context['form'] = MatchForm
+        extra_context['form'] = PcaMatchForm
         extra_context['pca_data'] = obj
         extra_context['model']='PcaModel'
         extra_context['ids']=object_id

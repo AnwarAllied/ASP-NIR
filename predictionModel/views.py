@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 # from django.template import loader
 # from django_matplotlib import MatplotlibFigureField as ma
 # from django.contrib.flatpages.models import FlatPage
@@ -14,6 +14,11 @@ from core.models import Spectrum, NirProfile
 from spectraModelling.models import Poly, Match
 from preprocessingFilters.models import SgFilter
 import json
+from django.template import loader
+from django.contrib.flatpages.models import FlatPage
+from .forms import PcaMatchForm
+from spectraModelling.dataHandeller import datasheet4matching
+from django.contrib import messages
 from itertools import chain
 import numpy as np
 
@@ -440,3 +445,33 @@ class ScartterChartView(BaseLineChartView):
         #     trans=np.array([list(range(len(trans[0]))),trans[0].tolist()])
         return [[{"x": a, "y": b}] for a, b in
                 trans[:, :2]]  # [{"x":1,"y":2},{"x":5,"y":4}],[{"x":3,"y":4},{"x":3,"y":1}]]#
+
+def pca_match(request):
+        template = loader.get_template('admin/match.html')
+        # flat_page = FlatPage.objects.get(url='/pca_match/')
+        context = {
+            'has_permission': request.user.is_authenticated,
+            # 'title': flat_page.title,
+            # 'index_text': flat_page.content,
+            'form': PcaMatchForm,
+            # 'figure_header': "Matching result:",
+            # 'plot_mode': 'detail',
+
+        }
+        return HttpResponse(template.render(context, request))
+
+def pca_match_upload(request):
+    # print('file:',request.FILES.keys())
+    if 'select_a_spectrum' in request.FILES.keys():
+       dsFile=request.FILES['select_a_spectrum'].file
+       dsFile.seek(0)
+       uploaded,msg=datasheet4matching(file=dsFile, filename=str(request.FILES['select_a_spectrum']))
+       print('pca_match:','just test')
+       if not uploaded:
+           messages.error(request, 'Sorry, the uploaded file is not formated properly.')
+           return pca_match(request)
+            # '<path:object_id>/change/', wrap(self.change_view), name='%s_%s_change'  http://127.0.0.1:8000
+       return HttpResponseRedirect("%sadmin/s_pca_match/?pcamodel=%s" % (request.build_absolute_uri('/'),request.POST['pca_id']))
+    else:
+        messages.error(request, 'Sorry, nothing to upload.')
+        return pca_match(request)
