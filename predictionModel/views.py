@@ -13,6 +13,7 @@ from .models import PcaModel, PlsModel
 from core.models import Spectrum, NirProfile
 from spectraModelling.models import Poly, Match
 import json
+
 from itertools import chain
 import numpy as np
 
@@ -254,7 +255,6 @@ class pca_test(TemplateView):
         data = super().get_context_data()
         for i in ['model','ids','model_id']:
             data[i]=self.request.GET.get(i,'')
-            
         data["has_permission"]= self.request.user.is_authenticated
         data["app_label"]= 'predictionModel'
         data["verbose_name"]='PcaModel'
@@ -328,6 +328,7 @@ class ScartterChartView(BaseLineChartView):
         self.request.session['pca_ids']=ids
         self.request.session['pca_score']=score
         # print("spectra:",spectra)
+
         context.update({'model':model ,'Spectra': spectra, 'trans': trans, 'mode': mode})
         # context.update({'dic': dic})
         return context

@@ -26,18 +26,23 @@ def match(request):
     return HttpResponse(template.render(context, request))
 
 def match_upload(request):
-    print('file:',request.FILES.keys())
+    # print('file:',request.FILES.keys())
     if 'select_a_spectrum' in request.FILES.keys():
-        dsFile=request.FILES['select_a_spectrum'].file
-        dsFile.seek(0)
-        uploaded,msg=datasheet4matching(file=dsFile, filename=str(request.FILES['select_a_spectrum']))
-        print('name :',str(request.FILES['select_a_spectrum']))
-        if not uploaded:
-            print('uploaded :',uploaded)
-            messages.error(request, 'Sorry, the uploaded file is not formated properly.')
-            return match(request)
-        # '<path:object_id>/change/', wrap(self.change_view), name='%s_%s_change'  http://127.0.0.1:8000
-        return HttpResponseRedirect("%sadmin/spectraModelling/match/%d/change/" % (request.build_absolute_uri('/'),uploaded.id))
+       dsFile=request.FILES['select_a_spectrum'].file
+       dsFile.seek(0)
+       uploaded,msg=datasheet4matching(file=dsFile, filename=str(request.FILES['select_a_spectrum']))
+       print('name :',str(request.FILES['select_a_spectrum']))
+       if not uploaded:
+           print('uploaded :',uploaded)
+           messages.error(request, 'Sorry, the uploaded file is not formated properly.')
+           return match(request)
+            # '<path:object_id>/change/', wrap(self.change_view), name='%s_%s_change'  http://127.0.0.1:8000
+       return HttpResponseRedirect("%sadmin/spectraModelling/match/%d/change/" % (request.build_absolute_uri('/'),uploaded.id))
     else:
-        messages.error(request, 'Sorry, nothing to upload.')
-        return match(request)
+        if 'pca_for_matching' in request.POST:
+            print('locals:',request.POST)
+            messages.error(request, 'Sorry, nothing to upload.')
+            return HttpResponseRedirect("%sadmin/predictionModel/pcamodel/%d/change/" % (request.build_absolute_uri('/'), int(request.POST['pca_id'])))
+        else:
+            messages.error(request, 'Sorry, nothing to upload.')
+            return match(request)

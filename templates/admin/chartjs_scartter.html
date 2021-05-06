@@ -9,8 +9,10 @@
 {% if not plot_mode %}
 <p> Model can be saved to be available for testing it on another dataset :</p>
 <button onclick="save_model(this)" id="save_btn">Save</button>
-<button onclick="hide_legends()" id="hide_legends">Hide Legends</button>
+
 {% endif %}
+<button onclick="toggle_label(this)" id="toggle_label">Hide Label</button>
+
 <!-- <button onclick="reverse(this)" class="">Reverse</button>disabled -->
 <script src="{% static 'js/jquery-1.10.0.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
@@ -65,17 +67,11 @@
 
     };
 
-    function hide_legends() {
-        $.get('{% url "scartter_chart_json" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}{% if model_id %}&model_id={{ model_id }}{% endif %}', function(data) {
-            Sdata = data
-            chart.data.datasets.forEach(function(dataset, index) {
-                Gdata['datasets'][index]["data"]["options"]["legend"].display=false;
-			});
-            chart.update();
-        });
-
-    };
-
+    function toggle_label(){
+        chart.options.legend.display=!chart.options.legend.display;
+        $("#toggle_label").text($("#toggle_label").text()==="Hide Label"?"Show Label":"Hide Label");
+        chart.update();
+    }
             
     function reverse() {
 			chart.data.datasets.forEach(function(dataset, index) {
