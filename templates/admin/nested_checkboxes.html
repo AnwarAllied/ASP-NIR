@@ -33,12 +33,12 @@ font-weight:700;
 </style>
 
 {% block content %}
-<h1> Apply this model to match an uploaded spectrum:<h1>
+<h1> Apply this model to match an uploaded spectrum:</h1>
     <div class="chart-container">
         <form action="{% url 'spectraModelling:upload' %}" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             {{ form }}
-            <input type="hidden" name="pca_for_matching">
+            <input type="hidden" id="pca_for_matching" name="pca_for_matching">
             <input type="hidden" name="pca_id" value="{{ ids }}">
             <input type="submit" value="Upload">
         </form>
@@ -46,12 +46,12 @@ font-weight:700;
 
 {% endblock %}
 
-<h1> Or apply this model to match the selected spectra:<h1>
+<h1> Or apply this model to match the selected spectra:</h1>
 <div class="container">
     <ul>
     {% for profile in group %}
       <li>
-        <input type="checkbox" id="option_{{ profile.id }}" value="p_{{ profile.id }}"><label for="option"> {{ profile.name }}</label>
+        <input type="checkbox" id="option_{{ profile.id }}" value="p_{{ profile.id }}"><label> {{ profile.name }}</label>
         <ul>
         {% for spectrum in profile.spectra %}
           <li><label><input type="checkbox" class="subOption_{{ profile.id }}" value="s_{{ spectrum.id }}"> {{ spectrum.origin }}</label></li>
@@ -60,6 +60,7 @@ font-weight:700;
       </li>
     {% endfor %}
     </ul>
+    <input type="hidden" name="master_pca" value="master_pca" />
 </div>
 
 <div class="submit-row">
@@ -100,11 +101,15 @@ checkall_{{ profile.id }}.onclick = function() {
 
 
 function test_model() {
-    spectra=$("input[value^='s_']")
-    ids=''
+    spectra=$("input[value^='s_']");
+    ids='';
+    pca_for_matching=$('#pca_for_matching');
     spectra.each(function(index,elm) {if (elm.checked) {ids+=elm.value.replace('s_',',')}})
     if('{{ model }}'=='PlsModel'){
     location.replace("{% url 'pls_test' %}?model={{ model }}&ids="+ids.replace(',','')+"&model_id={{ ids }}")}
+    else if(pca_for_matching){
+        location.replace("{% url 'masterpca' %}?model={{ model }}&ids="+ids.replace(',','')+"&model_id={{ ids }}")
+    }
     else{
     location.replace("{% url 'pca_test' %}?model={{ model }}&ids="+ids.replace(',','')+"&model_id={{ ids }}")
     }

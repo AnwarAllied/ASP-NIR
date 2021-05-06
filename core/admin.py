@@ -7,7 +7,7 @@ from predictionModel.admin import PcaModel, PlsModel, myPcaModelAdmin, myPlsMode
 from spectraModelling.admin import myMatchAdmin, myPolyAdmin
 from masterModelling.models import StaticModel, IngredientsModel
 from masterModelling.admin import StaticModelAdmin, IngredientsModelAdmin
-
+from preprocessingFilters.admin import *
 from .forms import NirProfileForm
 from django.contrib.auth.models import Group,User
 from django.core import serializers
@@ -302,6 +302,7 @@ admin_site.register(Poly,myPolyAdmin)
 admin_site.register(Match,myMatchAdmin)
 admin_site.register(PlsModel,myPlsModelAdmin)
 admin_site.register(PcaModel,myPcaModelAdmin)
+admin_site.register(SgFilter,mySgFilterAdmin)
 admin_site.register(StaticModel,StaticModelAdmin)
 admin_site.register(IngredientsModel,IngredientsModelAdmin)
 # admin_site.register(NirProfileAdmin)
