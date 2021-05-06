@@ -166,7 +166,7 @@ def obtain_pca(Xa):
 # sm=StaticModel(**kwargs)
 # sm.save()
 def obtain_colors(titles):
-    color_set={ 'wheat':'255, 165, 0', 'durum':'35, 125, 235', 'narcotic':'190,190,190', 'tomato':'216, 31, 42', 'garlic':'211,211,211', 'grape':'0, 176, 24', 'other': '170 170 170' }
+    color_set={ 'wheat':'255, 165, 0', 'durum':'35, 125, 235', 'narcotic':'190,190,190', 'tomato':'216, 31, 42', 'garlic':'201,35,212', 'grape':'0, 176, 24', 'other': '170 170 170' }
     narcotic=['phenacetin','lidocaine','levamisole','cocaine','caffeine','benzocaine']
     # sp=kwargs['spectra']
     # s1=str(sp['titles']).lower()
