@@ -110,6 +110,7 @@ heroku git:remote -a nirvascan
 git push heroku predict_model:master
 heroku run python manage.py makemigrations
 heroku run python manage.py migrate
+heroku run python manage.py shell
 heroku buildpacks
 heroku ps
 heroku ps:stop run.9768

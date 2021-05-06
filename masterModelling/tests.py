@@ -166,6 +166,7 @@ def obtain_pca(Xa):
 # sm=StaticModel(**kwargs)
 # sm.save()
 def obtain_colors(titles):
+    # titles=t1
     color_set={ 'wheat':'255, 165, 0', 'durum':'35, 125, 235', 'narcotic':'190,190,190', 'tomato':'216, 31, 42', 'garlic':'201,35,212', 'grape':'0, 176, 24', 'other': '170 170 170' }
     narcotic=['phenacetin','lidocaine','levamisole','cocaine','caffeine','benzocaine']
     # sp=kwargs['spectra']
@@ -174,10 +175,10 @@ def obtain_colors(titles):
     s2=re.sub('[^\w ]+','',s1)
     s3=re.sub(r'\d+|\b\w{1,2}\b','',s2)
     s4=re.sub('brix|protein|moisture|data|test|validation|calibration|asp','',s3)
-    s5=re.sub(' +',' ',s4)
+    s5=re.sub(' +|_',' ',s4)
     s6=re.findall('\w{3,}',s5)
-    s7={s6.count(i):i for i in list(set(s6))}
-    ls=sorted(s7.keys(),reverse=True)
+    s7={i:s6.count(i) for i in list(set(s6))}
+    ls=sorted(s7.keys(), key=lambda x:s7[x],reverse=True)
     gp=[]
     for i in eval(s1):
         has_origin=False
@@ -186,9 +187,9 @@ def obtain_colors(titles):
                 has_origin=True
                 gp.append('narcotic')
                 print(i, 'in narcotic')
-            if s7[j] in i and not has_origin:
+            if j in i and not has_origin:
                 has_origin=True
-                gp.append(s7[j])
+                gp.append(j)
             
         if not has_origin:
             gp.append('other')
