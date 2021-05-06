@@ -39,22 +39,10 @@ class master_pca_chart(BaseLineChartView):
         datasets=self.get_datasets()
         
         # sort by profile color:
-        # profile=eval(self.cont['obj'].profile)
-        # ids=list(set(profile['ids']))
-        # color={ids[i]:datasets[i*6]['pointBackgroundColor'] for i in range(len(profile['titles']))}
-        # color_ix={}
-        # # print(profile['ids'])
-        # for i in range(len(profile['ids'])):
-        #     if profile['ids'][i]: # if has profile
-        #         f1=profile['ids'][i]
-        #         if f1 in color:
-        #             datasets[i]['pointBackgroundColor']=color[f1]
-        #     if datasets[i]['pointBackgroundColor'] not in color_ix:
-        #         color_ix.update({datasets[i]['pointBackgroundColor']:i})
         
-        # content.update({"datasets": datasets,"color_ix":list(color_ix.values())+[len(profile['ids'])-1]})
         color_ix={}
         colors, co_titles=self.cont['obj'].color()
+    
         for i in range(len(colors)):
             datasets[i]['pointBackgroundColor']=colors[i]
             if colors[i] not in color_ix:
@@ -64,7 +52,12 @@ class master_pca_chart(BaseLineChartView):
         datasets[len(colors)-1]['pointBackgroundColor']=datasets[len(colors)-1]['pointBackgroundColor'][:-2]+'0.5)'
         content.update({"datasets": datasets,"color_ix":list(color_ix.values())+[len(colors)-1]})
         last_uploded=datasets[len(datasets)-1]
-        last_uploded['label']='Latest uploaded spectrum: '+last_uploded['label']
+        
+        if 'match_obj' in self.cont:
+            last_uploded['label']='Unknown spectrum: close to '+ self.cont['msg'][-1]#last_uploded['label']
+            # pass
+        else:
+            last_uploded['label']='Latest uploaded spectrum: close to '+last_uploded['label']
         
         # print(content['color_ix'])
         # print(datasets)
@@ -74,18 +67,20 @@ class master_pca_chart(BaseLineChartView):
 
     def spec2context(self, **kwargs):
         context = super(BaseLineChartView, self).get_context_data(**kwargs)
+        model=self.request.GET.get('model','')
         obj_id=int(self.request.GET.get('id',''))
-        # spectra = Spectrum.objects.all()
         obj = StaticModel.objects.get(id=obj_id)
-        # Y=[i.y() for i in spectra]
-        # Y=normalize_y(Y)
-        # pca=PCA(n_components=2)
-        # pca.fit(Y)
+        if model=='match':
+            match_id=self.request.GET.get('match_id','')
+            if not match_id:
+                match_id=self.request.get_full_path().split('/')[2]
+            
+            match_obj=Match.objects.get(id=match_id)
+            context.update({'match_obj':match_obj})
+            obj=obj.add_match(match_obj)
+        
         trans=obj.trans
-        # static_model=StaticModel.objects.first()
-        # static_model.component=str(pca.components_.tolist())[1:-1]
-        # static_model.save()
-        context.update({'obj': obj, 'trans':trans})
+        context.update({'model':model,'obj': obj, 'trans':trans})
         return context
 
     def get_labels(self):
@@ -116,12 +111,15 @@ class master_pca_chart(BaseLineChartView):
                     messages.append(s.title)
             else:
                 messages.append(' is close to ' + spectra['titles'][e_index])
-        self.request.session['nearest_spectra_ids_all'] = nearest_spectra_ids_all
-        # print('debug: ',nearest_spectra_ids_all, len(nearest_spectra_ids_all))
+        # self.cont['nearest_spectra_ids_all'] = nearest_spectra_ids_all
+        self.cont['msg']=messages
+        # self.request.session['nearest_spectra_ids_all'] = nearest_spectra_ids_all
+        # print('debug: ',nearest_spectra_ids_all[:6], len(nearest_spectra_ids_all), messages[-7:])
         return messages
 
     def get_data(self):
         trans = np.array(eval(self.cont['trans']))
+        print('-',trans.shape)
         return [[{"x":a,"y":b}] for a,b in trans[:,:2]]
 
 

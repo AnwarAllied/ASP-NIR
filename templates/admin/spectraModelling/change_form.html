@@ -49,7 +49,11 @@
   {% if index_text %}
     {{ index_text }}
     {# include "admin/chartjs_line.html" #}
-    {% include "admin/match_chartjs_line.html" %}
+    {# include "admin/match_chartjs_line.html" #}
+  
+    {# include "admin/index_plot.html" #}
+    {% include "admin/master_static_pca_chart.html" %}
+
   {% else %}
     <p> Spectra Modelling is added automaticaly when a new Spectrum is created</p>
   {% endif %}

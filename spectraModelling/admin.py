@@ -1,23 +1,25 @@
 from django.contrib import admin
 from spectraModelling.models import Poly, Match
+from django.shortcuts import redirect
 # from core.admin import remove_action
 # Register your models here.
 
 class myMatchAdmin(admin.ModelAdmin):
     view_on_site = False
     def change_view(self, request, object_id, form_url='', extra_context=None):
-        extra_context = extra_context or {}
-        obj = Match.objects.get(id=object_id)
-        extra_context['match_data'] = obj
-        extra_context['model']='Match'
-        extra_context['ids']=object_id
-        extra_context['plot_mode']='detail'
-        extra_context['title']='Matching unknown spectrum:'
-        extra_context['index_text']= 'Matching unknown spectrum with order:%d and MSE:%f' % (obj.order, obj.mse)
-        rn= super().change_view(
-            request, object_id, form_url, extra_context=extra_context,
-        )
-        return rn
+        # extra_context = extra_context or {}
+        # obj = Match.objects.get(id=object_id)
+        # extra_context['match_data'] = obj
+        # extra_context['obj_id'] = 2
+        # extra_context['model']='Match'
+        # extra_context['ids']=object_id
+        # extra_context['plot_mode']='detail'
+        # extra_context['title']='Matching unknown spectrum:'
+        # extra_context['index_text']= 'Matching unknown spectrum with order:%d and MSE:%f' % (obj.order, obj.mse)
+        # rn= super().change_view(
+        #     request, object_id, form_url, extra_context=extra_context,
+        # )
+        return redirect('spectraModelling:method', id=object_id, method_id=2)#rn
         # to remove action plot:
 
     def changelist_view(self, request):

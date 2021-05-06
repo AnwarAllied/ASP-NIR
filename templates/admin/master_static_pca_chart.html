@@ -13,17 +13,52 @@
         color:#447e9b;
     }
 
+    .match_div{
+        float: right
+        
+        };
+    #myChart{
+    margin-top:15px;
+    }
+    #match_go{
+    background: #79aec8;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    margin: 2px 0;
+    padding: 2px 3px;
+    vertical-align: middle;
+    font-family: "Roboto", "Lucida Grande", Verdana, Arial, sans-serif;
+    font-weight: normal;
+    font-size: 13px;
+    cursor:pointer;
+}
+
 </style>
 <ul class="messagelist">
 
 </ul>
 <div class="chart-container">
     <h1>{{ figure_header }}</h1>
-    <h4>This model includes {{ spec_num }} spectra and {{ group_num }} groups, components of PCA model is {{ components }} </h4>
+    <h4>Model includes {{ spec_num }} spectra and {{ group_num }} groups, components of PCA model is {{ components }} </h4>
     <progress id="animationProgress" max="1" value="0" style="width: 100%"></progress>
     <canvas id="myChart"></canvas>
 </div>
 <button onclick="toggle_label(this)" id="toggle_label">Hide Label</button>
+
+{% if model == 'match' %}
+<div class="match_div">
+<span>Click to select different method for matching:</span>
+    <select id="match_method">
+        <option value="pca2"selected>Master PCA (default)</option>
+        <option value="pca1">Master PCA scaled</option>
+        <!-- <option value="poly">Poly</option> -->
+        <!-- <option value="pls">Master PLS</option>-->
+    </select>
+    <button id="match_go" onclick="change_method(this)">Go</button>
+</div>
+{% endif %}
+
 <script src="{% static 'js/jquery-1.10.0.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
 <script>
@@ -54,7 +89,7 @@
         ci.update();
     };
 
-    $.get('{% url "master_pca_chart" %}?id={{ obj_id }}', function(data) {
+    $.get('{% url "master_pca_chart" %}?id={{ obj_id }}&model={{ model }}&match_id={{ id }}', function(data) {
         clearInterval(setProg)
         color=data.color_ix
         Gdata = data
@@ -130,7 +165,30 @@
         $("#toggle_label").text($("#toggle_label").text()==="Hide Label"?"Show Label":"Hide Label");
         chart.update();
     };
-
-    // function filter_color() {}
-    // if ()
+    {% if model == 'match' %}
+    function change_method(){
+	var method=$('#match_method').val();
+	// if(method=='poly'){
+	//     $.get('{% url "line_chart_json" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}',function(data){
+    //         Gdata = data;
+    //         chart.data.datasets.forEach(function(dataset, index) {
+    //             dataset.data = Gdata['datasets'][index]["data"];
+    //             dataset.label = Gdata['datasets'][index]['label'];
+    //         });
+    //         chart.update();
+	//     });
+	// }
+	// else if(method.slice(0,3)=='pca'){
+        if(method.slice(0,3)=='pca'){
+            $.get('{% url "spectraModelling:chart" match_id=id %}?id='+method.slice(-1)+'&model=match', function(data){
+                Gdata = data
+                chart.data.datasets.forEach(function(dataset, index) {
+                    dataset.data = Gdata['datasets'][index]["data"];
+                    dataset.label = Gdata['datasets'][index]['label'];
+                });
+                chart.update();
+            });
+        }
+    }
+    {% endif %}
 </script>

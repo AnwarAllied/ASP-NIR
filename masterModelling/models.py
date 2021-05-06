@@ -55,13 +55,11 @@ class StaticModel(models.Model):
         # print(mod.mean_.shape)
         trans=mod.transform(Xy).T
         
-        if update: # incase we want to update mean_ & trans in the model for update
+        if update: # incase we want to update & trans in the model for update
             tr=np.array(eval(self.trans))
-            mod.mean_=np.array(mod.mean_.tolist()+[mn])
-            print('sm tr:',trans.shape,'lg tr:',tr.shape,mod.components_.shape)
+            # mod.mean_=np.array(mod.mean_.tolist()+[mn])
             result=np.c_[tr.T,trans].T
         else:
-            print(trans.shape)
             result=trans 
         return result
 
@@ -94,25 +92,36 @@ class StaticModel(models.Model):
         sp['colors']=sp['colors']+list(color.values())
         sp['color_titles']=sp['color_titles']+list(color.keys())
         self.spectra=sp
+        self.count=self.count+1
         #upddate profile
         pr['ids']=pr['ids']+[profile.id if profile else None]
         self.profile=pr
-        print(len(pr['ids']))
-        #update the model:
+        #update the trans:
         trans=self.transform(X,update=True)
-        # print(trans.shape,'-'*40,mod.mean_.shape,mod.components_[-1].shape)
-        # trans=np.array(eval(self.trans))
         self.trans=trans.tolist()
-        # mod_di=mod.__dict__
-        # mod_s={i:(mod_di[i].tolist() if type(mod_di[i]) is np.ndarray else mod_di[i]) for i in mod_di}
-        # am=eval(self.applied_model)
-        # print(am.keys(),'pca' in am)
-        # if 'pca' in am:
-        #     am['pca']=mod_s
         print('%s model for (%s) updated successfully' % (self.title,origin))
         # self.applied_model=am
         self.save()
 
+    def add_match(self,obj):
+        sp=eval(self.spectra)
+        pr=eval(self.profile)
+        color = {'unknown': 'grba(254, 254, 254, 1)'}
+        #update spectra:
+        sp['ids']=sp['ids']+[obj.pk]
+        sp['titles']=sp['titles']+['unknown']
+        sp['colors']=sp['colors']+list(color.values())
+        sp['color_titles']=sp['color_titles']+list(color.keys())
+        self.spectra=str(sp)
+        self.count=self.count+1
+        #upddate profile
+        pr['ids']=pr['ids']+[None]
+        self.profile=str(pr)
+        #update the trans:
+        trans=self.transform(obj.y(),update=True)
+        self.trans=str(trans.tolist())
+        return self
+    
     def find_color(self,origin,color_set):
         origin = origin.lower()
         color= None
