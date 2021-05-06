@@ -326,12 +326,12 @@ def pca_save(request):
     if "comp" in request.session.keys():  # check if a session copy availible
         pca = PcaModel()
         pca.obtain(request.session['comp'], request.session['pca_ids'], request.session['trans'],
-                   request.session['pca_score'])
+                   request.session['pca_score'],request.session['pca_ids'])
         print("model:", pca.__str__(), "saved")
         content = {"saved": True, "message": "The model saved successfully, as: " + pca.__str__(),
                    "message_class": "success"}
         # resest session:
-        _ = [request.session.pop(i, None) for i in ['comp', 'pca_ids', 'trans', 'pca_score']]
+        _ = [request.session.pop(i, None) for i in ['comp', 'pca_ids', 'trans', 'pca_score','pca_ids']]
     else:
         content = {"message": "Sorry! unable to save the model", "message_class": "warning"}
     return HttpResponse(json.dumps(content), content_type="application/json")
@@ -388,7 +388,6 @@ class ScartterChartView(BaseLineChartView):
                 pca = PcaModel.objects.get(pk=ids[0])
                 spectra = pca.calibration
                 ids = [i.id for i in spectra.all()]
-                print('spectra_ids:',ids)
             elif model_id:
                 pca = PcaModel.objects.get(id=model_id)
                 spectra = Spectrum.objects.filter(eval('|'.join('Q(id=' + str(pk) + ')' for pk in ids)))
@@ -469,9 +468,9 @@ def pca_match_upload(request):
        print('pca_match:','just test')
        if not uploaded:
            messages.error(request, 'Sorry, the uploaded file is not formated properly.')
-           return pca_match(request)
+           return HttpResponseRedirect("%sadmin/predictionModel/pcamodel/%s/change/" % (request.build_absolute_uri('/'),request.POST['pca_id']))
             # '<path:object_id>/change/', wrap(self.change_view), name='%s_%s_change'  http://127.0.0.1:8000
-       return HttpResponseRedirect("%sadmin/s_pca_match/?pcamodel=%s" % (request.build_absolute_uri('/'),request.POST['pca_id']))
+       return HttpResponseRedirect("%smaster_static_pca/?model=pred_pca&pca_id=%s" % (request.build_absolute_uri('/'),request.POST['pca_id']))
     else:
         messages.error(request, 'Sorry, nothing to upload.')
-        return pca_match(request)
+        return HttpResponseRedirect("%sadmin/predictionModel/pcamodel/%s/change/" % (request.build_absolute_uri('/'),request.POST['pca_id']))

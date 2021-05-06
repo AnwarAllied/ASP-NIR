@@ -1,4 +1,4 @@
-from masterModelling.models import IngredientsModel, StaticModel
+from masterModelling.models import StaticModel, IngredientsModel
 from predictionModel.models import PlsModel, PcaModel, normalize_y , to_wavelength_length_scale as scal
 from core.models import NirProfile, Spectrum
 from matplotlib import pyplot as plt
@@ -48,17 +48,16 @@ def cnsp(data, stepsize=1e-7, glob=1): #consecutive split
         rs=np.split(list(range(len(data))), np.where(np.diff(data) > stepsize)[0]+1)
     return rs
 
-ql=Spectrum.objects.all()
+ql=Spectrum.objects.all().exclude(origin__contains='SG').exclude(origin__contains='apple').exclude(origin__contains='Pear')
 Xa=scal([i.y().tolist() for i in ql])
 ids=[i.nir_profile_id for i in ql.all()]
-profile={'ids':ids,'titles':[NirProfile.objects.get(id=i).title for i in set(ids) if i]}
+titles= [i.origin for i in ql.all()]
+
 
 def obtain_pca_scaled(Xa):
     # split based on mean and std using KMean:
     #https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html
 
-    titles= [i.origin for i in ql.all()]
-    colors,co_titles=obtain_colors(titles)
     mn, st=Xa.mean(axis=1), Xa.std(axis=1)
 
     # find the group size (K):
@@ -111,8 +110,8 @@ def obtain_pca_scaled(Xa):
 
     output={
         'title':'PCA kmean-scaled spectra',
-        'spectra':{'ids': [[i.id for i in ql.all()]],
-        'titles':titles,
+        'spectra':{'ids': [i.id for i in ql.all()],
+            'titles':titles,
             'colors':colors,
             'color_titles':co_titles
             },
@@ -133,8 +132,6 @@ def obtain_pca_scaled(Xa):
 
 def obtain_pca(Xa):
     # split based on mean and std using KMean:
-    titles= [i.origin for i in ql.all()]
-    colors,co_titles=obtain_colors(titles)
     # Apply PCA:
     pca=PCA(n_components=30)
     pca.fit(Xa)
@@ -145,7 +142,7 @@ def obtain_pca(Xa):
 
     output={
         'title':'PCA spectra',
-        'spectra':{'ids': [[i.id for i in ql.all()]],
+        'spectra':{'ids': [i.id for i in ql.all()],
             'titles':titles,
             'colors':colors,
             'color_titles':co_titles
@@ -161,7 +158,7 @@ def obtain_pca(Xa):
     }
     return output
 
-kwargs=obtain_pca(Xa)
+# kwargs=obtain_pca(Xa)
 # sm=StaticModel(**kwargs)
 # sm.save()
 def obtain_colors(titles):
@@ -188,6 +185,7 @@ def obtain_colors(titles):
     co=[]
     ti=[]
     ls=list(color_set.keys())
+    color_dict={}
     for i in gp:
         has_origin=False
         for j in ls:
@@ -195,22 +193,36 @@ def obtain_colors(titles):
                 has_origin=True
                 co.append('rgba(%s, 1)' % color_set[j])
                 ti.append(j)
+                color_dict.update({j:color_set[j]})
         if not has_origin:
             new_color=str(tuple(next(next_color())))
             co.append('rgba%s' %new_color)
             ti.append(i)
-            ls.append(i)
             color_set.update({i:new_color[1:-1]})
-    return co, ti
+            color_dict.update({i:new_color[1:-1]})
+    return co, ti, color_dict
 
-
+colors,co_titles, color_set=obtain_colors(titles)
+profile={'ids':ids,'titles':[NirProfile.objects.get(id=i).title for i in set(ids) if i],'color_set': color_set}
 
 
 # sm=StaticModel.objects.first()
-# sm.update(titles=kwargs['titles'],profile=kwargs['profile'])
-sp=kwargs['spectra']
-co,ti=obtain_colors(sp['titles'])
+# StaticModel.objects.filter(id=2).update(titles=kwargs['titles'],profile=kwargs['profile'])
+# sp=kwargs['spectra']
+# co,ti=obtain_colors(sp['titles'])
 
-kw= obtain_pca(Xa) # or obtain_pca_scaled(Xa)
-sm=StaticModel(**kw)
-sm.save()
+# kw= obtain_pca(Xa) # or obtain_pca_scaled(Xa)
+# sm=StaticModel(**kw)
+# sm.save()
+
+# tit=['Grape 17.9 Brix C', 'Grape 21.6 Brix SG C', 'Grape 20.8 Brix SG C', 'DURUMGCAL 11.1 Moisture ASP', 'DURUMGCAL 10.5 Moisture ASP', 'Grape 20.2 Brix C', 'Grape 17.6 Brix C', 'Grape 16.7 Brix C', 'Grape 16.7 Brix C', 'Grape 16.0 Brix C', 'Grape 15.8 Brix C', 'Grape 22.7 Brix C', 'Grape 22.7 Brix C', 'Grape 22.7 Brix C', 'Grape 21.6 Brix C', 'Grape 21.6 Brix C', 'Grape 21.3 Brix C', 'Grape 16.9 Brix C', 'Grape 20.5 Brix C', 'Grape 20.5 Brix C', 'Grape 18.2 Brix V', 'phenacetin', 'lidocaine', 'levamisole', 'cocaine', 'caffeine', 'benzocaine', 'apple', 'DURUMGCAL 12.4 Moisture ASP', 'Grape 17.2 Brix C', 'DURUMGCAL 12.8 Moisture ASP', 'DURUMGCAL 15.1 Moisture ASP', 'Grape 17.4 Brix C', 'Grape 20.5 Brix C', 'Grape 20.4 Brix C', 'Grape 20.8 Brix V', 'Grape 20.4 Brix V', 'food first Index apple', 'Grape 19.7 Brix SV', 'Grape 20.2 Brix C', 'Pear', 'Grape 17.2 Brix C', 'Grape 17.4 Brix C', 'Grape 16.5 Brix C', 'Grape 21.3 Brix SG C', 'DURUMGCAL 10.1 Moisture ASP', 'Grape 20.6 Brix C', 'Grape 20.2 Brix C', 'Grape 20.4 Brix C', 'Grape 16.0 Brix C', 'Grape 15.5 Brix C', 'Grape 15.8 Brix C', 'DURUMV 12.7 Moisture ASP', 'banana', 'Grapes 16.6 Brix SV', 'Grape 22.7  Brix SV', 'Grape 20.7 Brix SG C', 'Grape 17.2 Brix C', 'Grape 16.0 Brix C', 'Grape 18.2 Brix C', 'Grape 16.5 Brix C', 'DURUMV 12.0 Moisture ASP', 'DURUMGCAL 12.2 Moisture ASP', 'DURUMGCAL 12.1 Moisture ASP', 'Grape 17.9 Brix C', 'Beefsteak_Tomato_3', 'Beefsteak_Tomato_2', 'Beefsteak_Tomato_1', 'DURUMV 12.4 Moisture ASP', 'DURUMV 13.2 Moisture ASP', 'Grape 20.6 Brix SG C', 'Italian_Roma_Tomato_3', 'Italian_Roma_Tomato_6', 'Italian_Roma_Tomato_7', 'Italian_Roma_Tomato_5', 'Italian_Roma_Tomato_2', 'Italian_Roma_Tomato_1', 'Grape 16.9 Brix C', 'DURUMGCAL 13.2 Moisture ASP', 'Italian_Roma_Tomato_4', 'DURUMGCAL 12.6 Moisture ASP', 'Grape 19.7 Brix C', 'Grape 17.6 Brix C', 'Grape 16.9 Brix C', 'Grape 20.6 Brix C', 'Grape 17.6 Brix C', 'Grape 17.9 Brix C', 'Garlic1', 'Tomato_On_The_Vine_1', 'Grape 19.7 BrixC', 'Grape 17.2 Brix SV', 'Grape 16.7 Brix C', 'Grape 17.2 Brix SG C', 'DURUMGCAL 10.9 Moisture ASP', 'Tomato_On_The_Vine_4', 'Tomato_On_The_Vine_3', 'Tomato_On_The_Vine_2', 'DURUMV 12.9 Moisture ASP', 'DURUMV 12.9 Moisture ASP', 'DURUMV 12.7 Moisture ASP', 'DURUMV 12.5 Moisture ASP', 'DURUMV 12.6 Moisture ASP', 'DURUMV 12.4 Moisture ASP', 'Garlic2', 'Grape 19.7 BrixC', 'DURUMV 12.9 Moisture ASP', 'Grape 20.5 Brix SG C', 'DURUMV 13.1 Moisture ASP', 'DURUMGCAL 12.0 Moisture ASP', 'DURUMGCAL 12.0 Moisture ASP', 'DURUMGCAL 11.4 Moisture ASP', 'DURUMGCAL 12.9 Moisture ASP', 'Grape 21.3 Brix C', 'Grape 21.6 Brix C', 'Grape 21.3 Brix C', 'Grape 20.8 Brix C', 'Grape 20.7 Brix C', 'Grape 20.8 Brix C', 'Grape 20.7 Brix C', 'DURUMV 12.5 Moisture ASP', 'Grape 20.7 Brix C', 'Grape 20.6 Brix SG C', 'Grape 19.7 Brix SG SV', 'DURUMGCAL 11.9 Moisture ASP', 'DURUMGCAL 13.6 Moisture ASP', 'DURUMGCAL 11.7 Moisture ASP', 'DURUMGCAL 12.3 Moisture ASP', 'DURUMGCAL 12.4 Moisture ASP', 'DURUMGCAL 12.2 Moisture ASP', 'DURUMGCAL 11.1 Moisture ASP', 'DURUMGCAL 11.4 Moisture ASP', 'DURUMGCAL 13.2 Moisture ASP', 'DURUMGCAL 13.6 Moisture ASP', 'Grape 17.6 Brix SG C', 'Grape 17.9 Brix SG C', 'DURUMGCAL 12.5 Moisture ASP', 'DURUMGCAL 12.3 Moisture ASP', 'DURUMGCAL 13.5 Moisture ASP', 'DURUMGCAL 11.7 Moisture ASP', 'DURUMGCAL 12.6 Moisture ASP', 'DURUMGCAL 12.2 Moisture ASP', 'DURUMGCAL 11.8 Moisture ASP', 'Garlic3', 'Grape 22.7 Brix SG SV', 'DURUMGCAL 11.3 Moisture ASP', 'DURUMGCAL 12.2 Moisture ASP', 'DURUMGCAL 12.2 Moisture ASP', 'DURUMGCAL 13.4 Moisture ASP', 'DURUMGCAL 12.8 Moisture ASP', 'DURUMGCAL 12.5 Moisture ASP', 'DURUMGCAL 13.1 Moisture ASP', 'DURUMGCAL 12.7 Moisture ASP', 'DURUMGCAL 11.3 Moisture ASP', 'DURUMGCAL 12.8 Moisture ASP', 'DURUMGCAL 15.1 Moisture ASP', 'Grape 15.8 Brix SG C', 'DURUMGVAL 10.9 Moisture ASP', 'DURUMGCAL 12.6 Moisture ASP', 'DURUMGVAL 12.7 Moisture ASP', 'DURUMGVAL 10.9 Moisture ASP', 'DURUMGCAL 11.6 Moisture ASP', 'DURUMGVAL 11.5 Moisture ASP', 'DURUMGVAL 10.9 Moisture ASP', 'DURUMGVAL 12.6 Moisture ASP', 'DURUMGVAL 10.6 Moisture ASP', 'DURUMGVAL 15.9 Moisture ASP', 'DURUMGVAL 11.1 Moisture ASP', 'DURUMGVAL 12.7 Moisture ASP', 'DURUMGVAL 11.7 Moisture ASP', 'DURUMGVAL 13.5 Moisture ASP', 'Grape 20.2 Brix SG SV', 'DURUMGCAL 14.0 Moisture ASP', 'DURUMGCAL 12.3 Moisture ASP', 'DURUMGCAL 11.9 Moisture ASP', 'DURUMGCAL 11.1 Moisture ASP', 'DURUMGCAL 11.2 Moisture ASP', 'DURUMGCAL 16.3 Moisture ASP', 'DURUMGCAL 11.4 Moisture ASP', 'DURUMGCAL 13.9 Moisture ASP', 'DURUMGCAL 11.0 Moisture ASP', 'DURUMGCAL 11.2 Moisture ASP', 'DURUMGCAL11.4 Moisture ASP', 'Grape 17.2 Brix SG SV', 'Grape 17.9 Brix SG C', 'DURUMGCAL 12.9 Moisture ASP', 'DURUMGCAL 11.8 Moisture ASP', 'Grape 16 Brix SG C', 'Grape 15.8 Brix SG C', 'DURUMGCAL 12.2 Moisture ASP', 'DURUMGCAL 11.3 Moisture ASP', 'Grape 16.7 Brix SG SV', 'DURUMGCAL 11.9 Moisture ASP', 'Grape 18.2 Brix SG C', 'Grape 17.9 Brix SG C', 'Grape 16 Brix SG C', 'DURUMGCAL 12.6 Moisture ASP', 'DURUMGCAL 12.7 Moisture ASP', 'Grape 16.5 Brix SG C', 'Grape 15.5 Brix SG C', 'DURUMGCAL 11.7 Moisture ASP', 'DURUMGCAL 11.2 Moisture ASP', 'Grape 16.5 Brix SG C', 'Grape 16 Brix SG C', 'Grape 16.7 Brix SG C', 'Grape 20.7 Brix SG C', 'Grape 20.5 Brix SG C', 'Grape 16.9 Brix SG C', 'Grape 19.7 Brix SG C', 'Grape 16.9 Brix SG C', 'Grape 16.7 Brix SG C', 'Grape 19.7 Brix SG C', 'Grape 17.4 Brix SG C', 'Grape 16.7 Brix SG C', 'Grape 19.7 Brix SG C', 'Grape 16.9 Brix SG C', 'Grape 17.2 Brix SG C', 'Grape 20.2 Brix SG C', 'Grape 20.4 Brix SG C', 'Grape 20.2 Brix SG C', 'Grape 20.2 Brix SG C', 'Grape 17.6 Brix SG C', 'Grape 17.2 Brix SG C', 'Grape 20.4 Brix SG C', 'Grape 17.6 Brix SG C', 'Grape 17.4 Brix SG C', 'Grape 21.3 Brix SG C', 'Grape 20.5 Brix SG C', 'Grape 22.7 Brix SG C', 'Grape 20.2  Brix SV', 'Grape 17.4 Brix V', 'Grape 21.6 Brix SG C', 'Grape 22.7 Brix SG C', 'Grape 21.6 Brix SG C', 'Grape 20.8 Brix SG C', 'Grape 22.7 Brix SG C', 'Grape 20.7 Brix SG C', 'Grape 21.3 Brix SG C']
+
+# for sm in StaticModel.objects.all():
+#     sp=eval(sm.profile)
+#     sp['color_set']=color_set
+#     sm.profile=sp
+#     sm.save()
+
+for i in [1,2]:
+    ky=obtain_pca_scaled(Xa) if i==1 else obtain_pca(Xa)
+    StaticModel.objects.filter(id=i).update(**ky)

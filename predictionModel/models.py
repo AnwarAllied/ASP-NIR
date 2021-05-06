@@ -168,7 +168,7 @@ class PcaModel(models.Model):
     order = models.IntegerField(default=2)
     component = models.TextField(blank=True, null=True)
     transform = models.TextField(blank=True, null=True)
-    # m=models.TextField(blank=True, null=True)
+    # pca_ids=models.TextField(blank=True, null=True)
     calibration = models.ManyToManyField(Spectrum)  # on_delete=DO_NOTHING
 
     def __str__(self):
@@ -195,6 +195,7 @@ class PcaModel(models.Model):
         self.component = str(comp)[1:-1]
         self.score = score
         self.transform = str(trans)[1:-1]
+
         self.save()
         self.calibration.set(ids)
 
@@ -239,6 +240,10 @@ class PcaModel(models.Model):
             # score=pca.score(y)
             # print('the testing score:',score)
         return comp, trans, score
+
+    # def color(self):
+    #     spectra=self.cont['spectra']
+    #     return sp['colors'],sp['color_titles']
 
 
 def min_max_scale(data):

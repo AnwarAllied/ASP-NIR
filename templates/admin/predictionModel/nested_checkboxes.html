@@ -1,0 +1,96 @@
+{% load static %}
+
+<style>
+body {
+  color: #555;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+hr {
+  margin: 50px 0;
+}
+
+ul {
+  list-style: none;
+}
+
+.container {
+  max-width: 700px;
+}
+
+ul{
+  list-style-type:none;
+}
+
+li {
+  margin-top: 1em;
+}
+
+label{
+font-size:14px;
+font-weight:700;
+}
+</style>
+
+{% block content %}
+<h1> Apply this model to match an uploaded spectrum:</h1>
+    <div class="chart-container">
+        <form action="{% url 'pca_upload' %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form }}
+            <input type="hidden" id="pca_for_matching" name="pca_for_matching">
+            <input type="hidden" name="pca_id" value="{{ ids }}">
+            <input type="submit" value="Upload">
+        </form>
+    </div>
+
+{% endblock %}
+
+<h1> Or apply this model to match the selected spectra:</h1>
+<div class="container">
+    <ul id="spectra_list">
+    {% for profile in group %}
+      <li>
+        <label> {{ profile.name }}</label>
+        <ul>
+        {% for spectrum in profile.spectra %}
+          <li><label><input type="radio" class="subOption_{{ profile.id }}" value="s_{{ spectrum.id }}" name="spectrum_to_match"> {{ spectrum.origin }}</label></li>
+        {% endfor %}
+        </ul>
+      </li>
+    {% endfor %}
+    </ul>
+    <input type="hidden" name="master_pca" value="master_pca" />
+</div>
+
+<div class="submit-row">
+
+    <!-- <input type="submit" value="Save" class="default" name="_save"> -->
+    
+        
+        <p class="deletelink-box"><a href="/admin/predictionModel/{{ model|lower }}/{{ ids }}/delete/" class="deletelink">Delete</a></p>
+    
+    
+    <input onclick="test_model(this)" value="Apply the model to the selected testing set" name="_addanother">
+    <!-- <input type="submit" value="Save and continue editing" name="_continue"> -->
+    
+    
+</div>
+
+<script>
+
+function test_model() {
+    spectra=$("#spectra_list input[value^='s_']");
+    ids='';
+    pca_for_matching=$('#pca_for_matching');
+    spectra.each(function(index,elm) {if (elm.checked) {ids+=elm.value.replace('s_',',')}})
+    if('{{ model }}'=='PlsModel'){
+    location.replace("{% url 'pls_test' %}?model={{ model }}&ids="+ids.replace(',','')+"&model_id={{ ids }}")}
+    else if(pca_for_matching){
+        location.replace("{% url 'masterpca' %}?model={{ model }}&ids="+ids.replace(',','')+"&model_id={{ ids }}")
+    }
+    else{
+    location.replace("{% url 'pca_test' %}?model={{ model }}&ids="+ids.replace(',','')+"&model_id={{ ids }}")
+    }
+}
+</script>

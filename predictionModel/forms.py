@@ -1,5 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from predictionModel.models import PcaModel
+
 
 def pca_validate_file_extension(value):
     ext = value.name.split('.')[-1]  # [0] returns path+filename
@@ -11,3 +13,6 @@ def pca_validate_file_extension(value):
 class PcaMatchForm(forms.ModelForm):
     select_a_spectrum = forms.FileField(validators=[pca_validate_file_extension], required=False)
     select_a_spectrum.widget.attrs.update({'accept':".csv"})
+    class Meta:
+        model=PcaModel
+        fields = []
