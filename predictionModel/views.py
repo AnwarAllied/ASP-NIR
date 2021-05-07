@@ -445,19 +445,6 @@ class ScartterChartView(BaseLineChartView):
         return [[{"x": a, "y": b}] for a, b in
                 trans[:, :2]]  # [{"x":1,"y":2},{"x":5,"y":4}],[{"x":3,"y":4},{"x":3,"y":1}]]#
 
-def pca_match(request):
-        template = loader.get_template('admin/match.html')
-        # flat_page = FlatPage.objects.get(url='/pca_match/')
-        context = {
-            'has_permission': request.user.is_authenticated,
-            # 'title': flat_page.title,
-            # 'index_text': flat_page.content,
-            'form': PcaMatchForm,
-            # 'figure_header': "Matching result:",
-            # 'plot_mode': 'detail',
-
-        }
-        return HttpResponse(template.render(context, request))
 
 def pca_match_upload(request):
     # print('file:',request.FILES.keys())
@@ -465,12 +452,11 @@ def pca_match_upload(request):
        dsFile=request.FILES['select_a_spectrum'].file
        dsFile.seek(0)
        uploaded,msg=datasheet4matching(file=dsFile, filename=str(request.FILES['select_a_spectrum']))
-       print('pca_match:','just test')
        if not uploaded:
            messages.error(request, 'Sorry, the uploaded file is not formated properly.')
            return HttpResponseRedirect("%sadmin/predictionModel/pcamodel/%s/change/" % (request.build_absolute_uri('/'),request.POST['pca_id']))
             # '<path:object_id>/change/', wrap(self.change_view), name='%s_%s_change'  http://127.0.0.1:8000
-       return HttpResponseRedirect("%smaster_static_pca/?model=pred_pca&pca_id=%s" % (request.build_absolute_uri('/'),request.POST['pca_id']))
+       return HttpResponseRedirect("%smatch/%d/method/%d" % (request.build_absolute_uri('/'),uploaded.id, request.POST['pca_id']))
     else:
         messages.error(request, 'Sorry, nothing to upload.')
         return HttpResponseRedirect("%sadmin/predictionModel/pcamodel/%s/change/" % (request.build_absolute_uri('/'),request.POST['pca_id']))
