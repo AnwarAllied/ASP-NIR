@@ -52,7 +52,7 @@ def cnsp(data, stepsize=1e-7, glob=1): #consecutive split
 
 # def remove_from_mod(query):
 
-ql=Spectrum.objects.all().exclude(origin__contains='SG').exclude(origin__contains='apple').exclude(origin__contains='Pear')
+ql=Spectrum.objects.all().exclude(origin__contains='SG').exclude(origin__contains='apple').exclude(origin__contains='Pear').exclude(origin__contains='banana')
 Xa=scal([i.y().tolist() for i in ql])
 ids=[i.nir_profile_id for i in ql.all()]
 titles= [i.origin for i in ql.all()]

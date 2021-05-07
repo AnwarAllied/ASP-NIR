@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView
+from django.contrib import messages
+from .manages import update_master_model
 import re
 from .models import StaticModel,IngredientsModel
 from core.models import Spectrum, NirProfile
@@ -31,6 +33,15 @@ class master_pca(TemplateView):
         data['group_num']=len(text)
         data['components']=obj.n_comp
         # data['score']=self.request.session['score']
+        update=self.request.GET.get('update','')
+        if update=='1':
+            print(obj.title,'starts updating')
+            success=update_master_model(obj_id)
+            if success:
+                messages.success(self.request, obj.title +' updated sucessfully' )
+            else:
+                messages.error(self.request, 'Opps! something went wrong')
+
         return data
 
 class master_pca_chart(BaseLineChartView):
