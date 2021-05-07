@@ -45,7 +45,7 @@
         ci.update();
     };
 
-    $.get('{% url "master_pca_chart" %}?id={{ obj_id }}', function(data) {
+    $.get('{% url "master_pca_chart" %}?id={{ obj_id }}&pca_id={{ pca_id }}', function(data) {
         clearInterval(setProg)
         color=data.color_ix
         Gdata = data

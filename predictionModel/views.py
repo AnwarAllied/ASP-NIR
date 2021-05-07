@@ -456,7 +456,7 @@ def pca_match_upload(request):
            messages.error(request, 'Sorry, the uploaded file is not formated properly.')
            return HttpResponseRedirect("%sadmin/predictionModel/pcamodel/%s/change/" % (request.build_absolute_uri('/'),request.POST['pca_id']))
             # '<path:object_id>/change/', wrap(self.change_view), name='%s_%s_change'  http://127.0.0.1:8000
-       return HttpResponseRedirect("%smatch/%d/method/%d" % (request.build_absolute_uri('/'),uploaded.id, request.POST['pca_id']))
+       return HttpResponseRedirect("%smatch/%d/?spec_ids=%s&pca_id=%s" % (request.build_absolute_uri('/'),uploaded.id,request.session['pca_ids'],request.POST['pca_id']))
     else:
         messages.error(request, 'Sorry, nothing to upload.')
         return HttpResponseRedirect("%sadmin/predictionModel/pcamodel/%s/change/" % (request.build_absolute_uri('/'),request.POST['pca_id']))

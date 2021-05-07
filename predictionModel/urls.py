@@ -1,5 +1,6 @@
 from django.urls import path 
 from core.admin import admin_site
+from spectraModelling.views import match_specific_pca
 from .views import *
 
 
@@ -15,4 +16,5 @@ urlpatterns = [
     path('pls/save/', pls_save, name='pls_save'),
     path('pls/test/', pls_test.as_view(), name='pls_test'),
     path('chart-pls/', PlsScatterChartView.as_view(), name='pls_chart_json'),
+    path('match/<int:id>/', match_specific_pca.as_view(), name='specific_pca'),
 ]
