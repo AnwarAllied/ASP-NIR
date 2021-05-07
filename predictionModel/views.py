@@ -17,7 +17,7 @@ import json
 from django.template import loader
 from django.contrib.flatpages.models import FlatPage
 from .forms import PcaMatchForm
-from spectraModelling.dataHandeller import datasheet4matching
+from .dataHandeller import datasheet4matching
 from django.contrib import messages
 from itertools import chain
 import numpy as np
@@ -326,7 +326,7 @@ def pca_save(request):
     if "comp" in request.session.keys():  # check if a session copy availible
         pca = PcaModel()
         pca.obtain(request.session['comp'], request.session['pca_ids'], request.session['trans'],
-                   request.session['pca_score'],request.session['pca_ids'])
+                   request.session['pca_score'])
         print("model:", pca.__str__(), "saved")
         content = {"saved": True, "message": "The model saved successfully, as: " + pca.__str__(),
                    "message_class": "success"}
@@ -447,7 +447,6 @@ class ScartterChartView(BaseLineChartView):
 
 
 def pca_match_upload(request):
-    # print('file:',request.FILES.keys())
     if 'select_a_spectrum' in request.FILES.keys():
        dsFile=request.FILES['select_a_spectrum'].file
        dsFile.seek(0)
@@ -456,7 +455,11 @@ def pca_match_upload(request):
            messages.error(request, 'Sorry, the uploaded file is not formated properly.')
            return HttpResponseRedirect("%sadmin/predictionModel/pcamodel/%s/change/" % (request.build_absolute_uri('/'),request.POST['pca_id']))
             # '<path:object_id>/change/', wrap(self.change_view), name='%s_%s_change'  http://127.0.0.1:8000
-       return HttpResponseRedirect("%smatch/%d/?spec_ids=%s&pca_id=%s" % (request.build_absolute_uri('/'),uploaded.id,request.session['pca_ids'],request.POST['pca_id']))
+       request.session['spec_data']=[uploaded.x(),uploaded.y()]
+       request.session['pca_spec_ids']=request.POST['pca_ids']
+       request.session['pca_model_id']=request.POST['pca_id']
+
+       return HttpResponseRedirect("%smaster_pca_chart/pcamodel/" % request.build_absolute_uri('/'))
     else:
         messages.error(request, 'Sorry, nothing to upload.')
         return HttpResponseRedirect("%sadmin/predictionModel/pcamodel/%s/change/" % (request.build_absolute_uri('/'),request.POST['pca_id']))
