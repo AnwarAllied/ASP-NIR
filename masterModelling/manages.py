@@ -5,7 +5,7 @@ from predictionModel.models import PlsModel, PcaModel, normalize_y , to_waveleng
 from core.models import NirProfile, Spectrum
 from matplotlib import pyplot as plt
 import numpy as np
-import pandas as pd
+# import pandas as pd
 import re
 # from sklearn.linear_model import LinearRegression
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
@@ -18,46 +18,77 @@ from chartjs.colors import next_color
 
 # exec(open('masterModelling/tests.py','r').read())
 
-def moving_average(x, w):
-    return np.convolve(x, np.ones(w), 'valid') / w
+color_set={ 'wheat':'255, 165, 0',
+            'durum':'35, 125, 235',
+            'narcotic':'190,190,190',
+            'tomato':'216, 31, 42',
+            'garlic':'201,35,212',
+            'grape':'0, 176, 24',
+            'other': '170 170 170' }
+narcotic_set=['phenacetin','lidocaine','levamisole','cocaine','caffeine','benzocaine']
 
-def savgol(x, w, p):
-    return savgol_filter(x, w, p, deriv=2,mode='mirror')
+def update_master_model(id):
+    stat=None
+    sm=StaticModel.objects.get(id=id)
+    preprocess=sm.prep()
+    applied_model=sm.mod()
 
-def min_max_scal(data):
-    scaler = MinMaxScaler()
-    return scaler.fit_transform(data)
+    data_input= get_data()
+    if 'pca' in applied_model:
+        if not preprocess:
+            ky=obtain_pca(data_input)
+            stat=StaticModel.objects.filter(id=id).update(**ky)
+        elif 'kmean' in preprocess:
+            ky=obtain_pca_scaled(data_input)
+            stat=StaticModel.objects.filter(id=id).update(**ky)
+    return stat
 
-def plot(x,*arg):
-    arg=[''] if not arg else arg
-    if len(arg[0])<2:
-        if type(x) is tuple:
-            x1,x2=x
-            plt.plot(x1,x2,arg[0]);plt.show()
-        else:
-            plt.plot(x,arg[0]);plt.show()
-    else:
-        if type(x) is tuple:
-            x1,x2=x
-            _=plt.plot(x1,x2.T);plt.title(arg[0]);plt.ylabel(arg[1]);plt.xlabel(arg[2]);plt.show()
-        else:
-            _=plt.plot(x);plt.title(arg[0]);plt.ylabel(arg[1]);plt.xlabel(arg[2]);plt.show()
+def get_data(remove=['SG','apple','banana','Pear']):
+    # to_remove_from_query:
+    ql=Spectrum.objects.all().exclude(origin__contains=remove[0])
+    for i in remove[1:]:
+        ql=ql.exclude(origin__contains=i)
 
-def cnsp(data, stepsize=1e-7, glob=1): #consecutive split
-    if glob==1:
-        rs=np.split(np.argsort(data), np.where(np.diff(sorted(data)) > stepsize)[0]+1)
-    elif glob==0:
-        rs=np.split(list(range(len(data))), np.where(np.diff(data) > stepsize)[0]+1)
-    return rs
+    Xa=scal([i.y().tolist() for i in ql])
+    ids=[i.id for i in ql.all()]
+    titles= [i.origin for i in ql.all()]
+    colors,co_titles, color_set_sp=obtain_colors(titles,color_set,narcotic_set)
+    pid=[i.nir_profile_id for i in ql.all()]
+    profile={'ids':pid,'titles':[NirProfile.objects.get(id=i).title for i in set(pid) if i],'color_set': color_set}
+    return Xa, ids, titles, colors, co_titles, color_set_sp, profile
 
-# to_remove_from_query:
-ql=Spectrum.objects.all().exclude(origin__contains='SG').exclude(origin__contains='apple').exclude(origin__contains='Pear').exclude(origin__contains='banana')
-Xa=scal([i.y().tolist() for i in ql])
-ids=[i.nir_profile_id for i in ql.all()]
-titles= [i.origin for i in ql.all()]
+def obtain_pca(data_input):
+    Xa, ids, titles, colors, co_titles, color_set, profile=data_input
+    # No preprocessing here:
+    # Apply PCA:
+    pca=PCA(n_components=30)
+    pca.fit(Xa)
+    trans=pca.transform(Xa)
 
+    pc_di=pca.__dict__
+    pca_s={i:(pc_di[i].tolist() if type(pc_di[i]) is np.ndarray else pc_di[i]) for i in pc_di}
 
-def obtain_pca_scaled(Xa):
+    output={
+        'title':'PCA spectra',
+        'spectra':{'ids': ids,
+            'titles':titles,
+            'colors':colors,
+            'color_titles':co_titles
+            },
+        'profile':profile,
+        'count':len(ids),
+        'score':pca.score(Xa),
+        'n_comp':pca.n_components,
+        'trans':trans.tolist(),
+        'preprocessed':{},
+        'applied_model':{'pca':pca_s},
+
+    }
+    return output
+
+def obtain_pca_scaled(data_input):
+    Xa, ids, titles, colors, co_titles, color_set, profile = data_input
+
     # split based on mean and std using KMean:
     #https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html
 
@@ -113,13 +144,13 @@ def obtain_pca_scaled(Xa):
 
     output={
         'title':'PCA kmean-scaled spectra',
-        'spectra':{'ids': [i.id for i in ql.all()],
+        'spectra':{'ids': ids,
             'titles':titles,
             'colors':colors,
             'color_titles':co_titles
             },
         'profile':profile,
-        'count':ql.count(),
+        'count':len(ids),
         'score':pca.score(Xn),
         'n_comp':pca.n_components,
         'trans':trans.tolist(),
@@ -133,37 +164,7 @@ def obtain_pca_scaled(Xa):
     }
     return output
 
-def obtain_pca(Xa):
-    # split based on mean and std using KMean:
-    # Apply PCA:
-    pca=PCA(n_components=30)
-    pca.fit(Xa)
-    trans=pca.transform(Xa)
-
-    pc_di=pca.__dict__
-    pca_s={i:(pc_di[i].tolist() if type(pc_di[i]) is np.ndarray else pc_di[i]) for i in pc_di}
-
-    output={
-        'title':'PCA spectra',
-        'spectra':{'ids': [i.id for i in ql.all()],
-            'titles':titles,
-            'colors':colors,
-            'color_titles':co_titles
-            },
-        'profile':profile,
-        'count':ql.count(),
-        'score':pca.score(Xa),
-        'n_comp':pca.n_components,
-        'trans':trans.tolist(),
-        'preprocessed':{},
-        'applied_model':{'pca':pca_s},
-
-    }
-    return output
-
-def obtain_colors(titles):
-    color_set={ 'wheat':'255, 165, 0', 'durum':'35, 125, 235', 'narcotic':'190,190,190', 'tomato':'216, 31, 42', 'garlic':'201,35,212', 'grape':'0, 176, 24', 'other': '170 170 170' }
-    narcotic=['phenacetin','lidocaine','levamisole','cocaine','caffeine','benzocaine']
+def obtain_colors(titles,color_set,narcotic):
     s1=str(titles).lower()
     s2=re.sub('[^\w ]+','',s1)
     s3=re.sub(r'\d+|\b\w{1,2}\b','',s2)
@@ -206,23 +207,7 @@ def obtain_colors(titles):
             color_dict.update({i:new_color[1:-1]})
     return co, ti, color_dict
 
-colors,co_titles, color_set=obtain_colors(titles)
-profile={'ids':ids,'titles':[NirProfile.objects.get(id=i).title for i in set(ids) if i],'color_set': color_set}
 
-def update_master_model(id):
-    stat=None
-    sm=StaticModel.objects.get(id=id)
-    preprocess=sm.prep()
-    applied_model=sm.mod()
-
-    if 'pca' in applied_model:
-        if not preprocess:
-            ky=obtain_pca(Xa)
-            stat=StaticModel.objects.filter(id=id).update(**ky)
-        elif 'kmean' in preprocess:
-            ky=obtain_pca_scaled(Xa)
-            stat=StaticModel.objects.filter(id=id).update(**ky)
-    return stat
 
 # for i in [1,2]:
 #     ky=obtain_pca_scaled(Xa) if i==1 else obtain_pca(Xa)

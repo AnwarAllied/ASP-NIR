@@ -54,7 +54,6 @@ class match_method(TemplateView):
     template_name = 'admin/index_plot.html'
 
     def get_context_data(self, **kwargs):
-        print(kwargs)
         plot_update=self.request.GET.get('plot_update','')
         id=kwargs['id']
         method_id=kwargs['method_id']
@@ -74,10 +73,5 @@ class match_method(TemplateView):
         data['spec_num']=method.count
         data['group_num']=len(text)
         data['components']=method.n_comp
-        if plot_update:
-            print('_'*40)
-            # cn=mpc.spec2context(self,**data)
-            # print(cn)
-
 
         return data

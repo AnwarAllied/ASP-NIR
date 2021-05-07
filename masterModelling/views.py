@@ -65,7 +65,7 @@ class master_pca_chart(BaseLineChartView):
         last_uploded=datasets[len(datasets)-1]
         
         if 'match_obj' in self.cont:
-            last_uploded['label']='Unknown spectrum: close to '+ self.cont['msg'][-1]#last_uploded['label']
+            last_uploded['label']='Uploaded spectrum: identified as '+ self.cont['msg'][-1]#last_uploded['label']
             # pass
         else:
             last_uploded['label']='Latest uploaded spectrum: close to '+last_uploded['label']
@@ -122,7 +122,7 @@ class master_pca_chart(BaseLineChartView):
                 if s:
                     messages.append(s.title)
             else:
-                messages.append(' is close to ' + spectra['titles'][e_index])
+                messages.append(spectra['titles'][e_index]) #' is close to ' + 
         # self.cont['nearest_spectra_ids_all'] = nearest_spectra_ids_all
         self.cont['msg']=messages
         # self.request.session['nearest_spectra_ids_all'] = nearest_spectra_ids_all
