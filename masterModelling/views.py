@@ -12,6 +12,7 @@ from predictionModel.models import normalize_y
 from django.db.models import Q
 import numpy as np
 from spectraModelling.models import Match
+from predictionModel.models import PcaModel
 
 class master_pca(TemplateView):
     template_name = 'admin/index_plot.html'
@@ -45,6 +46,13 @@ class master_pca(TemplateView):
         return data
 
 class master_pca_chart(BaseLineChartView):
+
+    # def get_dataset_options(self, index, color):
+    #     # default_opt = super().get_dataset_options(index, color)
+    #     # default_opt.update({"fill": "false"}) # disable the area filling in ChartJS options
+    #     default_opt.update({'pointRadius': 8, 'pointStyle':'rect'})
+    #     return default_opt
+
     def get_context_data(self, **kwargs):
         content = {"labels": self.get_labels()}
         datasets=self.get_datasets()
@@ -60,18 +68,30 @@ class master_pca_chart(BaseLineChartView):
                 color_ix.update({datasets[i]['pointBackgroundColor']:i})
         for i in color_ix.values():
             datasets[i]['label']=co_titles[i].capitalize()
-        datasets[len(colors)-1]['pointBackgroundColor']=datasets[len(colors)-1]['pointBackgroundColor'][:-2]+'0.5)'
-        content.update({"datasets": datasets,"color_ix":list(color_ix.values())+[len(colors)-1]})
-        last_uploded=datasets[len(datasets)-1]
         
+        ls=len(colors)-1
         if 'match_obj' in self.cont:
-            last_uploded['label']='Uploaded spectrum: identified as '+ self.cont['msg'][-1]#last_uploded['label']
-            # pass
+            datasets[ls]['pointBackgroundColor']=datasets[ls]['pointBackgroundColor'][:-2]+'0.5)'
+            color_ix=list(color_ix.values())+[ls]
+            datasets[len(datasets)-1]['label']='Uploaded spectrum: identified as '+ self.cont['msg'][-1]#last_uploded['label']
+            datasets[ls]['pointStyle']='rect'
+            datasets[ls]['pointRadius']= 8
+        elif 'pca_test' in self.cont:
+            color_ix=list(color_ix.values())
+            for i in range(len(datasets))[-self.cont['pca_test']:]:
+                datasets[i]['pointStyle']='rect'
+                datasets[i]['pointRadius']= 5
+                datasets[i]['label']=datasets[i]['label']+'-selected test'
         else:
-            last_uploded['label']='Latest uploaded spectrum: close to '+last_uploded['label']
-        
+            datasets[ls]['pointBackgroundColor']=datasets[ls]['pointBackgroundColor'][:-2]+'0.5)'
+            color_ix=list(color_ix.values())+[ls]
+            datasets[len(datasets)-1]['label']='Latest uploaded spectrum: close to '+datasets[len(datasets)-1]['label']
+            datasets[ls]['pointStyle']='rect'
+            datasets[ls]['pointRadius']= 8
+            
         # print(content['color_ix'])
-        # print(datasets)
+        # print(datasets[-6:])
+        content.update({"datasets": datasets,"color_ix":color_ix})
         context=self.cont
         context.update(content)
         return context
@@ -85,10 +105,22 @@ class master_pca_chart(BaseLineChartView):
             match_id=self.request.GET.get('match_id','')
             if not match_id:
                 match_id=self.request.get_full_path().split('/')[2]
-            
             match_obj=Match.objects.get(id=match_id)
             context.update({'match_obj':match_obj})
             obj=obj.add_match(match_obj)
+        elif model == 'PcaModel':
+            kwargs={i:self.request.GET.get(i,'') for i in ['pca_id', 'pca_ids', 'pca_up']}
+            pca_obj=PcaModel.objects.get(id=kwargs['pca_id'])
+            
+            if kwargs['pca_ids'] or kwargs['pca_up']:
+                print(kwargs)
+                obj,test_ids=obj.test_pca(pca_obj,**kwargs)
+                context.update({'pca_test':test_ids})
+                
+            else:
+                context.update({'pca_view':kwargs['pca_id']})
+                obj=obj.set_pca(pca_obj,**kwargs)
+            # print('pca_id:',pca_ids,trans.shape)
 
         trans=obj.trans
         # print(np.array(eval(trans)).shape,obj.count, len(eval(obj.spectra)['ids']))

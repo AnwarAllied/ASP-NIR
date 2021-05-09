@@ -51,7 +51,17 @@
     {% if pls_modeling %}
        {% include "admin/pls_chartjs_scatter.html" %}
     {% else %}
-       {% include "admin/chartjs_scartter.html" %}
+       {# include "admin/chartjs_scartter.html" #}
+       {% include "admin/master_static_pca_chart.html" %}
+       {% if form %}
+          <div class="chart-container" style="width:70vw">
+            <form action="{% url 'pca_upload' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form }}
+                <input type="submit" value="Upload">
+            </form>
+          </div>
+        {% endif %}
     {% endif %}
     <hr>
     {% include "admin/nested_checkboxes.html" %}

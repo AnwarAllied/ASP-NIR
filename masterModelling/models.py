@@ -82,7 +82,7 @@ class StaticModel(models.Model):
         sp=eval(self.spectra)
         return sp['colors'],sp['color_titles']
     
-    def add_last(self,id,origin,profile,X):
+    def add_last(self,id,origin,profile,X):  # for db last new created spectrum
         sp=eval(self.spectra)
         pr=eval(self.profile)
         color = self.find_color(origin,pr['color_set'])
@@ -103,7 +103,7 @@ class StaticModel(models.Model):
         # self.applied_model=am
         self.save()
 
-    def add_match(self,obj):
+    def add_match(self,obj):    # for uploaded match spectrum
         sp=eval(self.spectra)
         pr=eval(self.profile)
         color = {'unknown': 'grba(77, 77, 77, 1)'}
@@ -122,6 +122,57 @@ class StaticModel(models.Model):
         self.trans=str(trans.tolist())
         return self
     
+    def set_pca(self,pca_obj,**ky):  # for view existing Pca model
+        trans=pca_obj.trans()
+        pca_ids=[i.id for i in pca_obj.calibration.all()]
+        sp=eval(self.spectra)
+        pr=eval(self.profile)
+        #update spectra:
+        ids=sp['ids']
+        idx=[ids.index(i) for i in pca_ids]
+        sp['ids']=[ids[i] for i in idx]
+        sp['titles']=[sp['titles'][i] for i in idx]
+        sp['colors']=[sp['colors'][i] for i in idx]
+        sp['color_titles']=[sp['color_titles'][i] for i in idx]
+        self.spectra=str(sp)
+        self.count=len(idx)
+        #upddate profile
+        pr['ids']=[pr['ids'][i] for i in idx]
+        self.profile=str(pr)
+        #update the trans:
+        # trans=self.transform(obj.y(),update=True)
+        self.trans=str(trans.tolist())
+        return self
+
+    def test_pca(self,pca_obj,**ky):
+        if ky['pca_ids']:
+            ids2=list(map(int,ky['pca_ids'].split(',')))
+            ln=len(ids2)
+        else:
+            ids2=[int(ky['pca_up'])]
+            ln=1
+        pca_ids=[i.id for i in pca_obj.calibration.all()]+ids2
+        sp=eval(self.spectra)
+        pr=eval(self.profile)
+        #update spectra:
+        ids=sp['ids']
+        idx=[ids.index(i) for i in pca_ids]
+        sp['ids']=[ids[i] for i in idx]
+        sp['titles']=[sp['titles'][i] for i in idx]
+        sp['colors']=[sp['colors'][i] for i in idx]
+        sp['color_titles']=[sp['color_titles'][i] for i in idx]
+        self.spectra=str(sp)
+        self.count=len(idx)
+        #upddate profile
+        pr['ids']=[pr['ids'][i] for i in idx]
+        self.profile=str(pr)
+        #update the trans:
+        comp, trans, score=pca_obj.apply('test',*pca_ids)
+        # trans=self.transform(obj.y(),update=True)
+        self.trans=str(trans.tolist())
+        return self,ln
+
+
     def find_color(self,origin,color_set):
         origin = origin.lower()
         color= None

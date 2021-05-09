@@ -297,7 +297,7 @@ class pca(TemplateView):
         data["verbose_name"]=model
         data["verbose_name_plural"]="figure"
         data['scartter']=True
-       
+        
         return data
 
 def pca_save(request):
@@ -320,16 +320,40 @@ class pca_test(TemplateView):
         data = super().get_context_data()
         for i in ['model','ids','model_id']:
             data[i]=self.request.GET.get(i,'')
-            
+        
         data["has_permission"]= self.request.user.is_authenticated
+        data["obj_id"]= 2
+        data["pca_tag"]='&pca_id='+data['model_id']+'&pca_ids='+data['ids']
         data["app_label"]= 'predictionModel'
+        data["model"]='PcaModel'
         data["verbose_name"]='PcaModel'
         data["verbose_name_plural"]="figure"
-        data['scartter']=True
-        data["plot_mode"]=True
+        # data['scartter']=True
+        # data["plot_mode"]=True
+        data['master_static_pca'] = True
         data['title']='Testing set for the model:'
         data['index_text']= PcaModel.objects.get(id=data['model_id']).__str__() #not showing
         return data
+
+def pca_upload(request):
+    if request.method == 'POST':
+        print('-*'*50)
+        print('file:',request.FILES.keys())
+    if 'upload_a_spectrum_for_testing' in request.FILES.keys():
+        dsFile=request.FILES['upload_a_spectrum_for_testing'].file
+        dsFile.seek(0)
+        uploaded,msg=datasheet4matching(file=dsFile, filename=str(request.FILES['upload_a_spectrum_for_testing']))
+        print('name :',str(request.FILES['upload_a_spectrum_for_testing']))
+        if not uploaded:
+            print('uploaded :',uploaded)
+            messages.error(request, 'Sorry, the uploaded file is not formated properly.')
+            return match(request)
+        return HttpResponseRedirect("%smatch/%d/method/%d" % (request.build_absolute_uri('/'),uploaded.id,2))
+    else:
+        messages.error(request, 'Sorry, nothing to upload.')
+        return match(request)
+
+
 
 class ScartterChartView(BaseLineChartView):
         

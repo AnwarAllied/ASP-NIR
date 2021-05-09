@@ -4,22 +4,26 @@ from predictionModel.models import PcaModel, PlsModel
 from preprocessingFilters.models import SgFilter
 from core.models import Spectrum, NirProfile
 from spectraModelling.models import Poly
-
+from .forms import MatchForm
 
 class myPcaModelAdmin(admin.ModelAdmin):
     view_on_site = False
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
         obj = PcaModel.objects.get(id=object_id)
-        extra_context['pca_data'] = obj
+        extra_context['pca_id'] = object_id
+        extra_context['ids']= object_id
+        extra_context['pca_tag'] = '&pca_id=%s' % object_id
+        extra_context['obj_id'] = 2
         extra_context['model']='PcaModel'
-        extra_context['ids']=object_id
+        # extra_context['ids']=object_id
         extra_context['plot_mode']='detail'
         extra_context['title']='PCA Model:'
         extra_context['index_text']= 'Calibration set of %s of maximum likelihood' % (obj.__str__())
         # extra_context['group']=[{'id':1,'name':'Narcotic', 'spectra':[{'id':1,'origin':'wheat_1'},{'id':2,'origin':'wheat_2'}]},{'id':2,'name':'Grape', 'spectra':[{'id':1,'origin':'wheat_3'},{'id':2,'origin':'wheat_4'}]}]
         extra_context['group']= profile2group(NirProfile)
-        
+        extra_context["form"]=MatchForm()
+
         rn= super().change_view(
             request, object_id, form_url, extra_context=extra_context,
         )

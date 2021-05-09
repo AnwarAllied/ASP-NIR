@@ -61,7 +61,7 @@ class match_method(TemplateView):
         obj = Match.objects.get(id=id)
         method = StaticModel.objects.get(id=method_id)
         text =eval(method.profile)['titles']
-        data['id']=id
+        data['match_id']=id
         data['obj_id']=method_id
         data['model'] = obj._meta.model_name
         data['master_static_pca'] = True

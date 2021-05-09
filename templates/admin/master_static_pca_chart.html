@@ -89,7 +89,7 @@
         ci.update();
     };
 
-    $.get('{% url "master_pca_chart" %}?id={{ obj_id }}&model={{ model }}&match_id={{ id }}', function(data) {
+    $.get('{% url "master_pca_chart" %}?id={{ obj_id }}&model={{ model }}&match_id={{ match_id }}{{ pca_tag }}', function(data) {
         clearInterval(setProg)
         color=data.color_ix
         Gdata = data
@@ -155,8 +155,8 @@
                 }
             }
         });
-        chart.config.data.datasets[data.datasets.length-1].pointStyle='rect'
-        chart.config.data.datasets[data.datasets.length-1].pointRadius=8
+        // chart.config.data.datasets[data.datasets.length-1].pointStyle='rect'
+        // chart.config.data.datasets[data.datasets.length-1].pointRadius=8
         chart.update()
     });
 
@@ -180,7 +180,7 @@
 	// }
 	// else if(method.slice(0,3)=='pca'){
         if(method.slice(0,3)=='pca'){
-            $.get('{% url "spectraModelling:chart" match_id=id %}?id='+method.slice(-1)+'&model=match', function(data){
+            $.get('{% url "spectraModelling:chart" match_id=match_id %}?id='+method.slice(-1)+'&model=match', function(data){
                 Gdata = data
                 chart.data.datasets.forEach(function(dataset, index) {
                     dataset.data = Gdata['datasets'][index]["data"];
