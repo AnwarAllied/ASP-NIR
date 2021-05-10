@@ -3,7 +3,7 @@ import re
 from chartjs.colors import next_color
 from django.db import models
 from django.db.models.signals import post_save
-from core.models import Spectrum
+from core.models import Spectrum, NirProfile
 import numpy as np
 from predictionModel.models import PlsModel, PcaModel, normalize_y , to_wavelength_length_scale as scale_x
 from sklearn.decomposition import PCA
@@ -137,14 +137,16 @@ class StaticModel(models.Model):
         pr = eval(self.profile)
         sp = eval(self.spectra)
 
-        # pr['ids'] = pr['ids'] + [spectrum.nir_profile_id if spectrum.nir_profile_id not in pr['ids'] else None]
-        # pr['color_set']={ 'wheat':'255, 165, 0', 'durum':'235, 97, 35', 'narcotic':'120,120,120', 'tomato':'216, 31, 42', 'garlic':'128,128,128', 'grape':'0, 176, 24', 'other': '241 170 170' }
-        self.profile = str(pr)
-        self.title=pred_pca.__str__()
         spec_pca_spectra=[Spectrum.objects.get(id=i) for i in spec_pca_ids if i]
         nir_ids=[i.nir_profile_id for i in spec_pca_spectra]
+
+        # update profile
         pr['ids']=nir_ids+[spectrum.nir_profile_id if spectrum.nir_profile_id else None]
-        sp = eval(self.spectra)
+        print('profile-ids:',pr['ids'])
+        pr['titles']=[i.title for i in [NirProfile.objects.get(id=j) for j in set(pr['ids']) if j]]
+        self.profile = str(pr)
+
+        # update spectra
         sp['ids']=spec_pca_ids+[spectrum.pk if spectrum.pk else None]  #
         titles=[i.origin for i in spec_pca_spectra] + [spectrum.origin]
         sp['titles']=titles
@@ -152,7 +154,6 @@ class StaticModel(models.Model):
         sp['colors'] = co
         sp['color_titles'] = ti
         self.spectra = str(sp)
-        self.count = len(spec_pca_ids)+1
 
         # update the trans:
         Xy = spectrum.y()
@@ -167,6 +168,10 @@ class StaticModel(models.Model):
         pca.fit(Xn)
         trans=pca.transform(Xn)
         self.trans = str(trans.tolist())
+
+        #update other attributes
+        self.title = pred_pca.__str__()
+        self.count = len(spec_pca_ids) + 1
         return self
 
 

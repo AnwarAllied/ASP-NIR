@@ -118,11 +118,12 @@ class master_pca_chart(BaseLineChartView):
     def close_to(self):
         obj = self.cont['obj']
         spectra = eval(obj.spectra)
-        print(spectra)
+        # print(spectra)
         profile = eval(obj.profile)
+        print('profile:',profile)
         obj_ids = spectra['ids']
+        print('obj_ids:',obj_ids)
         trans = np.array(eval(self.cont['trans']))
-        print('trans-close:',len(trans))
         messages = []
         distances = [[((i[0] - j[0]) ** 2 + (i[1] - j[1]) ** 2) ** 0.5 for i in trans] for j in trans]
         nearest_spectra_ids_all = []
@@ -139,6 +140,7 @@ class master_pca_chart(BaseLineChartView):
                 messages.append(spectra['titles'][e_index])
         # self.cont['nearest_spectra_ids_all'] = nearest_spectra_ids_all
         self.cont['msg'] = messages
+        # print('all messages:',messages)
         # self.request.session['nearest_spectra_ids_all'] = nearest_spectra_ids_all
         # print('debug: ',nearest_spectra_ids_all[:6], len(nearest_spectra_ids_all), messages[-7:])
         return messages
