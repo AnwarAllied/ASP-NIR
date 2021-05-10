@@ -10,9 +10,7 @@ hr {
   margin: 50px 0;
 }
 
-ul {
-  list-style: none;
-}
+
 
 .container {
   max-width: 700px;
@@ -24,11 +22,17 @@ ul{
 
 li {
   margin-top: 1em;
+  list-style-type:none;
 }
 
 label{
 font-size:14px;
 font-weight:700;
+}
+
+.add img{
+margin-bottom:-5px;
+width:20px;
 }
 </style>
 
@@ -50,9 +54,9 @@ font-weight:700;
 <div class="container">
     <ul>
     {% for profile in group %}
-      <li>
-        <label> {{ profile.name }}</label>
-        <ul id="spectra_list">
+      <li class="group_title">
+        <a href="javascript:void(0);"><span class="add"><img src="{% static 'admin/img/add.png' %}"></span></a> <label> {{ profile.name }}</label>
+       <ul class="spectra_list">
         {% for spectrum in profile.spectra %}
           <li><label><input type="radio" class="subOption_{{ profile.id }}" value="{{ spectrum.id }}" name="spectrum_to_match"> {{ spectrum.origin }}</label></li>
         {% endfor %}
@@ -78,7 +82,18 @@ font-weight:700;
 <script>
 
 function test_model() {
-    var spec_selected_id=$("#spectra_list input[type='radio']:checked").val();
+    var spec_selected_id=$(".spectra_list input[type='radio']:checked").val();
     location.replace("{% url 'pca_match' %}?model={{ model }}&spec_from=spec_chosen&spec_id="+spec_selected_id);
+};
+
+$(document).ready(function(){
+    $('.add>a').click(function(){
+        var ulNode=$(this).next('ul');
+        if(ulNode.css('display')=='none'){
+            ulNode.css('display','block');
+            $('.add',this).html("<img src='{% static 'admin/img/add.png' %}'>");
+        }
+    }
+
 }
 </script>
