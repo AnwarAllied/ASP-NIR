@@ -136,11 +136,14 @@ class StaticModel(models.Model):
         pred_pca = PcaModel.objects.get(id=pca_id)
         pr = eval(self.profile)
         sp = eval(self.spectra)
-        pr['ids'] = pr['ids'] + [spectrum.nir_profile_id if spectrum.nir_profile_id not in pr['ids'] else None]
+
+        # pr['ids'] = pr['ids'] + [spectrum.nir_profile_id if spectrum.nir_profile_id not in pr['ids'] else None]
         # pr['color_set']={ 'wheat':'255, 165, 0', 'durum':'235, 97, 35', 'narcotic':'120,120,120', 'tomato':'216, 31, 42', 'garlic':'128,128,128', 'grape':'0, 176, 24', 'other': '241 170 170' }
         self.profile = str(pr)
         self.title=pred_pca.__str__()
         spec_pca_spectra=[Spectrum.objects.get(id=i) for i in spec_pca_ids if i]
+        nir_ids=[i.nir_profile_id for i in spec_pca_spectra]
+        pr['ids']=nir_ids+[spectrum.nir_profile_id if spectrum.nir_profile_id else None]
         sp = eval(self.spectra)
         sp['ids']=spec_pca_ids+[spectrum.pk if spectrum.pk else None]  #
         titles=[i.origin for i in spec_pca_spectra] + [spectrum.origin]
@@ -155,11 +158,11 @@ class StaticModel(models.Model):
         Xy = spectrum.y()
         Xy=scale_x([Xy]).tolist()
 
-        print('Xy:',Xy)
+        # print('Xy:',Xy)
         X=[scale_x([i.y()])[0].tolist() for i in spec_pca_spectra]
-        print('shape:',np.shape(Xy),np.shape(X))
+        # print('shape:',np.shape(Xy),np.shape(X))
         Xn=X+Xy
-        print('X num:',len(X))
+        # print('X num:',len(X))
         pca=PCA(n_components=2)
         pca.fit(Xn)
         trans=pca.transform(Xn)

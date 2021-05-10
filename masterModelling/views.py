@@ -43,7 +43,7 @@ class master_pca_chart(BaseLineChartView):
         color_ix = {}
         colors, co_titles = self.cont['obj'].color()
         # print('datasets:',datasets)
-        print('colors:%d,co_titles:%s,dataset:%d'%(len(colors),co_titles,len(datasets)))
+        # print('colors:%d,co_titles:%s,dataset:%d'%(len(colors),co_titles,len(datasets)))
         for i in range(len(colors)):
             datasets[i]['pointBackgroundColor'] = colors[i]
             if colors[i] not in color_ix:
@@ -56,10 +56,12 @@ class master_pca_chart(BaseLineChartView):
         last_uploded = datasets[len(datasets) - 1]
 
         if 'match_obj' in self.cont:
-            last_uploded['label'] = 'Unknown spectrum: close to ' + self.cont['msg'][-1]  # last_uploded['label']
+            last_uploded['label'] = 'Unknown spectrum ' + self.cont['msg'][-1]  # last_uploded['label']
             # pass
+        elif 'spec_id' in self.cont:
+            last_uploded['label']= 'The chosen spectrum is identified as '+ last_uploded['label']
         else:
-            last_uploded['label'] = 'Latest uploaded spectrum: close to ' + last_uploded['label']
+            last_uploded['label'] = 'Latest uploaded spectrum ' + self.cont['msg'][-1]
 
         # print(content['color_ix'])
         # print(datasets)
@@ -86,12 +88,14 @@ class master_pca_chart(BaseLineChartView):
             spectrum = Spectrum()
             if spec_from=='spec_chosen':
                 spec_id = self.request.GET.get('spec_id', '')
+                context.update({'spec_id': spec_id})
                 print('specid:',spec_id)
                 if spec_id:
                     spectrum = Spectrum.objects.get(id=spec_id)
             elif spec_from=='spec_uploaded':
                 spectrum.origin = 'Unknown'
                 spectrum.y_axis = self.request.session['y_axis']
+                # context.update({'spec_uploaded':True})
             pca_id=self.request.session['pca_id']
             spec_pca_ids=self.request.session['pca_ids']
             obj = obj.pred_pca_match(pca_id, spec_pca_ids, spectrum)
@@ -114,6 +118,7 @@ class master_pca_chart(BaseLineChartView):
     def close_to(self):
         obj = self.cont['obj']
         spectra = eval(obj.spectra)
+        print(spectra)
         profile = eval(obj.profile)
         obj_ids = spectra['ids']
         trans = np.array(eval(self.cont['trans']))
@@ -129,7 +134,7 @@ class master_pca_chart(BaseLineChartView):
             if profile['ids'][e_index]:
                 s = NirProfile.objects.get(id=profile['ids'][e_index])
                 if s:
-                    messages.append(s.title)
+                    messages.append(' close to '+s.title)
             else:
                 messages.append(spectra['titles'][e_index])
         # self.cont['nearest_spectra_ids_all'] = nearest_spectra_ids_all
