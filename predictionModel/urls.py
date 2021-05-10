@@ -1,6 +1,6 @@
 from django.urls import path 
 from core.admin import admin_site
-from spectraModelling.views import match_specific_pca
+# from spectraModelling.views import match_specific_pca
 from .views import *
 
 
@@ -10,11 +10,11 @@ urlpatterns = [
     path('pca/test/', pca_test.as_view(), name='pca_test'),
     path('chart-sc/', ScartterChartView.as_view(), name='scartter_chart_json'),
     # path('pca_match/', pca_match, name='match'),
-    path('pca_match_upload/', pca_match_upload, name='pca_upload'),
+    path('pca/upload/', pca_match_upload, name='pca_upload'),
     # path('pca/test/?model=<str:model>&ids=<str:ids>', pca_test.as_view(), name='pca_test'),
     path('pls/', pls.as_view(), name='pls'),
     path('pls/save/', pls_save, name='pls_save'),
     path('pls/test/', pls_test.as_view(), name='pls_test'),
     path('chart-pls/', PlsScatterChartView.as_view(), name='pls_chart_json'),
-    path('match/<int:id>/', match_specific_pca.as_view(), name='specific_pca'),
+    path('pca/match/', match_specific_pca.as_view(), name='pca_match'),
 ]

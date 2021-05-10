@@ -39,12 +39,11 @@ class master_pca_chart(BaseLineChartView):
     def get_context_data(self, **kwargs):
         content = {"labels": self.get_labels()}
         datasets = self.get_datasets()
-
         # sort by profile color:
-
         color_ix = {}
         colors, co_titles = self.cont['obj'].color()
-
+        # print('datasets:',datasets)
+        print('colors:%d,co_titles:%s,dataset:%d'%(len(colors),co_titles,len(datasets)))
         for i in range(len(colors)):
             datasets[i]['pointBackgroundColor'] = colors[i]
             if colors[i] not in color_ix:
@@ -71,18 +70,34 @@ class master_pca_chart(BaseLineChartView):
     def spec2context(self, **kwargs):
         context = super(BaseLineChartView, self).get_context_data(**kwargs)
         model = self.request.GET.get('model', '')
-        obj_id = int(self.request.GET.get('id', ''))
-        obj = StaticModel.objects.get(id=obj_id)
+        # obj_id = int(self.request.GET.get('id', ''))
+        obj = StaticModel.objects.get(title='PCA spectra') # fixed for now ****** to be modified
         if model == 'match':
             match_id = self.request.GET.get('match_id', '')
+            print('mid',match_id)
             if not match_id:
                 match_id = self.request.get_full_path().split('/')[2]
 
             match_obj = Match.objects.get(id=match_id)
             context.update({'match_obj': match_obj})
             obj = obj.add_match(match_obj)
+        elif model=='PcaModel':
+            spec_from=self.request.GET.get('spec_from','')
+            spectrum = Spectrum()
+            if spec_from=='spec_chosen':
+                spec_id = self.request.GET.get('spec_id', '')
+                print('specid:',spec_id)
+                if spec_id:
+                    spectrum = Spectrum.objects.get(id=spec_id)
+            elif spec_from=='spec_uploaded':
+                spectrum.origin = 'Unknown'
+                spectrum.y_axis = self.request.session['y_axis']
+            pca_id=self.request.session['pca_id']
+            spec_pca_ids=self.request.session['pca_ids']
+            obj = obj.pred_pca_match(pca_id, spec_pca_ids, spectrum)
 
         trans = obj.trans
+        # print('trans:',trans)
         # print(np.array(eval(trans)).shape,obj.count, len(eval(obj.spectra)['ids']))
         context.update({'model': model, 'obj': obj, 'trans': trans})
         return context
@@ -102,6 +117,7 @@ class master_pca_chart(BaseLineChartView):
         profile = eval(obj.profile)
         obj_ids = spectra['ids']
         trans = np.array(eval(self.cont['trans']))
+        print('trans-close:',len(trans))
         messages = []
         distances = [[((i[0] - j[0]) ** 2 + (i[1] - j[1]) ** 2) ** 0.5 for i in trans] for j in trans]
         nearest_spectra_ids_all = []
@@ -115,7 +131,7 @@ class master_pca_chart(BaseLineChartView):
                 if s:
                     messages.append(s.title)
             else:
-                messages.append(' is close to ' + spectra['titles'][e_index])
+                messages.append(spectra['titles'][e_index])
         # self.cont['nearest_spectra_ids_all'] = nearest_spectra_ids_all
         self.cont['msg'] = messages
         # self.request.session['nearest_spectra_ids_all'] = nearest_spectra_ids_all
@@ -153,7 +169,7 @@ class master_pca_element_chart(BaseLineChartView):
     def spec2context(self, **kwargs):
         context = super(BaseLineChartView, self).get_context_data(**kwargs)
         model = self.request.GET.get('model', '')
-        spectra = []
+
         if model == 'Match':
             id = int(self.request.GET.get('id', ''))
             spectrum = Match.objects.get(id=id)
@@ -178,6 +194,10 @@ class master_pca_element_chart(BaseLineChartView):
                     pass
             # spectra=Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ix)))
             spectra.insert(0, spectrum)
+        elif model=='PcaModel':
+            pass
+
+
         else:
             id = int(self.request.session['id'])
             # print(id)

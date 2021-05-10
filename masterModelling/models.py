@@ -1,3 +1,6 @@
+import re
+
+from chartjs.colors import next_color
 from django.db import models
 from django.db.models.signals import post_save
 from core.models import Spectrum
@@ -46,7 +49,7 @@ class StaticModel(models.Model):
             gs=stat[gp]['std']
             Xy=(Xx-gm)/gs
         else:
-            Xy=X.reshape(1,-1)
+            Xy=Xx.reshape(1,-1)
 
         #apply the model:
         mod=self.get_mod()
@@ -99,7 +102,7 @@ class StaticModel(models.Model):
         # self.applied_model=am
         self.save()
 
-        def add_match(self, obj):
+    def add_match(self, obj):
             sp = eval(self.spectra)
             pr = eval(self.profile)
             color = {'unknown': 'grba(77, 77, 77, 1)'}
@@ -118,7 +121,7 @@ class StaticModel(models.Model):
             self.trans = str(trans.tolist())
             return self
 
-        def find_color(self, origin, color_set):
+    def find_color(self, origin, color_set):
             origin = origin.lower()
             color = None
             for i in color_set:
@@ -128,9 +131,91 @@ class StaticModel(models.Model):
                 color = {'other': 'rgba(%s)' % color_set['other']}
             return color
 
+
+    def pred_pca_match(self,pca_id,spec_pca_ids,spectrum):
+        pred_pca = PcaModel.objects.get(id=pca_id)
+        pr = eval(self.profile)
+        sp = eval(self.spectra)
+        pr['ids'] = pr['ids'] + [spectrum.nir_profile_id if spectrum.nir_profile_id not in pr['ids'] else None]
+        # pr['color_set']={ 'wheat':'255, 165, 0', 'durum':'235, 97, 35', 'narcotic':'120,120,120', 'tomato':'216, 31, 42', 'garlic':'128,128,128', 'grape':'0, 176, 24', 'other': '241 170 170' }
+        self.profile = str(pr)
+        self.title=pred_pca.__str__()
+        spec_pca_spectra=[Spectrum.objects.get(id=i) for i in spec_pca_ids if i]
+        sp = eval(self.spectra)
+        sp['ids']=spec_pca_ids+[spectrum.pk if spectrum.pk else None]  #
+        titles=[i.origin for i in spec_pca_spectra] + [spectrum.origin]
+        sp['titles']=titles
+        co,ti,co_di=obtain_colors(titles)
+        sp['colors'] = co
+        sp['color_titles'] = ti
+        self.spectra = str(sp)
+        self.count = len(spec_pca_ids)+1
+
+        # update the trans:
+        Xy = spectrum.y()
+        Xy=scale_x([Xy]).tolist()
+
+        print('Xy:',Xy)
+        X=[scale_x([i.y()])[0].tolist() for i in spec_pca_spectra]
+        print('shape:',np.shape(Xy),np.shape(X))
+        Xn=X+Xy
+        print('X num:',len(X))
+        pca=PCA(n_components=2)
+        pca.fit(Xn)
+        trans=pca.transform(Xn)
+        self.trans = str(trans.tolist())
+        return self
+
+
+
     class Meta:
         verbose_name = 'Static Model'
         verbose_name_plural = "Static Models"
+
+
+def obtain_colors(titles):
+    color_set = {'wheat': '255, 165, 0', 'durum': '235, 97, 35', 'narcotic': '120,120,120', 'tomato': '216, 31, 42',
+                 'garlic': '128,128,128', 'grape': '0, 176, 24', 'other': '241 170 170'}
+    # sp=kwargs['spectra']
+    # s1=str(sp['titles']).lower()
+    s1 = str(titles).lower()
+    s2 = re.sub('[^\w ]+', '', s1)
+    s3 = re.sub(r'\d+|\b\w{1,2}\b', '', s2)
+    s4 = re.sub('brix|protein|moisture|data|test|validation|calibration|asp', '', s3)
+    s5 = re.sub(' +', ' ', s4)
+    s6 = re.findall('\w{3,}', s5)
+    s7 = {s6.count(i): i for i in list(set(s6))}
+    ls = sorted(s7.keys(), reverse=True)
+    gp = []
+    for i in eval(s1):
+        has_origin = False
+        for j in ls:
+            if s7[j] in i and not has_origin:
+                has_origin = True
+                gp.append(s7[j])
+        if not has_origin:
+            gp.append('other')
+    co = []
+    ti = []
+    ls = list(color_set.keys())
+    color_dict = {}
+    for i in gp:
+        has_origin = False
+        for j in ls:
+            if j in i and not has_origin:
+                has_origin = True
+                co.append('rgba(%s, 1)' % color_set[j])
+                ti.append(j)
+                color_dict.update({j: color_set[j]})
+        if not has_origin:
+            new_color = str(tuple(next(next_color())))
+            co.append('rgba%s' % new_color)
+            ti.append(i)
+            color_set.update({i: new_color[1:-1]})
+            color_dict.update({i: new_color[1:-1]})
+    return co, ti, color_dict
+
+
 
 
 class IngredientsModel(models.Model):

@@ -22,6 +22,7 @@ def datasheet4matching(file,filename):
         # label1=sh1[list(sh1)[0]]
         # dataset=np.array([sh1[list(sh1)[i+1]].values.tolist() for i in range(len(x_axis))]).T
         color_generator =next_color()
+        print('color-gen:',color_generator)
         xmin=min(x_axis)
         xmax=max(x_axis)
         match = Match(y_axis = str(y_axis)[1:-1])

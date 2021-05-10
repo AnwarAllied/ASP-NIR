@@ -10,7 +10,7 @@ def pca_validate_file_extension(value):
         raise ValidationError('Unsupported file extension.')
 
 # Create the form class.
-class PcaMatchForm(forms.ModelForm):
+class PcaUploadForm(forms.ModelForm):
     select_a_spectrum = forms.FileField(validators=[pca_validate_file_extension], required=False)
     select_a_spectrum.widget.attrs.update({'accept':".csv"})
     class Meta:

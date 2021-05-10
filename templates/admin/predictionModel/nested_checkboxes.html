@@ -48,13 +48,13 @@ font-weight:700;
 
 <h1> Or apply this model to match the selected spectra:</h1>
 <div class="container">
-    <ul id="spectra_list">
+    <ul>
     {% for profile in group %}
       <li>
         <label> {{ profile.name }}</label>
-        <ul>
+        <ul id="spectra_list">
         {% for spectrum in profile.spectra %}
-          <li><label><input type="radio" class="subOption_{{ profile.id }}" value="s_{{ spectrum.id }}" name="spectrum_to_match"> {{ spectrum.origin }}</label></li>
+          <li><label><input type="radio" class="subOption_{{ profile.id }}" value="{{ spectrum.id }}" name="spectrum_to_match"> {{ spectrum.origin }}</label></li>
         {% endfor %}
         </ul>
       </li>
@@ -66,10 +66,8 @@ font-weight:700;
 <div class="submit-row">
 
     <!-- <input type="submit" value="Save" class="default" name="_save"> -->
-    
         
         <p class="deletelink-box"><a href="/admin/predictionModel/{{ model|lower }}/{{ ids }}/delete/" class="deletelink">Delete</a></p>
-    
     
     <input onclick="test_model(this)" value="Apply the model to the selected testing set" name="_addanother">
     <!-- <input type="submit" value="Save and continue editing" name="_continue"> -->
@@ -80,17 +78,7 @@ font-weight:700;
 <script>
 
 function test_model() {
-    spectra=$("#spectra_list input[value^='s_']");
-    ids='';
-    pca_for_matching=$('#pca_for_matching');
-    spectra.each(function(index,elm) {if (elm.checked) {ids+=elm.value.replace('s_',',')}})
-    if('{{ model }}'=='PlsModel'){
-    location.replace("{% url 'pls_test' %}?model={{ model }}&ids="+ids.replace(',','')+"&model_id={{ ids }}")}
-    else if(pca_for_matching){
-        location.replace("{% url 'masterpca' %}?model={{ model }}&ids="+ids.replace(',','')+"&model_id={{ ids }}")
-    }
-    else{
-    location.replace("{% url 'pca_test' %}?model={{ model }}&ids="+ids.replace(',','')+"&model_id={{ ids }}")
-    }
+    var spec_selected_id=$("#spectra_list input[type='radio']:checked").val();
+    location.replace("{% url 'pca_match' %}?model={{ model }}&spec_from=spec_chosen&spec_id="+spec_selected_id);
 }
 </script>

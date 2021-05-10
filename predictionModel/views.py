@@ -1,3 +1,4 @@
+from django.forms.utils import to_current_timezone
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 # from django.template import loader
@@ -9,6 +10,8 @@ from django.db.models import Q
 # from django.utils.html import html_safe, mark_safe
 from django.views.generic import TemplateView
 from chartjs.views.lines import BaseLineChartView
+
+from masterModelling.models import StaticModel
 from .models import PcaModel, PlsModel
 from core.models import Spectrum, NirProfile
 from spectraModelling.models import Poly, Match
@@ -16,7 +19,7 @@ from preprocessingFilters.models import SgFilter
 import json
 from django.template import loader
 from django.contrib.flatpages.models import FlatPage
-from .forms import PcaMatchForm
+from .forms import PcaUploadForm
 from .dataHandeller import datasheet4matching
 from django.contrib import messages
 from itertools import chain
@@ -54,6 +57,7 @@ class pls(TemplateView):
         data['verbose_name'] = model
         data['verbose_name_plural'] = 'figure'
         data['pls_modeling'] = True
+
         return data
 
 
@@ -446,20 +450,58 @@ class ScartterChartView(BaseLineChartView):
                 trans[:, :2]]  # [{"x":1,"y":2},{"x":5,"y":4}],[{"x":3,"y":4},{"x":3,"y":1}]]#
 
 
+
 def pca_match_upload(request):
     if 'select_a_spectrum' in request.FILES.keys():
        dsFile=request.FILES['select_a_spectrum'].file
        dsFile.seek(0)
-       uploaded,msg=datasheet4matching(file=dsFile, filename=str(request.FILES['select_a_spectrum']))
-       if not uploaded:
+       y_axis,xmin,xmax,msg=datasheet4matching(file=dsFile, filename=str(request.FILES['select_a_spectrum']))
+       if not y_axis:
            messages.error(request, 'Sorry, the uploaded file is not formated properly.')
            return HttpResponseRedirect("%sadmin/predictionModel/pcamodel/%s/change/" % (request.build_absolute_uri('/'),request.POST['pca_id']))
             # '<path:object_id>/change/', wrap(self.change_view), name='%s_%s_change'  http://127.0.0.1:8000
-       request.session['spec_data']=[uploaded.x(),uploaded.y()]
-       request.session['pca_spec_ids']=request.POST['pca_ids']
-       request.session['pca_model_id']=request.POST['pca_id']
 
-       return HttpResponseRedirect("%smaster_pca_chart/pcamodel/" % request.build_absolute_uri('/'))
+       request.session['pca_id']=request.POST['pca_id']
+       request.session['y_axis']=y_axis
+       request.session['xmin']=xmin
+       request.session['xmax']=xmax
+       return HttpResponseRedirect("%spca/match/?model=PcaModel&spec_from=spec_uploaded" % request.build_absolute_uri('/'))
     else:
         messages.error(request, 'Sorry, nothing to upload.')
         return HttpResponseRedirect("%sadmin/predictionModel/pcamodel/%s/change/" % (request.build_absolute_uri('/'),request.POST['pca_id']))
+
+
+
+class match_specific_pca(TemplateView):
+    template_name = 'admin/index_plot.html'
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data()
+        spec_from=self.request.GET.get('spec_from','')
+        pca_id = self.request.session['pca_id']
+        spec_pca_ids = self.request.session['pca_ids']
+        spectra=[Spectrum.objects.get(id=i) for i in spec_pca_ids]
+        nir_profile_ids=[i.nir_profile_id for i in spectra if i]
+
+        if spec_from=='spec_uploaded':
+            data['figure_header'] = 'Matching result of unknown spectrum just uploaded'
+
+        elif spec_from=='spec_chosen':
+            data['figure_header'] = 'Matching of spectrum chosen'
+            data['spec_id']=self.request.GET.get('spec_id','')
+            data['spec_chosen']=True
+        data['group_num'] = len(set(nir_profile_ids))
+        pca_applied=PcaModel.objects.get(id=pca_id)
+        text=pca_applied.__str__()
+        data['pca_match']=True
+        data['spec_from']=spec_from
+        data['model'] ='PcaModel'
+        data['master_static_pca'] = True
+        data['has_permission'] = self.request.user.is_authenticated
+        data['app_label'] = "predictionModel"
+        data['verbose_name'] = 'Matching'
+        data['text'] = text
+        data['spec_num'] =len(spec_pca_ids)+1
+        data['components'] = pca_applied.order
+
+        return data
