@@ -18,7 +18,7 @@ import re
 # from sklearn.cluster import KMeans
 
 
-# exec(open('predictionModel/manages.py','r').read())
+# exec(open('predictionModel/mng.py','r').read())
 
 color_set={ 'wheat':'255, 165, 0',
             'wheatSG':'250, 175, 10',

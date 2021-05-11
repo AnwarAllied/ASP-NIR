@@ -191,7 +191,7 @@ class PcaModel(models.Model):
         self.transform=str(trans)[1:-1]
         self.save()
         self.calibration.set(ids)
-        obtain_pca_meat(self)
+        obtain_pca_meat([self])
     
     def scale_y(self,*ids):
         if ids:
