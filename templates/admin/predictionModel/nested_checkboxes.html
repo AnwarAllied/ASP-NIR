@@ -10,30 +10,37 @@ hr {
   margin: 50px 0;
 }
 
-
-
 .container {
   max-width: 700px;
 }
 
-ul{
-  list-style-type:none;
+li{
+margin-top: 1em;
 }
 
-li {
-  margin-top: 1em;
-  list-style-type:none;
-}
 
 label{
 font-size:14px;
 font-weight:700;
 }
 
-.add img{
+.group_title img{
 margin-bottom:-5px;
 width:20px;
 }
+
+.group_title ul{
+<!--display:none;-->
+}
+
+.spectra_list{
+display:none;
+}
+
+.container ul li, .group_title ul li{
+list-style-type:none;
+}
+
 </style>
 
 {% block content %}
@@ -55,7 +62,7 @@ width:20px;
     <ul>
     {% for profile in group %}
       <li class="group_title">
-        <a href="javascript:void(0);"><span class="add"><img src="{% static 'admin/img/add.png' %}"></span></a> <label> {{ profile.name }}</label>
+        <a href="javascript:void(0);"><span class="addimage"><img src="{% static 'admin/img/add.png' %}"></span></a> <label> {{ profile.name }}</label>
        <ul class="spectra_list">
         {% for spectrum in profile.spectra %}
           <li><label><input type="radio" class="subOption_{{ profile.id }}" value="{{ spectrum.id }}" name="spectrum_to_match"> {{ spectrum.origin }}</label></li>
@@ -64,7 +71,7 @@ width:20px;
       </li>
     {% endfor %}
     </ul>
-    <input type="hidden" name="master_pca" value="master_pca" />
+<!--    <input type="hidden" name="master_pca" value="master_pca" />-->
 </div>
 
 <div class="submit-row">
@@ -87,13 +94,17 @@ function test_model() {
 };
 
 $(document).ready(function(){
-    $('.add>a').click(function(){
-        var ulNode=$(this).next('ul');
+    $('.group_title>a').click(function(){
+        var ulNode=$(this).nextAll('ul:first');
         if(ulNode.css('display')=='none'){
             ulNode.css('display','block');
-            $('.add',this).html("<img src='{% static 'admin/img/add.png' %}'>");
+            $('.addimage',this).html("<img src="+"{% static 'admin/img/diminish.png' %}>");
+        }else{
+            ulNode.css('display','none');
+            $('.addimage',this).html("<img src="+"{% static 'admin/img/add.png' %}>");
         }
-    }
+    });
+});
 
-}
+
 </script>
