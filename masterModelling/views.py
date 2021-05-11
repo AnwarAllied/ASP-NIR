@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.contrib import messages
-from .manages import update_master_model
+from .manages import update_master_model, remove_master_model
 import re
 from .models import StaticModel,IngredientsModel
 from core.models import Spectrum, NirProfile
@@ -43,15 +43,19 @@ class master_pca(TemplateView):
             else:
                 messages.error(self.request, 'Opps! something went wrong')
 
+        remove=self.request.GET.get('remove','')
+        if remove:
+            print(obj.title,'starts removing')
+            success=remove_master_model(obj_id,remove)
+            if success:
+                messages.success(self.request, obj.title + ' has removed '+ remove + ' sucessfully' )
+            else:
+                messages.error(self.request, 'Opps! something went wrong')
+
+
         return data
 
 class master_pca_chart(BaseLineChartView):
-
-    # def get_dataset_options(self, index, color):
-    #     # default_opt = super().get_dataset_options(index, color)
-    #     # default_opt.update({"fill": "false"}) # disable the area filling in ChartJS options
-    #     default_opt.update({'pointRadius': 8, 'pointStyle':'rect'})
-    #     return default_opt
 
     def get_context_data(self, **kwargs):
         content = {"labels": self.get_labels()}
@@ -70,28 +74,31 @@ class master_pca_chart(BaseLineChartView):
             datasets[i]['label']=co_titles[i].capitalize()
         
         ls=len(colors)-1
+        # print(datasets)
         if 'match_obj' in self.cont:
             datasets[ls]['pointBackgroundColor']=datasets[ls]['pointBackgroundColor'][:-2]+'0.5)'
             color_ix=list(color_ix.values())+[ls]
             datasets[len(datasets)-1]['label']='Uploaded spectrum: identified as '+ self.cont['msg'][-1]#last_uploded['label']
             datasets[ls]['pointStyle']='rect'
-            datasets[ls]['pointRadius']= 8
+            datasets[ls]['pointRadius']= 12
         elif 'pca_test' in self.cont:
             color_ix=list(color_ix.values())
             for i in range(len(datasets))[-self.cont['pca_test']:]:
                 datasets[i]['pointStyle']='rect'
                 datasets[i]['pointRadius']= 5
                 datasets[i]['label']=datasets[i]['label']+'-selected test'
+            if self.cont['pca_test']== 1:
+                datasets[-1]['label']=datasets[-1]['label']+': identified as '+self.cont['msg'][-1] 
         else:
             datasets[ls]['pointBackgroundColor']=datasets[ls]['pointBackgroundColor'][:-2]+'0.5)'
             color_ix=list(color_ix.values())+[ls]
-            datasets[len(datasets)-1]['label']='Latest uploaded spectrum: close to '+datasets[len(datasets)-1]['label']
+            datasets[len(datasets)-1]['label']='Latest uploaded spectrum: identified as '+self.cont['msg'][-1] #datasets[len(datasets)-1]['label']
             datasets[ls]['pointStyle']='rect'
-            datasets[ls]['pointRadius']= 8
-            
+            datasets[ls]['pointRadius']= 12
+
         # print(content['color_ix'])
         # print(datasets[-6:])
-        content.update({"datasets": datasets,"color_ix":color_ix})
+        content.update({"datasets": [datasets[-1]]+datasets[:-1],"color_ix":[0]+(np.array(color_ix)+1).tolist()[:-1]})
         context=self.cont
         context.update(content)
         return context
@@ -112,10 +119,17 @@ class master_pca_chart(BaseLineChartView):
             kwargs={i:self.request.GET.get(i,'') for i in ['pca_id', 'pca_ids', 'pca_up']}
             pca_obj=PcaModel.objects.get(id=kwargs['pca_id'])
             
-            if kwargs['pca_ids'] or kwargs['pca_up']:
-                print(kwargs)
-                obj,test_ids=obj.test_pca(pca_obj,**kwargs)
+            if kwargs['pca_ids']:
+                obj,test_ids=obj.test_selected_pca(pca_obj,**kwargs)
                 context.update({'pca_test':test_ids})
+
+            elif kwargs['pca_up']:
+                # print(kwargs)
+                # match=Match(y_axis=str(self.request.session['pca_upload'])[1:-1],pk=1111)
+                # print(kwargs['pca_up'])
+                obj=obj.test_uploaded_pca(pca_obj,self.request.session['pca_upload'],)
+                context.update({'pca_up':True})
+                # self.request.session.pop('pca_upload')
                 
             else:
                 context.update({'pca_view':kwargs['pca_id']})
@@ -159,6 +173,7 @@ class master_pca_chart(BaseLineChartView):
         self.cont['msg']=messages
         # self.request.session['nearest_spectra_ids_all'] = nearest_spectra_ids_all
         # print('debug: ',nearest_spectra_ids_all[:6], len(nearest_spectra_ids_all), messages[-7:])
+        # print(messages)
         return messages
 
     def get_data(self):

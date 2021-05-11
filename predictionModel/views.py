@@ -16,6 +16,9 @@ from preprocessingFilters.models import SgFilter
 import json
 from itertools import chain
 import numpy as np
+from .dataHandeller import datasheet4testing
+from django.contrib import messages
+from django.http import HttpResponseRedirect
 
 class pls(TemplateView):
     template_name = "admin/index_plot.html"
@@ -318,12 +321,12 @@ class pca_test(TemplateView):
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data()
-        for i in ['model','ids','model_id']:
+        for i in ['model','ids','model_id','pca_upload']:
             data[i]=self.request.GET.get(i,'')
         
         data["has_permission"]= self.request.user.is_authenticated
         data["obj_id"]= 2
-        data["pca_tag"]='&pca_id='+data['model_id']+'&pca_ids='+data['ids']
+        data["pca_tag"]='&pca_id='+data['model_id']+'&pca_ids='+data['ids']+'&pca_up='+data['pca_upload']
         data["app_label"]= 'predictionModel'
         data["model"]='PcaModel'
         data["verbose_name"]='PcaModel'
@@ -335,23 +338,27 @@ class pca_test(TemplateView):
         data['index_text']= PcaModel.objects.get(id=data['model_id']).__str__() #not showing
         return data
 
-def pca_upload(request):
+def pca_upload(request,**kyargs):
     if request.method == 'POST':
-        print('-*'*50)
+        print(kyargs)
         print('file:',request.FILES.keys())
+        Pca = PcaModel.objects.get(id=kyargs['id'])
     if 'upload_a_spectrum_for_testing' in request.FILES.keys():
         dsFile=request.FILES['upload_a_spectrum_for_testing'].file
         dsFile.seek(0)
-        uploaded,msg=datasheet4matching(file=dsFile, filename=str(request.FILES['upload_a_spectrum_for_testing']))
+        y_axis,msg=datasheet4testing(file=dsFile, filename=str(request.FILES['upload_a_spectrum_for_testing']))
         print('name :',str(request.FILES['upload_a_spectrum_for_testing']))
-        if not uploaded:
-            print('uploaded :',uploaded)
+        
+        if not y_axis:
             messages.error(request, 'Sorry, the uploaded file is not formated properly.')
-            return match(request)
-        return HttpResponseRedirect("%smatch/%d/method/%d" % (request.build_absolute_uri('/'),uploaded.id,2))
+            return HttpResponseRedirect("/admin/predictionModel/pcamodel/%s/change/" % kyargs['id'] )
+
+        request.session['pca_upload']= y_axis
+        
+        return HttpResponseRedirect("/pca/test/?model=PcaModel&model_id=%s&pca_upload=1" % kyargs['id'])
     else:
         messages.error(request, 'Sorry, nothing to upload.')
-        return match(request)
+        return HttpResponseRedirect("/admin/predictionModel/pcamodel/%s/change/" % kyargs['id'] )
 
 
 

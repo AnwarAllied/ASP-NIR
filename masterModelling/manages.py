@@ -19,13 +19,16 @@ from chartjs.colors import next_color
 # exec(open('masterModelling/tests.py','r').read())
 
 color_set={ 'wheat':'255, 165, 0',
+            'wheatSG':'250, 175, 10',
             'durum':'35, 125, 235',
             'narcotic':'190,190,190',
             'tomato':'216, 31, 42',
             'garlic':'201,35,212',
             'grape':'0, 176, 24',
+            'fruit':'150, 106, 54',
             'other': '170 170 170' }
 narcotic_set=['phenacetin','lidocaine','levamisole','cocaine','caffeine','benzocaine']
+fruit_set = ['apple','banana','Pear']
 
 def update_master_model(id):
     stat=None
@@ -33,20 +36,40 @@ def update_master_model(id):
     preprocess=sm.prep()
     applied_model=sm.mod()
 
-    data_input= get_data()
+    data_input_p= get_data(['SG'])
+    data_input_n= get_data(['SG']+fruit_set)
     if 'pca' in applied_model:
         if not preprocess:
-            ky=obtain_pca(data_input)
+            ky=obtain_pca(data_input_n)
             stat=StaticModel.objects.filter(id=id).update(**ky)
         elif 'kmean' in preprocess:
-            ky=obtain_pca_scaled(data_input)
+            ky=obtain_pca_scaled(data_input_p)
             stat=StaticModel.objects.filter(id=id).update(**ky)
     return stat
 
-def get_data(remove=['SG','apple','banana','Pear']):
+def remove_master_model(id,sp_title):
+    stat=None
+    # sp_title=re.sub('_',' ',sp_title)
+    print(sp_title)
+    sm=StaticModel.objects.get(id=id)
+    preprocess=sm.prep()
+    applied_model=sm.mod()
+
+    data_input_p= get_data(['SG']+[sp_title])
+    data_input_n= get_data(['SG']+[sp_title]+fruit_set)
+    if 'pca' in applied_model:
+        if not preprocess:
+            ky=obtain_pca(data_input_n)
+            stat=StaticModel.objects.filter(id=id).update(**ky)
+        elif 'kmean' in preprocess:
+            ky=obtain_pca_scaled(data_input_p)
+            stat=StaticModel.objects.filter(id=id).update(**ky)
+    return stat
+
+def get_data(remove):
     # to_remove_from_query:
-    ql=Spectrum.objects.all().exclude(origin__contains=remove[0])
-    for i in remove[1:]:
+    ql=Spectrum.objects.all() #.exclude(origin__contains=remove[0])
+    for i in remove:
         ql=ql.exclude(origin__contains=i)
 
     Xa=scal([i.y().tolist() for i in ql])
@@ -164,7 +187,7 @@ def obtain_pca_scaled(data_input):
     }
     return output
 
-def obtain_colors(titles,color_set,narcotic):
+def obtain_colors(titles,color_set,narcotic,fruit=fruit_set):
     s1=str(titles).lower()
     s2=re.sub('[^\w ]+','',s1)
     s3=re.sub(r'\d+|\b\w{1,2}\b','',s2)
@@ -173,6 +196,7 @@ def obtain_colors(titles,color_set,narcotic):
     s6=re.findall('\w{3,}',s5)
     s7={i:s6.count(i) for i in list(set(s6))}
     ls=sorted(s7.keys(), key=lambda x:s7[x],reverse=True)
+    fruit=[i.lower() for i in fruit]
     gp=[]
     for i in eval(s1):
         has_origin=False
@@ -180,6 +204,9 @@ def obtain_colors(titles,color_set,narcotic):
             if i in narcotic and not has_origin:
                 has_origin=True
                 gp.append('narcotic')
+            if i in fruit and not has_origin:
+                has_origin=True
+                gp.append('fruit')
                 # print(i, 'in narcotic')
             if j in i and not has_origin:
                 has_origin=True

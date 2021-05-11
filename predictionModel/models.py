@@ -8,6 +8,7 @@ from sklearn.cross_decomposition import PLSRegression
 from sklearn.metrics import mean_squared_error as MSE
 from preprocessingFilters.models import SgFilter
 from re import findall
+from .mng import obtain_pca_meat
 
 class PlsModel(models.Model):
     order = models.IntegerField(default=2)
@@ -163,7 +164,7 @@ class PcaModel(models.Model):
     component = models.TextField(blank=True, null=True)
     transform = models.TextField(blank=True, null=True)
     calibration = models.ManyToManyField(Spectrum) #on_delete=DO_NOTHING
-    # meta = models.TextField(blank=True, null=True)
+    meta = models.TextField(blank=True, null=True)
     
     def __str__(self):
         fname=self.calibration.all()[0].origin.split(' ')[0]+", score: "+"{:0.2f}".format(self.score)
@@ -190,6 +191,7 @@ class PcaModel(models.Model):
         self.transform=str(trans)[1:-1]
         self.save()
         self.calibration.set(ids)
+        obtain_pca_meat(self)
     
     def scale_y(self,*ids):
         if ids:

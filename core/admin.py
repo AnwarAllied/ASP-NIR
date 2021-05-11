@@ -44,8 +44,8 @@ class myFlatPageAdmin(FlatPageAdmin):
 class SpectrumAdmin(admin.ModelAdmin):
     view_on_site = False
     form = SpectrumForm
-    list_per_page = 300
-    change_list_template = 'admin/spectra_display_list.html'
+    # list_per_page = 300
+    # change_list_template = 'admin/spectra_display_list.html'
     list_display = ('__str__','spec_image')
 
     def save_model(self, request, obj, form, change):

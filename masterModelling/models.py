@@ -3,6 +3,7 @@ from django.db.models.signals import post_save
 from core.models import Spectrum
 import numpy as np
 from predictionModel.models import PlsModel, PcaModel, normalize_y , to_wavelength_length_scale as scale_x
+from predictionModel.mng import get_spc_meta
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 
@@ -123,54 +124,76 @@ class StaticModel(models.Model):
         return self
     
     def set_pca(self,pca_obj,**ky):  # for view existing Pca model
-        trans=pca_obj.trans()
-        pca_ids=[i.id for i in pca_obj.calibration.all()]
+        # pca_ids=[i.id for i in pca_obj.calibration.all()]
         sp=eval(self.spectra)
         pr=eval(self.profile)
+        pca_m=eval(pca_obj.meta)
         #update spectra:
-        ids=sp['ids']
-        idx=[ids.index(i) for i in pca_ids]
-        sp['ids']=[ids[i] for i in idx]
-        sp['titles']=[sp['titles'][i] for i in idx]
-        sp['colors']=[sp['colors'][i] for i in idx]
-        sp['color_titles']=[sp['color_titles'][i] for i in idx]
+        # ids=sp['ids']
+        # idx=[ids.index(i) for i in pca_ids]
+        # sp['ids']=[ids[i] for i in idx]
+        sp['ids']=pca_m['sp_ids']
+        sp['titles']=pca_m['sp_titles']
+        sp['colors']=pca_m['sp_colors']
+        sp['color_titles']=pca_m['co_titles']
         self.spectra=str(sp)
-        self.count=len(idx)
+        self.count=pca_m['count']
         #upddate profile
-        pr['ids']=[pr['ids'][i] for i in idx]
+        pr['ids']=pca_m['pr_ids']
         self.profile=str(pr)
         #update the trans:
-        # trans=self.transform(obj.y(),update=True)
+        trans=pca_obj.trans()
         self.trans=str(trans.tolist())
         return self
 
-    def test_pca(self,pca_obj,**ky):
-        if ky['pca_ids']:
-            ids2=list(map(int,ky['pca_ids'].split(',')))
-            ln=len(ids2)
-        else:
-            ids2=[int(ky['pca_up'])]
-            ln=1
+    def test_selected_pca(self,pca_obj,**ky):
+        ids2=list(map(int,ky['pca_ids'].split(',')))
+        ln=len(ids2)
+        sp_m=get_spc_meta()
         pca_ids=[i.id for i in pca_obj.calibration.all()]+ids2
         sp=eval(self.spectra)
         pr=eval(self.profile)
+        pca_m=eval(pca_obj.meta)
         #update spectra:
-        ids=sp['ids']
-        idx=[ids.index(i) for i in pca_ids]
-        sp['ids']=[ids[i] for i in idx]
-        sp['titles']=[sp['titles'][i] for i in idx]
-        sp['colors']=[sp['colors'][i] for i in idx]
-        sp['color_titles']=[sp['color_titles'][i] for i in idx]
+        idx=[sp_m['sp_ids'].index(i) for i in ids2]
+        sp['ids']=pca_m['sp_ids']+[sp_m['sp_ids'][i] for i in idx]
+        sp['titles']=pca_m['sp_titles']+[sp_m['sp_titles'][i] for i in idx]
+        sp['colors']=pca_m['sp_colors']+[sp_m['sp_colors'][i] for i in idx]
+        sp['color_titles']=pca_m['co_titles']+[sp_m['co_titles'][i] for i in idx]
         self.spectra=str(sp)
-        self.count=len(idx)
+        self.count=len(sp['ids'])
         #upddate profile
-        pr['ids']=[pr['ids'][i] for i in idx]
+        pr['ids']=pca_m['pr_ids']+[sp_m['pr_ids'][i] for i in idx]
         self.profile=str(pr)
         #update the trans:
-        comp, trans, score=pca_obj.apply('test',*pca_ids)
+        comp, trans, score=pca_obj.apply('test',*(pca_m['sp_ids']+ids2))
         # trans=self.transform(obj.y(),update=True)
         self.trans=str(trans.tolist())
         return self,ln
+
+    def test_uploaded_pca(self,pca_obj,y_axis,**ky):
+        sp=eval(self.spectra)
+        pr=eval(self.profile)
+        pca_m=eval(pca_obj.meta)
+        color = {'unknown': 'grba(77, 77, 77, 1)'}
+        #update spectra:
+        sp['ids']=pca_m['sp_ids']+ [None]
+        sp['titles']=pca_m['sp_titles'] + ['unknown']
+        sp['colors']=pca_m['sp_colors'] +list(color.values())
+        sp['color_titles']=pca_m['co_titles']+list(color.keys())
+        self.spectra=str(sp)
+        self.count=len(sp['ids'])+1
+        #upddate profile
+        pr['ids']=pca_m['pr_ids'] +[None]
+        self.profile=str(pr)
+        #update the trans:
+        pca_y=np.c_[pca_obj.scale_y().T,np.array(y_axis)].T
+        pca=PCA(n_components = pca_obj.order)
+        pca.components_=pca_obj.comp()
+        pca.mean_=np.mean(pca_y,axis=0)
+        trans=pca.transform(pca_y)
+        self.trans=str(trans.tolist())
+        return self
 
 
     def find_color(self,origin,color_set):
