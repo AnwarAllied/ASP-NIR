@@ -98,7 +98,7 @@ class master_pca_chart(BaseLineChartView):
             datasets[ls]['pointRadius']= 12
 
         # print(content['color_ix'])
-        print(datasets)
+        # print(datasets)
         content.update({"datasets": [datasets[-1]]+datasets[:-1],"color_ix":[0]+(np.array(color_ix)+1).tolist()[:-1]})
         # content.update({"datasets": datasets,"color_ix":color_ix})
         context=self.cont
@@ -131,7 +131,7 @@ class master_pca_chart(BaseLineChartView):
                 # print(kwargs['pca_up'])
                 obj=obj.test_uploaded_pca(pca_obj,self.request.session['pca_upload'],)
                 context.update({'pca_up':True})
-                # self.request.session.pop('pca_upload')
+                self.request.session.pop('pca_upload')
                 
             else:
                 context.update({'pca_view':kwargs['pca_id']})
