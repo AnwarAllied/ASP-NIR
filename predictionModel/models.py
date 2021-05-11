@@ -167,7 +167,7 @@ class PcaModel(models.Model):
     meta = models.TextField(blank=True, null=True)
     
     def __str__(self):
-        m=eval(self.meta)
+        m=eval(self.meta) if type(self.meta) is str else self.meta
         co=list(m['colorset'].keys())
         pr_ti=m['pr_titles']
         ln=len(pr_ti)
@@ -181,7 +181,6 @@ class PcaModel(models.Model):
             else:
                 print(co,m['count'],ln)
                 title= "%s, %s and %d others, score: %s" % (co[0].capitalize(), co[1].capitalize(),m['count']-2, "{:0.2f}".format(self.score))
-
         return title
 
     def comp(self):

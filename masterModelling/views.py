@@ -76,7 +76,7 @@ class master_pca_chart(BaseLineChartView):
         ls=len(colors)-1
         # print(datasets)
         if 'match_obj' in self.cont:
-            datasets[ls]['pointBackgroundColor']=datasets[ls]['pointBackgroundColor'][:-2]+'0.5)'
+            datasets[ls]['pointBackgroundColor']=datasets[ls-1]['pointBackgroundColor'][:-2]+'0.5)'
             color_ix=list(color_ix.values())+[ls]
             datasets[len(datasets)-1]['label']='Uploaded spectrum: identified as '+ self.cont['msg'][-1]#last_uploded['label']
             datasets[ls]['pointStyle']='rect'
@@ -90,14 +90,15 @@ class master_pca_chart(BaseLineChartView):
             if self.cont['pca_test']== 1:
                 datasets[-1]['label']=datasets[-1]['label']+': identified as '+self.cont['msg'][-1] 
         else:
-            datasets[ls]['pointBackgroundColor']=datasets[ls]['pointBackgroundColor'][:-2]+'0.5)'
+            print(70*'-')
+            datasets[ls]['pointBackgroundColor']=datasets[ls-1]['pointBackgroundColor'][:-2]+'0.5)'
             color_ix=list(color_ix.values())+[ls]
             datasets[len(datasets)-1]['label']='Latest uploaded spectrum: identified as '+self.cont['msg'][-1] #datasets[len(datasets)-1]['label']
             datasets[ls]['pointStyle']='rect'
             datasets[ls]['pointRadius']= 12
 
         # print(content['color_ix'])
-        # print(datasets)
+        print(datasets)
         content.update({"datasets": [datasets[-1]]+datasets[:-1],"color_ix":[0]+(np.array(color_ix)+1).tolist()[:-1]})
         # content.update({"datasets": datasets,"color_ix":color_ix})
         context=self.cont
