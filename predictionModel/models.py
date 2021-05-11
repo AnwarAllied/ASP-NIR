@@ -206,10 +206,10 @@ class PcaModel(models.Model):
         return y
     
     def apply(self,mode,*ids):
-        ids=sorted(ids)
         if mode=='calibration':
             # new PCA of the selected Spectra
             # ids=[i.id for i in self.calibration.all()]
+            ids=sorted(ids)
             y=self.scale_y() if not ids else self.scale_y(*ids)
             y=np.array(y)
             pca = PCA(n_components = 2)

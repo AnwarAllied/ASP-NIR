@@ -97,8 +97,9 @@ class master_pca_chart(BaseLineChartView):
             datasets[ls]['pointRadius']= 12
 
         # print(content['color_ix'])
-        # print(datasets[-6:])
+        # print(datasets)
         content.update({"datasets": [datasets[-1]]+datasets[:-1],"color_ix":[0]+(np.array(color_ix)+1).tolist()[:-1]})
+        # content.update({"datasets": datasets,"color_ix":color_ix})
         context=self.cont
         context.update(content)
         return context
