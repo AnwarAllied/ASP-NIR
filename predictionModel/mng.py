@@ -41,7 +41,7 @@ def obtain_pca_meat(pc):
     for obj in pc:
         dt={i:data[i] for i in st}
         ids=dt['sp_ids']
-        pc_ids=[i.id for i in obj.calibration.all()]
+        pc_ids=[i.id for i in obj.calibration.all().order_by('id')]
         idx=[ids.index(i) for i in pc_ids]
         for j in st:
             dt[j]=[dt[j][i] for i in idx]

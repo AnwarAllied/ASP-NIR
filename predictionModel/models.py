@@ -167,17 +167,22 @@ class PcaModel(models.Model):
     meta = models.TextField(blank=True, null=True)
     
     def __str__(self):
-        fname=self.calibration.all()[0].origin.split(' ')[0]+", score: "+"{:0.2f}".format(self.score)
-        if self.calibration.count()> 1:
-            origin_list=list(set([i.origin.split(' ')[0] for i in self.calibration.all()]))
-            if len(origin_list) == 2:
-                fname= "%s and %s, score: %s" % (origin_list[0], origin_list[1], "{:0.2f}".format(self.score))
-            elif len(origin_list) > 2:
-                fname= "%s, %s and %d others, score: %s" % (origin_list[0], origin_list[1],self.calibration.count()-2, "{:0.2f}".format(self.score))
-
+        m=eval(self.meta)
+        co=list(m['colorset'].keys())
+        pr_ti=m['pr_titles']
+        ln=len(pr_ti)
+        if ln < 2:
+            title=(m['pr_titles'][0] if m['pr_titles'][0] else m['sp_titles'][0]) + " score:{:0.2f}".format(self.score)
+        elif ln == 2:
+            title="%s and %s, score: %s" % (m['pr_titles'][0], m['pr_titles'][1], "{:0.2f}".format(self.score))
         else:
-            fname = "%s, score: %s" % (fname, "{:0.2f}".format(self.score))
-        return fname
+            if len(co) <2:
+                title= "%s, score: %s" % (co[0].capitalize(),m['count']-2, "{:0.2f}".format(self.score))
+            else:
+                print(co,m['count'],ln)
+                title= "%s, %s and %d others, score: %s" % (co[0].capitalize(), co[1].capitalize(),m['count']-2, "{:0.2f}".format(self.score))
+
+        return title
 
     def comp(self):
         return np.array(eval("["+self.component+"]"))
@@ -201,6 +206,7 @@ class PcaModel(models.Model):
         return y
     
     def apply(self,mode,*ids):
+        ids=sorted(ids)
         if mode=='calibration':
             # new PCA of the selected Spectra
             # ids=[i.id for i in self.calibration.all()]
