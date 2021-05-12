@@ -187,10 +187,11 @@ class StaticModel(models.Model):
         pr['ids']=pca_m['pr_ids'] +[None]
         self.profile=str(pr)
         #update the trans:
-        pca_y=np.c_[pca_obj.scale_y().T,np.array(y_axis)].T
+        pca_y=np.c_[pca_obj.scale_y(*sorted(pca_m['sp_ids'])).T,np.array(y_axis)].T
         pca=PCA(n_components = pca_obj.order)
         pca.components_=pca_obj.comp()
         pca.mean_=np.mean(pca_y,axis=0)
+        # pca.fit(pca_y)
         trans=pca.transform(pca_y)
         self.trans=str(trans.tolist())
         return self
