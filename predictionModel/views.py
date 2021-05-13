@@ -16,6 +16,7 @@ from preprocessingFilters.models import SgFilter
 import json
 from itertools import chain
 import numpy as np
+from .mng import get_title_color
 from .dataHandeller import datasheet4testing
 from django.contrib import messages
 from django.http import HttpResponseRedirect
@@ -299,8 +300,9 @@ class pca(TemplateView):
         data["app_label"]= 'spectraModelling' if (model == 'Poly' or model == 'Match') else 'core'
         data["verbose_name"]=model
         data["verbose_name_plural"]="figure"
-        data['scartter']=True
-        
+        data['scartter2']=True
+        # data['obj_id']=2
+        # data['master_static_pca']=True
         return data
 
 def pca_save(request):
@@ -363,6 +365,26 @@ def pca_upload(request,**kyargs):
 
 
 class ScartterChartView(BaseLineChartView):
+    def get_context_data(self,**kwargs):
+        content = {"labels": self.get_labels()}
+        datasets=self.get_datasets()
+        
+        # sort by profile color:
+        color_ix={}
+        colors, co_titles, colorset=get_title_color(content['labels'])
+        for i in range(len(colors)):
+            datasets[i]['pointBackgroundColor']=colors[i]
+            if colors[i] not in color_ix:
+                color_ix.update({datasets[i]['pointBackgroundColor']:i})
+        for i in color_ix.values():
+            datasets[i]['label']=co_titles[i].capitalize()
+
+        content.update({"datasets": datasets,"color_ix":list(color_ix.values())})
+        context=self.cont
+        context.update(content)
+        return context
+
+
         
     def get_dataset_options(self, index, color):
         default_opt = super().get_dataset_options(index, color)
@@ -385,21 +407,22 @@ class ScartterChartView(BaseLineChartView):
             spectra=Spectrum.objects.filter(nir_profile= nirprofiles[0])
             for obj in nirprofiles[1:]:
                 spectra |=Spectrum.objects.filter(nir_profile= obj)
+            spectra=spectra.order_by('id')
             ids=[i.id for i in spectra]
         elif model == 'Spectrum':
-            spectra=Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
+            spectra=Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in sorted(ids))))
             ids=[i.id for i in spectra]
         elif model == 'PcaModel':
             if mode == 'detail':
                 pca=PcaModel.objects.get(pk=ids[0])
-                spectra = pca.calibration
+                spectra = pca.calibration.order_by('ids')
                 ids=[i.id for i in spectra.all()]
             elif model_id:
                 pca=PcaModel.objects.get(id=model_id)
-                spectra = Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
+                spectra = Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in sorted(ids))))
                 ids=[i.id for i in spectra]
             else:
-                pca=PcaModel.objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in ids)))
+                pca=PcaModel.objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in sorted(ids))))
                 ids=[i.pk for i in pca]
             # print('Model:',spectra[0])
         elif model == 'Match':
@@ -407,7 +430,7 @@ class ScartterChartView(BaseLineChartView):
             if mode == 'detail':
                 match=Match.objects.get(id=ids[0]) # if ',' not in ids else ids.split(',')[0]
             else:
-                match=Match.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
+                match=Match.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in sorted(ids))))
             spectra=match   # need better overall strcture
             # print('Model:',match)
         # PCA:

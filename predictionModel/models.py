@@ -179,7 +179,6 @@ class PcaModel(models.Model):
             if len(co) <2:
                 title= "%s, score: %s" % (co[0].capitalize(),m['count']-2, "{:0.2f}".format(self.score))
             else:
-                print(co,m['count'],ln)
                 title= "%s, %s and %d others, score: %s" % (co[0].capitalize(), co[1].capitalize(),m['count']-2, "{:0.2f}".format(self.score))
         return title
 

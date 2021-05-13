@@ -29,6 +29,8 @@
     {# include "change_list.html" #}
     {% if scartter %}
         {% include "admin/chartjs_scartter.html" %}
+    {% elif scartter2 %}
+        {% include "admin/chartjs_scartter2.html" %}
     {% elif pls_modeling %}
         {% include "admin/pls_chartjs_scatter.html" %}
     {% elif master_static_pca %}

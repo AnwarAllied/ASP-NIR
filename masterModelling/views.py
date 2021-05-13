@@ -90,7 +90,6 @@ class master_pca_chart(BaseLineChartView):
             if self.cont['pca_test']== 1:
                 datasets[-1]['label']=datasets[-1]['label']+': identified as '+self.cont['msg'][-1] 
         else:
-            print(70*'-')
             datasets[ls]['pointBackgroundColor']=datasets[ls-1]['pointBackgroundColor'][:-2]+'0.5)'
             color_ix=list(color_ix.values())+[ls]
             datasets[len(datasets)-1]['label']='Latest uploaded spectrum: identified as '+self.cont['msg'][-1] #datasets[len(datasets)-1]['label']
@@ -150,7 +149,7 @@ class master_pca_chart(BaseLineChartView):
     def get_providers(self):
         messages=self.close_to()
         titles=eval(self.cont['obj'].spectra)['titles']
-        return [i + j for i, j in zip(titles,messages)]
+        return [i +' ('+ j+')' for i, j in zip(titles,messages)]
 
     def close_to(self):
         obj = self.cont['obj']

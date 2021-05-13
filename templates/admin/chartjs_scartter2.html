@@ -1,0 +1,140 @@
+{% load static %}
+<ul class="messagelist">
+
+</ul>
+<div class="chart-container" style="width:70vw">
+    <h1>{{ figure_header }}</h1>
+    <progress id="animationProgress" max="1" value="0" style="width: 100%"></progress>
+    <canvas id="myChart"></canvas>
+</div>
+{% if not plot_mode %}
+<p> Model can be saved to be available for testing it on another dataset :</p>
+<button onclick="save_model(this)" id="save_btn">Save</button>
+{% endif %}
+<button onclick="toggle_label(this)" id="toggle_label">Hide Label</button>
+<!-- <button onclick="reverse(this)" class="">Reverse</button>disabled -->
+<script src="{% static 'js/jquery-1.10.0.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
+<script>
+    var progress = document.getElementById('animationProgress');
+
+    function start_progress() {
+        step=0.1;
+        this.progress.value= this.progress.value + step ;
+        if (this.progress.value >1) {
+            clearInterval(setProg) 
+        }
+    }; 
+    var setProg = setInterval(start_progress, 200);
+
+    var hide_by_color = function (e, legendItem) {
+    // var hide_by_color = function (chart) {
+        var index = legendItem.datasetIndex;
+        let ci = this.chart;
+        // var index = chart.legend.legendItems;
+        var color=ci.data.datasets[index].pointBackgroundColor 
+        // console.log(e)
+        ci.data.datasets.forEach(function(meta) {
+            if (meta.pointBackgroundColor == color) {
+                meta.hidden = meta.hidden === null ? !meta.hidden : null;
+            }
+        });
+        ci.update();
+    };
+
+    $.get('{% url "scartter_chart_json" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}{% if model_id %}&model_id={{ model_id }}{% endif %}', function(data) {
+        clearInterval(setProg)
+        color=data.color_ix
+        Gdata = data
+        var cv = $("#myChart").get(0)
+        var ctx = cv.getContext("2d");
+        chart = new Chart.Scatter(ctx, {
+            type: "line",
+            data:data,
+            options: {
+                scales: {
+                    yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Second component'
+                        }
+                    }],
+                    xAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'First component'
+                        }
+                    }]
+                },
+                legend: {
+                    labels:{
+                        usePointStyle: true,
+                        filter: function(item, chart){
+                            return color.includes(item.datasetIndex);
+                            // return item.datasetIndex == data.datasets.length-1;
+                        }
+                    },
+                    onClick: hide_by_color,
+                    reverse: true,
+                    
+                },
+                tooltips: {
+                    callbacks: {
+                        label: function(tooltipItem, data) {
+                            var label = data.datasets[tooltipItem.datasetIndex].label || '';
+
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += '(' + Math.round(tooltipItem.xLabel*100)/100 + ', ' + Math.round(tooltipItem.yLabel*100)/100 + ')';
+                            return label;
+                        }
+                    }
+                },
+                hover:{
+                    onHover:function(e){
+                        var point = this.getElementAtEvent(e);
+                        if(point.length) e.target.style.cursor = 'pointer';
+                        else e.target.style.cursor = 'default';
+                    }
+                },
+                animation: {
+                    duration: 100,
+                    onProgress: function(animation) {
+                        progress.value = (animation.currentStep / animation.numSteps)*(1-progress.value) +progress.value;
+                    },
+                    onComplete: function(animation) {
+                        $( "progress#animationProgress" ).hide();
+                    }
+                }
+            }
+        });
+
+    });
+  
+    function save_model() {
+        $.get('{% url "pca_save" %}', function(data) {
+            Sdata = data
+            $("#save_btn").attr("disabled", true);
+            $( ".messagelist" ).html('<li class="'+data["message_class"]+'">'+data["message"]+'</li>')
+            chart.update();
+        });
+
+    };
+            
+    function reverse() {
+			chart.data.datasets.forEach(function(dataset, index) {
+                const u=[];
+                dataset.data = Gdata['datasets'][index]["data"].reverse();
+			});
+			chart.update();
+    }
+
+    function toggle_label(obj) {
+        chart.options.legend.display= !chart.options.legend.display;
+        $("#toggle_label").text($("#toggle_label").text()==="Hide Label"?"Show Label":"Hide Label");
+        chart.update();
+    };
+
+</script>
+

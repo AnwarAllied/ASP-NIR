@@ -16,10 +16,10 @@ from sklearn.cross_decomposition import PLSCanonical, PLSRegression, CCA
 from sklearn.cluster import KMeans
 from chartjs.colors import next_color
 
-# exec(open('masterModelling/tests.py','r').read())
+# exec(open('masterModelling/manages.py','r').read())
 
 color_set={ 'wheat':'255, 165, 0',
-            'wheatSG':'250, 175, 10',
+            'grapeSG':'250, 175, 10',
             'durum':'35, 125, 235',
             'narcotic':'190,190,190',
             'tomato':'216, 31, 42',
@@ -68,7 +68,7 @@ def remove_master_model(id,sp_title):
 
 def get_data(remove):
     # to_remove_from_query:
-    ql=Spectrum.objects.all() #.exclude(origin__contains=remove[0])
+    ql=Spectrum.objects.all()
     for i in remove:
         ql=ql.exclude(origin__contains=i)
 
@@ -112,55 +112,53 @@ def obtain_pca(data_input):
 def obtain_pca_scaled(data_input):
     Xa, ids, titles, colors, co_titles, color_set, profile = data_input
 
-    # split based on mean and std using KMean:
-    #https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html
+    # mn, st=Xa.mean(axis=1), Xa.std(axis=1)
+    # # find the group size (K):
+    # sr=np.diff(sorted((mn**2+(st*3)**2)**.5))
+    # df=np.diff(np.argwhere(sr>.1).astype(int),axis=0)
+    # t,c=[],[]
+    # for i in range(len(df)):
+    #     if df[i]<5:
+    #         c.append(df[i])
+    #     else:
+    #         if c:
+    #             t.append(sum(c))
+    #             c=[]
+    #         else:
+    #             t.append(df[i])
+    # if c:
+    #     t.append(sum(c))
+    # K=len(t)
 
-    mn, st=Xa.mean(axis=1), Xa.std(axis=1)
+    # # apply Kmean:
+    # kmeans = KMeans(n_clusters=K, random_state=0).fit(np.c_[mn,st*3])
+    # gp=kmeans.labels_
+    # # kmeans.predict(V)
+    # # plt.scatter(mn,st,c=gp,cmap='viridis');plt.colorbar();plt.show()
 
-    # find the group size (K):
-    sr=np.diff(sorted((mn**2+(st*3)**2)**.5))
-    df=np.diff(np.argwhere(sr>.1).astype(int),axis=0)
-    t,c=[],[]
-    for i in range(len(df)):
-        if df[i]<5:
-            c.append(df[i])
-        else:
-            if c:
-                t.append(sum(c))
-                c=[]
-            else:
-                t.append(df[i])
-    if c:
-        t.append(sum(c))
-    K=len(t)
+    # #normlization each group:
+    # ixa=[np.argwhere(gp==i).squeeze().tolist() for i in range(K)]
+    # stat=[{ 'max': Xa[ixa[i]].max(),
+    #         'min': Xa[ixa[i]].min(),
+    #         'mean':Xa[ixa[i]].mean(),
+    #         'std': Xa[ixa[i]].std(),
+    #         'maxs':Xa[ixa[i]].max(axis=1).tolist(),
+    #         'mins':Xa[ixa[i]].min(axis=1).tolist()} for i in range(K)]
 
-    # apply Kmean:
-    kmeans = KMeans(n_clusters=K, random_state=0).fit(np.c_[mn,st*3])
-    gp=kmeans.labels_
-    # kmeans.predict(V)
-    # plt.scatter(mn,st,c=gp,cmap='viridis');plt.colorbar();plt.show()
+    # norm=[];_=[norm.extend(((Xa[np.argwhere(gp==i)].squeeze()-stat[i]['mean'])/stat[i]['std']).tolist()) for i in range(K)]
 
-    #normlization each group:
-    ixa=[np.argwhere(gp==i).squeeze().tolist() for i in range(K)]
-    stat=[{ 'max': Xa[ixa[i]].max(),
-            'min': Xa[ixa[i]].min(),
-            'mean':Xa[ixa[i]].mean(),
-            'std': Xa[ixa[i]].std(),
-            'maxs':Xa[ixa[i]].max(axis=1).tolist(),
-            'mins':Xa[ixa[i]].min(axis=1).tolist()} for i in range(K)]
+    # ix=[];_=[ix.extend(np.argwhere(gp==i).tolist()) for i in range(K)]
+    # ix=[i[0] for i in ix]
+    # Xn=np.array(norm)[np.argsort(ix)].squeeze()
 
-    norm=[];_=[norm.extend(((Xa[np.argwhere(gp==i)].squeeze()-stat[i]['mean'])/stat[i]['std']).tolist()) for i in range(K)]
-
-    ix=[];_=[ix.extend(np.argwhere(gp==i).tolist()) for i in range(K)]
-    ix=[i[0] for i in ix]
-    Xn=np.array(norm)[np.argsort(ix)].squeeze()
-
+    Xn, kmean_s, stat = kmean_scale(Xa)
+    # kmean_s
     # Apply PCA:
     pca=PCA(n_components=30)
     pca.fit(Xn)
     trans=pca.transform(Xn)
-    km_di=kmeans.__dict__
-    kmean_s={i:(km_di[i].tolist() if type(km_di[i]) is np.ndarray else km_di[i]) for i in km_di}
+    # km_di=kmeans.__dict__
+    # kmean_s={i:(km_di[i].tolist() if type(km_di[i]) is np.ndarray else km_di[i]) for i in km_di}
 
     pc_di=pca.__dict__
     pca_s={i:(pc_di[i].tolist() if type(pc_di[i]) is np.ndarray else pc_di[i]) for i in pc_di}
@@ -183,6 +181,46 @@ def obtain_pca_scaled(data_input):
             'normalized': 'min_max_scal',
         },
         'applied_model':{'pca':pca_s},
+
+    }
+    return output
+
+def obtain_lda_scaled(data_input):
+    Xa, ids, titles, colors, co_titles, color_set, profile = data_input
+    Xn, kmean_s, stat = kmean_scale(Xa)
+    
+    # color index (ci):
+    cs=list(set(co_titles))
+    ckd={cs[i]:i for i in range(len(cs))}
+    ci=[ckd[i] for i in co_titles]
+
+    # Apply LDA:
+    lda=LDA(n_components=2)
+    lda.fit(Xn,ci)
+    trans=lda.transform(Xn)
+
+    pc_di=lda.__dict__
+    lda_s={i:(pc_di[i].tolist() if type(pc_di[i]) is np.ndarray else pc_di[i]) for i in pc_di}
+
+    output={
+        'title':'LDA kmean-scaled spectra',
+        'spectra':{'ids': ids,
+            'titles':titles,
+            'colors':colors,
+            'color_titles':co_titles
+            },
+        'profile':profile,
+        'count':len(ids),
+        'score':lda.score(Xn,ci),
+        'n_comp':lda.n_components,
+        'trans':trans.tolist(),
+        'preprocessed':{
+            'kmean':kmean_s,
+            'stat': stat,
+            'color_index': ci,
+            'normalized': 'min_max_scal',
+        },
+        'applied_model':{'lda':lda_s},
 
     }
     return output
@@ -234,7 +272,52 @@ def obtain_colors(titles,color_set,narcotic,fruit=fruit_set):
             color_dict.update({i:new_color[1:-1]})
     return co, ti, color_dict
 
+def kmean_scale(Xa):
+     # split based on mean and std using KMean:
+    #https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html
+    mn, st=Xa.mean(axis=1), Xa.std(axis=1)
 
+    # find the group size (K):
+    sr=np.diff(sorted((mn**2+(st*3)**2)**.5))
+    df=np.diff(np.argwhere(sr>.1).astype(int),axis=0)
+    t,c=[],[]
+    for i in range(len(df)):
+        if df[i]<5:
+            c.append(df[i])
+        else:
+            if c:
+                t.append(sum(c))
+                c=[]
+            else:
+                t.append(df[i])
+    if c:
+        t.append(sum(c))
+    K=len(t)
+
+    # apply Kmean:
+    kmeans = KMeans(n_clusters=K, random_state=0).fit(np.c_[mn,st*3])
+    gp=kmeans.labels_
+    # kmeans.predict(V)
+    # plt.scatter(mn,st,c=gp,cmap='viridis');plt.colorbar();plt.show()
+
+    #normlization each group:
+    ixa=[np.argwhere(gp==i).squeeze().tolist() for i in range(K)]
+    stat=[{ 'max': Xa[ixa[i]].max(),
+            'min': Xa[ixa[i]].min(),
+            'mean':Xa[ixa[i]].mean(),
+            'std': Xa[ixa[i]].std(),
+            'maxs':Xa[ixa[i]].max(axis=1).tolist(),
+            'mins':Xa[ixa[i]].min(axis=1).tolist()} for i in range(K)]
+
+    norm=[];_=[norm.extend(((Xa[np.argwhere(gp==i)].squeeze()-stat[i]['mean'])/stat[i]['std']).tolist()) for i in range(K)]
+
+    ix=[];_=[ix.extend(np.argwhere(gp==i).tolist()) for i in range(K)]
+    ix=[i[0] for i in ix]
+    
+    km_di=kmeans.__dict__
+    kmean_s={i:(km_di[i].tolist() if type(km_di[i]) is np.ndarray else km_di[i]) for i in km_di}
+    Xn=np.array(norm)[np.argsort(ix)].squeeze()
+    return Xn, kmean_s, stat
 
 # for i in [1,2]:
 #     ky=obtain_pca_scaled(Xa) if i==1 else obtain_pca(Xa)

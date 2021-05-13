@@ -30,7 +30,7 @@ color_set={ 'wheat':'255, 165, 0',
             'fruit':'150, 106, 54',
             'other': '170 170 170' }
 narcotic_set=['phenacetin','lidocaine','levamisole','cocaine','caffeine','benzocaine']
-fruit_set = ['apple','banana','Pear']
+fruit_set = ['apple','Apple','banana','Pear']
 
 def obtain_pca_meat(pc):
 
@@ -53,6 +53,11 @@ def obtain_pca_meat(pc):
         obj.save()
         print('meat for pca:',obj.id)
 
+def get_title_color(titles):
+    # to get fast meta for view unsaved pcaModel:
+    return obtain_colors(titles,color_set,narcotic_set)
+
+
 def get_spc_meta():
     # to_remove_from_query:
     ql=Spectrum.objects.all() #.exclude(origin__contains=remove[0])
@@ -73,8 +78,8 @@ def obtain_colors(titles,color_set,narcotic,fruit=fruit_set):
     s1=str(titles).lower()
     s2=re.sub('[^\w ]+','',s1)
     s3=re.sub(r'\d+|\b\w{1,2}\b','',s2)
-    s4=re.sub('brix|protein|moisture|data|test|validation|calibration|asp','',s3)
-    s5=re.sub(' +|_',' ',s4)
+    s4=re.sub('brix|protein|moisture|data|test|validation|calibration|asp|italian|roma','',s3)
+    s5=re.sub(' +|_+',' ',s4)
     s6=re.findall('\w{3,}',s5)
     s7={i:s6.count(i) for i in list(set(s6))}
     ls=sorted(s7.keys(), key=lambda x:s7[x],reverse=True)

@@ -52,6 +52,20 @@ def cnsp(data, stepsize=1e-7, glob=1): #consecutive split
 
 # def remove_from_mod(query):
 
+
+color_set={ 'wheat':'255, 165, 0',
+            'wheatSG':'250, 175, 10',
+            'durum':'35, 125, 235',
+            'narcotic':'190,190,190',
+            'tomato':'216, 31, 42',
+            'garlic':'201,35,212',
+            'grape':'0, 176, 24',
+            'fruit':'150, 106, 54',
+            'other': '170 170 170' }
+narcotic_set=['phenacetin','lidocaine','levamisole','cocaine','caffeine','benzocaine']
+fruit_set = ['apple','banana','Pear']
+
+
 ql=Spectrum.objects.all().exclude(origin__contains='SG').exclude(origin__contains='apple').exclude(origin__contains='Pear').exclude(origin__contains='banana')
 Xa=scal([i.y().tolist() for i in ql])
 ids=[i.nir_profile_id for i in ql.all()]
@@ -132,7 +146,7 @@ def obtain_pca_scaled(Xa):
         'applied_model':{'pca':pca_s},
 
     }
-    return output
+    return output, Xn
 
 def obtain_pca(Xa):
     # split based on mean and std using KMean:
@@ -234,9 +248,9 @@ profile={'ids':ids,'titles':[NirProfile.objects.get(id=i).title for i in set(ids
 #     sm.profile=sp
 #     sm.save()
 
-for i in [1,2]:
-    ky=obtain_pca_scaled(Xa) if i==1 else obtain_pca(Xa)
-    StaticModel.objects.filter(id=i).update(**ky)
+# for i in [1,2]:
+#     ky=obtain_pca_scaled(Xa) if i==1 else obtain_pca(Xa)
+#     StaticModel.objects.filter(id=i).update(**ky)
 
 # lda.fit(Xa,np.c_[mn,st*3].sum(axis=1))
 # # split spectrum to 4 groups [very low absorbance, low, high, very high]
