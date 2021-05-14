@@ -358,7 +358,8 @@ def pca_upload(request,**kyargs):
 
         request.session['pca_upload']= y_axis
         
-        return HttpResponseRedirect("/pca/test/?model=PcaModel&model_id=%s&pca_upload=1" % kyargs['id'])
+        # return HttpResponseRedirect("/pca/test/?model=PcaModel&model_id=%s&pca_upload=1" % kyargs['id'])
+        return HttpResponseRedirect("/pca/test/?model=PcaModel&model_id=%s&pca_upload=1&ids=0" % kyargs['id'])
     else:
         messages.error(request, 'Sorry, nothing to upload.')
         return HttpResponseRedirect("/admin/predictionModel/pcamodel/%s/change/" % kyargs['id'] )
@@ -373,6 +374,9 @@ class ScartterChartView(BaseLineChartView):
         # sort by profile color:
         color_ix={}
         colors, co_titles, colorset=get_title_color(content['labels'])
+        if 'pca_upload' in self.cont:
+           colors=colors[:-1]
+
         for i in range(len(colors)):
             datasets[i]['pointBackgroundColor']=colors[i]
             if colors[i] not in color_ix:
@@ -383,9 +387,10 @@ class ScartterChartView(BaseLineChartView):
             ln=self.cont['selected_ln']
             sids=self.cont['selected_ids']
             oids=self.cont['obj_ids']
-            sr=np.argsort(oids+sids)
-            sr =[i for i in sr if i>(len(datasets)-ln)]
-            print(sr,oids+sids)
+            sr=sorted(oids+sids)
+            sr =[sr.index(i) for i in sids]
+            # print(sr,oids+sids)
+            # print(datasets)
             for i in sr:#[:ln]: #range(len(datasets))[:ln-2]:
                 datasets[i]['pointStyle']='rect'
                 datasets[i]['pointRadius']= 5
@@ -412,6 +417,7 @@ class ScartterChartView(BaseLineChartView):
         mode=self.request.GET.get('mode','')
         model_id=self.request.GET.get('model_id','')
         model_id= int(model_id) if model_id else model_id
+        pca_upload= self.request.GET.get('pca_upload','')
         ids=list(map(int,self.request.GET.get('ids','').split(',')))
         print(len(ids))
         self.request.session['model']=model
@@ -433,12 +439,21 @@ class ScartterChartView(BaseLineChartView):
                 spectra = pca.calibration.order_by('id')
                 ids=[i.id for i in spectra.all()]
             elif model_id:
-                # print('_'*80)
+                
                 pca=PcaModel.objects.get(id=model_id)
                 oids=sorted([i.id for i in pca.calibration.all()])
-                spectra = Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in oids+sorted(ids))))
-                context.update({'obj_ids':oids,'selected_ln':len(ids),'selected_ids':ids})
-                ids=[i.id for i in spectra]
+                if pca_upload:
+                    print(self.request.session['pca_upload'])
+                    spectra=list(pca.calibration.order_by('id'))
+                    spectra=spectra+[Spectrum(y_axis=str(self.request.session['pca_upload'])[1:-1])]
+                    ids=oids
+                    context.update({'pca_upload':1})
+                else:
+                    spectra = Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in sorted(oids+ids))))
+                    context.update({'obj_ids':oids,'selected_ln':len(ids),'selected_ids':ids})
+                    ids=[i.id for i in spectra]
+                
+
             else:
                 pca=PcaModel.objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in sorted(ids))))
                 ids=[i.pk for i in pca]

@@ -42,7 +42,7 @@
         ci.update();
     };
 
-    $.get('{% url "scartter_chart_json" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}{% if model_id %}&model_id={{ model_id }}{% endif %}', function(data) {
+    $.get('{% url "scartter_chart_json" %}?model={{ model }}&ids={{ ids }}{% if plot_mode == "detail" %}&mode=detail{% endif %}{% if model_id %}&model_id={{ model_id }}&pca_upload={{ pca_upload }}{% endif %}', function(data) {
         clearInterval(setProg)
         color=data.color_ix
         Gdata = data
