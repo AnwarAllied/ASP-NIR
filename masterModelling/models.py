@@ -143,6 +143,7 @@ class StaticModel(models.Model):
         self.count=pca_m['count']
         #upddate profile
         pr['ids']=pca_m['pr_ids']
+        pr['titles']=pca_m['pr_titles']
         self.profile=str(pr)
         #update the trans:
         trans=pca_obj.trans()
@@ -166,7 +167,12 @@ class StaticModel(models.Model):
         self.spectra=str(sp)
         self.count=len(sp['ids'])
         #upddate profile
-        pr['ids']=pca_m['pr_ids']+[sp_m['pr_ids'][i] for i in idx]
+        s_m=[sp_m['pr_ids'][i] for i in idx]
+        pr['ids']=pca_m['pr_ids']+s_m
+        pr['titles']=pca_m['pr_titles']
+        p_idsset=list(set(pca_m['pr_ids']))
+        s_ids=[i for i in s_m if i not in p_idsset]
+        pr['titles'].update({i: '' for i in s_ids})
         self.profile=str(pr)
         #update the trans:
         comp, trans, score=pca_obj.apply('test',*(pca_m['sp_ids']+ids2))
