@@ -13,6 +13,9 @@ from django.db.models import Q
 import numpy as np
 from spectraModelling.models import Match
 from predictionModel.models import PcaModel
+import logging
+logger = logging.getLogger(__name__)
+# logger.error('testing logging!')
 
 class master_pca(TemplateView):
     template_name = 'admin/index_plot.html'
@@ -157,7 +160,9 @@ class master_pca_chart(BaseLineChartView):
         profile=eval(obj.profile)
         obj_ids=spectra['ids']
         ids_set=list(set(profile['ids']))
+        logger.error("set"+str(ids_set)+str(len(ids_set)))
         print("set",ids_set,len(ids_set))
+        logger.error("tit:"+str(profile['titles'])+str(len(profile['titles'])))
         print("tit",profile['titles'],len(profile['titles']))
         pr_id2title= {ids_set[i]:profile['titles'][i] for i in range(len(profile['titles']))}
         trans = np.array(eval(self.cont['trans']))
