@@ -383,20 +383,21 @@ class ScartterChartView(BaseLineChartView):
                 color_ix.update({datasets[i]['pointBackgroundColor']:i})
         for i in color_ix.values():
             datasets[i]['label']=co_titles[i].capitalize()
-        # if 'selected_ln' in self.cont:
-        #     ln=self.cont['selected_ln']
-        #     sids=self.cont['selected_ids']
-        #     oids=self.cont['obj_ids']
-        #     sr=sorted(oids+sids)
-        #     sr =[sr.index(i) for i in sids]
-        #     # print(sr,oids+sids)
-        #     # print(datasets)
-        #     for i in sr:#[:ln]: #range(len(datasets))[:ln-2]:
-        #         datasets[i]['pointStyle']='rect'
-        #         datasets[i]['pointRadius']= 5
-        #         datasets[i]['label']=datasets[i]['label']+'-selected test'
-        #     # if self.cont['pca_test']== 1:
-        #     #     datasets[-1]['label']=datasets[-1]['label']+': identified as '+self.cont['msg'][-1] 
+        if 'selected_ln' in self.cont:
+            ln=self.cont['selected_ln']
+            sids=self.cont['selected_ids']
+            oids=self.cont['obj_ids']
+            sr=sorted(oids+sids)
+            sr =[sr.index(i) for i in sids]
+            print('lst',sr,oids+sids)
+            # print(datasets)
+            for i in sr:#[:ln]: #range(len(datasets))[:ln-2]:
+                datasets[i]['pointStyle']='rect'
+                datasets[i]['pointRadius']= 5
+                datasets[i]['label']=datasets[i]['label']+'-selected test'
+                datasets[i]['pointBackgroundColor']=datasets[i]['pointBackgroundColor'][:-2]+'0.5)'
+            # if self.cont['pca_test']== 1:
+            #     datasets[-1]['label']=datasets[-1]['label']+': identified as '+self.cont['msg'][-1] 
 
         content.update({"datasets": datasets,"color_ix":list(color_ix.values())})
         context=self.cont
@@ -419,7 +420,7 @@ class ScartterChartView(BaseLineChartView):
         model_id= int(model_id) if model_id else model_id
         pca_upload= self.request.GET.get('pca_upload','')
         ids=list(map(int,self.request.GET.get('ids','').split(',')))
-        print(len(ids))
+        print(len(ids),pca_upload)
         self.request.session['model']=model
         context=super(BaseLineChartView, self).get_context_data(**kwargs)
         if model == "NirProfile":  #nir_profile=np.objects.get(id=4))
@@ -450,6 +451,7 @@ class ScartterChartView(BaseLineChartView):
                     context.update({'pca_upload':1})
                 else:
                     spectra = Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in sorted(oids+ids))))
+                    print('1:',oids,ids,sorted(oids+ids))
                     context.update({'obj_ids':oids,'selected_ln':len(ids),'selected_ids':ids})
                     ids=[i.id for i in spectra]
                 
@@ -492,11 +494,11 @@ class ScartterChartView(BaseLineChartView):
     def get_providers(self):
         if self.cont['mode'] == 'detail':
             if self.cont['model'] == 'PcaModel':
-                return [i.origin for i in self.cont['Spectra'].all()]
+                return [i.origin for i in self.cont['Spectra'].all().order_by('id')]
             else:
-                return [self.cont['Spectra'].label()] + [i.label() for i in self.cont['Spectra'].similar_pk.all()]
+                return [self.cont['Spectra'].label()] + [i.label() for i in self.cont['Spectra'].similar_pk.all().order_by('id')]
         else:
-            return [i.label() for i in self.cont['Spectra']]
+            return [i.label() for i in self.cont['Spectra'].order_by('id')]
 
     def get_data(self):
         trans=self.cont['trans']
