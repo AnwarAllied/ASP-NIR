@@ -56,9 +56,9 @@ class myFlatPageAdmin(FlatPageAdmin):
 
 class SpectrumAdmin(admin.ModelAdmin):
     view_on_site = False
-    change_list_template = 'admin/spectra_display_list.html'
+    # change_list_template = 'admin/spectra_display_list.html'
     list_display = ('__str__','spec_image')
-    list_per_page = 20
+    # list_per_page = 200
 
     # readonly_fields = ('spec_image',)
     def save_model(self, request, obj, form, change):
@@ -145,12 +145,16 @@ class NirProfileAdmin(admin.ModelAdmin):
 
     def response_change(self, request, obj, **kwargs):
         if 'upload_dataset' in request.FILES.keys():
-            dsFile=request.FILES['upload_dataset'].file
-            dsFile.seek(0)
-            uploaded,msg=datasheet2spec(file=dsFile, pk=obj.pk, filename=str(request.FILES['upload_dataset']) )
-            print(msg)
-            if not uploaded:
-                messages.error(request, 'Sorry, the uploaded file is not formated properly.')
+            # dsFile=request.FILES['upload_dataset'].file
+            # dsFile.seek(0)
+            files=request.FILES.getlist('upload_dataset')
+            # print('files:',files,dir(files))
+            for dsFile in files:
+                # print('dsfile:',dsFile.__str__())
+                uploaded,msg=datasheet2spec(file=dsFile, pk=obj.pk, filename=dsFile.__str__())
+                print(msg)
+                if not uploaded:
+                    messages.error(request, 'Sorry, the uploaded file is not formated properly.')
 
         # print('pk',obj.pk)
         # print(dir(request))

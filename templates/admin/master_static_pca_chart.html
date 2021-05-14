@@ -78,7 +78,7 @@
                         }
                     },
                     onClick: hide_by_color,
-
+<!--                    reverse:true-->
                 },
                 tooltips: {
                     callbacks: {
@@ -112,7 +112,7 @@
             }
         });
         chart.config.data.datasets[data.datasets.length-1].pointStyle='rect'
-        chart.config.data.datasets[data.datasets.length-1].pointRadius=8
+        chart.config.data.datasets[data.datasets.length-1].pointRadius=12
         chart.update()
     });
 

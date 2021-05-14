@@ -10,26 +10,37 @@ hr {
   margin: 50px 0;
 }
 
-ul {
-  list-style: none;
-}
-
 .container {
   max-width: 700px;
 }
 
-ul{
-  list-style-type:none;
+li{
+margin-top: 1em;
 }
 
-li {
-  margin-top: 1em;
-}
 
 label{
 font-size:14px;
 font-weight:700;
 }
+
+.group_title img{
+margin-bottom:-5px;
+width:20px;
+}
+
+.group_title ul{
+<!--display:none;-->
+}
+
+.spectra_list{
+display:none;
+}
+
+.container ul li, .group_title ul li{
+list-style-type:none;
+}
+
 </style>
 
 {% block content %}
@@ -50,9 +61,9 @@ font-weight:700;
 <div class="container">
     <ul>
     {% for profile in group %}
-      <li>
-        <label> {{ profile.name }}</label>
-        <ul id="spectra_list">
+      <li class="group_title">
+        <a href="javascript:void(0);"><span class="addimage"><img src="{% static 'admin/img/add.png' %}"></span></a> <label> {{ profile.name }}</label>
+       <ul class="spectra_list">
         {% for spectrum in profile.spectra %}
           <li><label><input type="radio" class="subOption_{{ profile.id }}" value="{{ spectrum.id }}" name="spectrum_to_match"> {{ spectrum.origin }}</label></li>
         {% endfor %}
@@ -60,7 +71,7 @@ font-weight:700;
       </li>
     {% endfor %}
     </ul>
-    <input type="hidden" name="master_pca" value="master_pca" />
+<!--    <input type="hidden" name="master_pca" value="master_pca" />-->
 </div>
 
 <div class="submit-row">
@@ -78,7 +89,22 @@ font-weight:700;
 <script>
 
 function test_model() {
-    var spec_selected_id=$("#spectra_list input[type='radio']:checked").val();
+    var spec_selected_id=$(".spectra_list input[type='radio']:checked").val();
     location.replace("{% url 'pca_match' %}?model={{ model }}&spec_from=spec_chosen&spec_id="+spec_selected_id);
-}
+};
+
+$(document).ready(function(){
+    $('.group_title>a').click(function(){
+        var ulNode=$(this).nextAll('ul:first');
+        if(ulNode.css('display')=='none'){
+            ulNode.css('display','block');
+            $('.addimage',this).html("<img src="+"{% static 'admin/img/diminish.png' %}>");
+        }else{
+            ulNode.css('display','none');
+            $('.addimage',this).html("<img src="+"{% static 'admin/img/add.png' %}>");
+        }
+    });
+});
+
+
 </script>

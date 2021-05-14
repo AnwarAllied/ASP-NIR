@@ -1,4 +1,6 @@
 from django import forms
+from django.forms import ClearableFileInput
+
 from .models import NirProfile, Spectrum
 from django.core.exceptions import ValidationError
 
@@ -12,8 +14,9 @@ def validate_file_extension(value):
 
 # Create the form class.
 class NirProfileForm(forms.ModelForm):
-    upload_dataset = forms.FileField(validators=[validate_file_extension], required=False)
-    upload_dataset.widget.attrs.update({'accept':".xls,.xlsx"})
+    upload_dataset = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}),
+                                     validators=[validate_file_extension],required=False)
+    upload_dataset.widget.attrs.update({'accept':".csv,.xls,.xlsx"})
     class Meta:
         model = NirProfile
         fields = ['nir_type', 'nir_method', 'nir_configuration','figure_id', 'figure_title', 'figure_caption', 'x_label', 'y_label', 'x_min', 'x_max','y_min', 'y_max','reference_type', 'reference_title', 'reference_link']

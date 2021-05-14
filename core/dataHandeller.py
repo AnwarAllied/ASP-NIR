@@ -32,6 +32,33 @@ def datasheet2spec(file,pk,filename):
                 print("spectrum",i, 'saved')
         except Exception as e:
             return False , 'Error while processing '+filename+ ' :'+e.__str__()
+    elif filetype=='csv':
+        try:
+            sh1 = pd.read_csv(file)
+            y_axis = list(map(float, sh1['Column 1'][21:].values.tolist()))
+            x_axis = list(map(float, sh1['Method:'][21:].values.tolist()))
+            color_generator = next_color()
+            xmin = min(x_axis)
+            xmax = max(x_axis)
+            # label1=sh1[list(sh1)[0]]
+            # dataset=np.array([sh1[list(sh1)[i+1]].values.tolist() for i in range(len(x_axis))]).T
+            # print('n-dataset:',len(dataset))
+
+            color_generator =next_color()
+            xmin=min(x_axis)
+            xmax=max(x_axis)
+            S = Spectrum(
+                    origin = '%s %s' % (filename.split('_')[0],filename.split('_')[-1].split('.')[0]),
+                    code = 'WM%dV%dX%dN%d' % (np.mean(y_axis),np.var(y_axis),np.max(y_axis),np.min(y_axis)),
+                    color = '#%02X%02X%02X' % tuple(next(color_generator)),
+                    y_axis = str(y_axis)[1:-1],
+                    x_range_max = xmax,
+                    x_range_min = xmin,
+                    nir_profile = profile
+                )
+            S.save()
+        except Exception as e:
+            return False , 'Error while processing '+filename+ ' :'+e.__str__()
     return True, 'successfuly uploads'
 
 def detect_xls_profile(xls):
