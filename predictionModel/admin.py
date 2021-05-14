@@ -14,7 +14,7 @@ class myPcaModelAdmin(admin.ModelAdmin):
         extra_context['pca_id'] = object_id
         extra_context['ids']= object_id
         extra_context['pca_tag'] = '&pca_id=%s' % object_id
-        extra_context['obj_id'] = 2
+        # extra_context['obj_id'] = 2
         extra_context['model']='PcaModel'
         # extra_context['ids']=object_id
         extra_context['plot_mode']='detail'

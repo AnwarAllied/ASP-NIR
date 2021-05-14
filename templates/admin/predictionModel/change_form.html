@@ -51,8 +51,8 @@
     {% if pls_modeling %}
        {% include "admin/pls_chartjs_scatter.html" %}
     {% else %}
-       {# include "admin/chartjs_scartter.html" #}
-       {% include "admin/master_static_pca_chart.html" %}
+       {% include "admin/chartjs_scartter2.html" %}
+       {# include "admin/master_static_pca_chart.html" #}
        {% if form %}
           <div class="chart-container" style="width:70vw">
             <form action="{% url 'pca_upload' id=pca_id %}" method="post" enctype="multipart/form-data">

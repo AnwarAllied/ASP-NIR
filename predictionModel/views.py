@@ -327,7 +327,8 @@ class pca_test(TemplateView):
             data[i]=self.request.GET.get(i,'')
         
         data["has_permission"]= self.request.user.is_authenticated
-        data["obj_id"]= 2
+        # data['ids']=data['model_id']
+        # data["obj_id"]= 2
         data["pca_tag"]='&pca_id='+data['model_id']+'&pca_ids='+data['ids']+'&pca_up='+data['pca_upload']
         data["app_label"]= 'predictionModel'
         data["model"]='PcaModel'
@@ -335,14 +336,14 @@ class pca_test(TemplateView):
         data["verbose_name_plural"]="figure"
         # data['scartter']=True
         # data["plot_mode"]=True
-        data['master_static_pca'] = True
+        data['scartter2'] = True
         data['title']='Testing set for the model:'
         data['index_text']= PcaModel.objects.get(id=data['model_id']).__str__() #not showing
         return data
 
 def pca_upload(request,**kyargs):
     if request.method == 'POST':
-        print(kyargs)
+        # print(kyargs)
         print('file:',request.FILES.keys())
         Pca = PcaModel.objects.get(id=kyargs['id'])
     if 'upload_a_spectrum_for_testing' in request.FILES.keys():
@@ -378,6 +379,19 @@ class ScartterChartView(BaseLineChartView):
                 color_ix.update({datasets[i]['pointBackgroundColor']:i})
         for i in color_ix.values():
             datasets[i]['label']=co_titles[i].capitalize()
+        if 'selected_ln' in self.cont:
+            ln=self.cont['selected_ln']
+            sids=self.cont['selected_ids']
+            oids=self.cont['obj_ids']
+            sr=np.argsort(oids+sids)
+            sr =[i for i in sr if i>(len(datasets)-ln)]
+            print(sr,oids+sids)
+            for i in sr:#[:ln]: #range(len(datasets))[:ln-2]:
+                datasets[i]['pointStyle']='rect'
+                datasets[i]['pointRadius']= 5
+                datasets[i]['label']=datasets[i]['label']+'-selected test'
+            # if self.cont['pca_test']== 1:
+            #     datasets[-1]['label']=datasets[-1]['label']+': identified as '+self.cont['msg'][-1] 
 
         content.update({"datasets": datasets,"color_ix":list(color_ix.values())})
         context=self.cont
@@ -399,6 +413,7 @@ class ScartterChartView(BaseLineChartView):
         model_id=self.request.GET.get('model_id','')
         model_id= int(model_id) if model_id else model_id
         ids=list(map(int,self.request.GET.get('ids','').split(',')))
+        print(len(ids))
         self.request.session['model']=model
         context=super(BaseLineChartView, self).get_context_data(**kwargs)
         if model == "NirProfile":  #nir_profile=np.objects.get(id=4))
@@ -415,11 +430,14 @@ class ScartterChartView(BaseLineChartView):
         elif model == 'PcaModel':
             if mode == 'detail':
                 pca=PcaModel.objects.get(pk=ids[0])
-                spectra = pca.calibration.order_by('ids')
+                spectra = pca.calibration.order_by('id')
                 ids=[i.id for i in spectra.all()]
             elif model_id:
+                # print('_'*80)
                 pca=PcaModel.objects.get(id=model_id)
-                spectra = Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in sorted(ids))))
+                oids=sorted([i.id for i in pca.calibration.all()])
+                spectra = Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in oids+sorted(ids))))
+                context.update({'obj_ids':oids,'selected_ln':len(ids),'selected_ids':ids})
                 ids=[i.id for i in spectra]
             else:
                 pca=PcaModel.objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in sorted(ids))))
