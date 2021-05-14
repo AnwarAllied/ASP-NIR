@@ -111,7 +111,7 @@ def get_data(remove):
     titles= [i.origin for i in ql.all()]
     colors,co_titles, color_set_sp=obtain_colors(titles,color_set,narcotic_set)
     pid=[i.nir_profile_id for i in ql.all()]
-    profile={'ids':pid,'titles':[NirProfile.objects.get(id=i).title for i in set(pid) if i],'color_set': color_set}
+    profile={'ids':pid,'titles':{i:NirProfile.objects.get(id=i).title for i in set(pid) if i},'color_set': color_set}
     return Xa, ids, titles, colors, co_titles, color_set_sp, profile
 
 def obtain_pca(data_input):

@@ -169,12 +169,12 @@ class PcaModel(models.Model):
     def __str__(self):
         m=eval(self.meta) if type(self.meta) is str else self.meta
         co=list(m['colorset'].keys())
-        pr_ti=m['pr_titles']
+        pr_ti=list(m['pr_titles'].values())
         ln=len(pr_ti)
         if ln < 2:
-            title=(m['pr_titles'][0] if m['pr_titles'][0] else m['sp_titles'][0]) + " score:{:0.2f}".format(self.score)
+            title=(pr_ti[0] if pr_ti[0] else m['sp_titles'][0]) + " score:{:0.2f}".format(self.score)
         elif ln == 2:
-            title="%s and %s, score: %s" % (m['pr_titles'][0], m['pr_titles'][1], "{:0.2f}".format(self.score))
+            title="%s and %s, score: %s" % (pr_ti[0], pr_ti[1], "{:0.2f}".format(self.score))
         else:
             if len(co) <2:
                 title= "%s, score: %s" % (co[0].capitalize(),m['count']-2, "{:0.2f}".format(self.score))

@@ -24,7 +24,8 @@ class master_pca(TemplateView):
         obj_id=int(self.request.GET.get('id',''))
         data = super().get_context_data()
         obj = StaticModel.objects.get(id=obj_id)
-        text =eval(obj.profile)['titles']
+        # text =eval(obj.profile)['titles']
+        text =list(eval(obj.profile).values())
         data['obj_id']=obj_id
         data['model'] = obj._meta.model_name
         data['master_static_pca'] = True
@@ -159,12 +160,13 @@ class master_pca_chart(BaseLineChartView):
         spectra=eval(obj.spectra)
         profile=eval(obj.profile)
         obj_ids=spectra['ids']
-        ids_set=list(set(profile['ids']))
-        logger.error("set"+str(ids_set)+str(len(ids_set)))
-        print("set",ids_set,len(ids_set))
-        logger.error("tit:"+str(profile['titles'])+str(len(profile['titles'])))
-        print("tit",profile['titles'],len(profile['titles']))
-        pr_id2title= {ids_set[i]:profile['titles'][i] for i in range(len(profile['titles']))}
+        # ids_set=list(set(profile['ids']))
+        # logger.error("set"+str(ids_set)+str(len(ids_set)))
+        # print("set",ids_set,len(ids_set))
+        # logger.error("tit:"+str(profile['titles'])+str(len(profile['titles'])))
+        # print("tit",profile['titles'],len(profile['titles']))
+        # pr_id2title= {ids_set[i]:profile['titles'][i] for i in range(len(profile['titles']))}
+        pr_titles= profile['titles']
         trans = np.array(eval(self.cont['trans']))
         messages = []
         distances=[[((i[0]-j[0])**2 + (i[1]-j[1])**2)**0.5 for i in trans] for j in trans]
@@ -177,7 +179,7 @@ class master_pca_chart(BaseLineChartView):
                 # s = NirProfile.objects.get(id=profile['ids'][e_index])
                 # if s:
                 #     messages.append(s.title)
-                messages.append(pr_id2title[profile['ids'][e_index]])
+                messages.append(pr_titles[profile['ids'][e_index]])
             else:
                 messages.append(spectra['titles'][e_index]) #' is close to ' + 
         # self.cont['nearest_spectra_ids_all'] = nearest_spectra_ids_all

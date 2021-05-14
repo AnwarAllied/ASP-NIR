@@ -2,6 +2,7 @@
 
 # from masterModelling.models import StaticModel, IngredientsModel
 # from .models import to_wavelength_length_scale as scal
+# from predictionModel.models import PcaModel
 from spectraModelling.models import wavelength_length
 from core.models import NirProfile, Spectrum
 from chartjs.colors import next_color
@@ -48,7 +49,7 @@ def obtain_pca_meat(pc):
         
         dt['count']=len(pc_ids)
         dt['colorset']={i:data['colorset'][i] for i in data['colorset'] if i in dt['co_titles']}
-        dt['pr_titles']=[NirProfile.objects.get(id=i).title for i in set(dt['pr_ids']) if i]
+        dt['pr_titles']={i:NirProfile.objects.get(id=i).title for i in set(dt['pr_ids']) if i}
         obj.meta=dt
         obj.save()
         print('meat for pca:',obj.id)
@@ -69,7 +70,7 @@ def get_spc_meta():
     sp_titles= [i.origin for i in ql.all()]
     sp_colors,co_titles, colorset=obtain_colors(sp_titles,color_set,narcotic_set)
     pid=[i.nir_profile_id for i in ql.all()]
-    pr={'pr_ids':pid,'pr_titles':[NirProfile.objects.get(id=i).title for i in set(pid) if i]}
+    pr={'pr_ids':pid,'pr_titles':{i:NirProfile.objects.get(id=i).title for i in set(pid) if i}}
     out={ 'sp_ids':sp_ids, 'sp_titles':sp_titles, 'sp_colors':sp_colors,
     'co_titles':co_titles, 'colorset':colorset, 'pr_ids': pr['pr_ids'], 'pr_titles':pr['pr_titles']}
     return out
