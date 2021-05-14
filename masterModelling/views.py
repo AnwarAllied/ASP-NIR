@@ -157,6 +157,8 @@ class master_pca_chart(BaseLineChartView):
         profile=eval(obj.profile)
         obj_ids=spectra['ids']
         ids_set=list(set(profile['ids']))
+        print("set",ids_set,len(ids_set))
+        print("tit",profile['titles'],len(profile['titles']))
         pr_id2title= {ids_set[i]:profile['titles'][i] for i in range(len(profile['titles']))}
         trans = np.array(eval(self.cont['trans']))
         messages = []

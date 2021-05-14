@@ -135,7 +135,7 @@ class StaticModel(models.Model):
         # ids=sp['ids']
         # idx=[ids.index(i) for i in pca_ids]
         # sp['ids']=[ids[i] for i in idx]
-        sp['ids']=pca_m['sp_ids']
+        sp['ids']=sorted(pca_m['sp_ids'])
         sp['titles']=pca_m['sp_titles']
         sp['colors']=pca_m['sp_colors']
         sp['color_titles']=pca_m['co_titles']
