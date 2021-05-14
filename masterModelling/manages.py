@@ -29,6 +29,31 @@ color_set={ 'wheat':'255, 165, 0',
             'other': '170 170 170' }
 narcotic_set=['phenacetin','lidocaine','levamisole','cocaine','caffeine','benzocaine']
 fruit_set = ['apple','banana','Pear']
+master_model={
+    1:'PCA kmean-scaled spectra',
+    2:'PCA spectra',
+    3:'LDA kmean-scaled spectra'
+}
+
+def create_master_model(id):
+    try:
+        sm=StaticModel.objects.get(title=master_model[id])
+        print("Already exist (%s)" % sm.title)
+    except:
+        if id not in master_model:
+            print("No created function for this id, existing ids: "+master_model.__str__())
+        else:
+            data_input= get_data([])
+            if id==1:
+                ky=obtain_pca_scaled(data_input)
+            elif id==2:
+                ky=obtain_pca(data_input)
+            elif id==3:
+                ky=obtain_lda_scaled(data_input)
+            ky.update(id=id)
+            sm=StaticModel(**ky)
+            sm.save()
+            print(sm.title,'created, and saved sucessfully')
 
 def update_master_model(id):
     stat=None
@@ -36,15 +61,20 @@ def update_master_model(id):
     preprocess=sm.prep()
     applied_model=sm.mod()
 
-    data_input_p= get_data(['SG'])
-    data_input_n= get_data(['SG']+fruit_set)
     if 'pca' in applied_model:
+        data_input_p= get_data(['SG'])
+        data_input_n= get_data(['SG']+fruit_set)
         if not preprocess:
             ky=obtain_pca(data_input_n)
             stat=StaticModel.objects.filter(id=id).update(**ky)
         elif 'kmean' in preprocess:
             ky=obtain_pca_scaled(data_input_p)
             stat=StaticModel.objects.filter(id=id).update(**ky)
+    elif 'lda' in applied_model:
+        data_input= get_data([])
+        ky=obtain_lda_scaled(data_input)
+        stat=StaticModel.objects.filter(id=id).update(**ky)
+
     return stat
 
 def remove_master_model(id,sp_title):
@@ -55,15 +85,19 @@ def remove_master_model(id,sp_title):
     preprocess=sm.prep()
     applied_model=sm.mod()
 
-    data_input_p= get_data(['SG']+[sp_title])
-    data_input_n= get_data(['SG']+[sp_title]+fruit_set)
     if 'pca' in applied_model:
+        data_input_p= get_data(['SG']+[sp_title])
+        data_input_n= get_data(['SG']+[sp_title]+fruit_set)
         if not preprocess:
             ky=obtain_pca(data_input_n)
             stat=StaticModel.objects.filter(id=id).update(**ky)
         elif 'kmean' in preprocess:
             ky=obtain_pca_scaled(data_input_p)
             stat=StaticModel.objects.filter(id=id).update(**ky)
+    elif 'lda' in applied_model:
+        data_input= get_data([sp_title])
+        ky=obtain_lda_scaled(data_input)
+        stat=StaticModel.objects.filter(id=id).update(**ky)
     return stat
 
 def get_data(remove):

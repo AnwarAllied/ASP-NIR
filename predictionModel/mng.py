@@ -10,7 +10,7 @@ import numpy as np
 # import pandas as pd
 import re
 # from sklearn.linear_model import LinearRegression
-# from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 # from sklearn.preprocessing import MinMaxScaler
 # from sklearn.decomposition import PCA
 # from scipy.signal import savgol_filter

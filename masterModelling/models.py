@@ -6,6 +6,7 @@ from predictionModel.models import PlsModel, PcaModel, normalize_y , to_waveleng
 from predictionModel.mng import get_spc_meta
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 
 class StaticModel(models.Model):
     title=models.CharField(max_length=60)
@@ -77,6 +78,8 @@ class StaticModel(models.Model):
         # kys=mod.keys()
         if 'pca' in mod:
             mod_obj = dict2obj(mod['pca'],PCA())
+        if 'lda' in mod:
+            mod_obj = dict2obj(mod['lda'],LDA())
         return mod_obj
 
     def color(self):

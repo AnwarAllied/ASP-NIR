@@ -15,6 +15,8 @@ class StaticModelAdmin(admin.ModelAdmin):
             url='/master_static_pca?id=%s' % object_id
         elif 'PLS' in obj.title:
             url='/master_static_pls?id=%s' % object_id
+        elif 'LDA' in obj.title:
+            url='/master_static_pca?id=%s' % object_id
         return HttpResponseRedirect(url)
 
 

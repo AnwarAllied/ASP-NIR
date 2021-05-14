@@ -52,6 +52,7 @@
     <select id="match_method">
         <option value="pca2"selected>Master PCA (default)</option>
         <option value="pca1">Master PCA scaled</option>
+        <!-- <option value="lda3">Master LDA scaled</option> -->
         <!-- <option value="poly">Poly</option> -->
         <!-- <option value="pls">Master PLS</option>-->
     </select>
@@ -189,6 +190,16 @@
                 });
                 chart.update();
             });
+        } else if(method.slice(0,3)=='lda'){
+            $.get('{% url "spectraModelling:chart" match_id=match_id %}?id='+method.slice(-1)+'&model=match', function(data){
+                Gdata = data
+                chart.data.datasets.forEach(function(dataset, index) {
+                    dataset.data = Gdata['datasets'][index]["data"];
+                    dataset.label = Gdata['datasets'][index]['label'];
+                });
+                chart.update();
+            });
+
         }
     }
     {% endif %}

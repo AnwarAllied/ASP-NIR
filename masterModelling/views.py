@@ -156,6 +156,8 @@ class master_pca_chart(BaseLineChartView):
         spectra=eval(obj.spectra)
         profile=eval(obj.profile)
         obj_ids=spectra['ids']
+        ids_set=list(set(profile['ids']))
+        pr_id2title= {ids_set[i]:profile['titles'][i] for i in range(len(profile['titles']))}
         trans = np.array(eval(self.cont['trans']))
         messages = []
         distances=[[((i[0]-j[0])**2 + (i[1]-j[1])**2)**0.5 for i in trans] for j in trans]
@@ -165,9 +167,10 @@ class master_pca_chart(BaseLineChartView):
             e_index=distance.index(n_distance[1])  # [0] -> itself, find the index of the shortest distance
             nearest_spectra_ids_all.append([obj_ids[e_index], obj_ids[distance.index(n_distance[2])], obj_ids[distance.index(n_distance[3])]])
             if profile['ids'][e_index]:
-                s = NirProfile.objects.get(id=profile['ids'][e_index])
-                if s:
-                    messages.append(s.title)
+                # s = NirProfile.objects.get(id=profile['ids'][e_index])
+                # if s:
+                #     messages.append(s.title)
+                messages.append(pr_id2title[profile['ids'][e_index]])
             else:
                 messages.append(spectra['titles'][e_index]) #' is close to ' + 
         # self.cont['nearest_spectra_ids_all'] = nearest_spectra_ids_all
