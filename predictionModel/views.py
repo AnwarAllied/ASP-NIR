@@ -383,20 +383,20 @@ class ScartterChartView(BaseLineChartView):
                 color_ix.update({datasets[i]['pointBackgroundColor']:i})
         for i in color_ix.values():
             datasets[i]['label']=co_titles[i].capitalize()
-        if 'selected_ln' in self.cont:
-            ln=self.cont['selected_ln']
-            sids=self.cont['selected_ids']
-            oids=self.cont['obj_ids']
-            sr=sorted(oids+sids)
-            sr =[sr.index(i) for i in sids]
-            # print(sr,oids+sids)
-            # print(datasets)
-            for i in sr:#[:ln]: #range(len(datasets))[:ln-2]:
-                datasets[i]['pointStyle']='rect'
-                datasets[i]['pointRadius']= 5
-                datasets[i]['label']=datasets[i]['label']+'-selected test'
-            # if self.cont['pca_test']== 1:
-            #     datasets[-1]['label']=datasets[-1]['label']+': identified as '+self.cont['msg'][-1] 
+        # if 'selected_ln' in self.cont:
+        #     ln=self.cont['selected_ln']
+        #     sids=self.cont['selected_ids']
+        #     oids=self.cont['obj_ids']
+        #     sr=sorted(oids+sids)
+        #     sr =[sr.index(i) for i in sids]
+        #     # print(sr,oids+sids)
+        #     # print(datasets)
+        #     for i in sr:#[:ln]: #range(len(datasets))[:ln-2]:
+        #         datasets[i]['pointStyle']='rect'
+        #         datasets[i]['pointRadius']= 5
+        #         datasets[i]['label']=datasets[i]['label']+'-selected test'
+        #     # if self.cont['pca_test']== 1:
+        #     #     datasets[-1]['label']=datasets[-1]['label']+': identified as '+self.cont['msg'][-1] 
 
         content.update({"datasets": datasets,"color_ix":list(color_ix.values())})
         context=self.cont
