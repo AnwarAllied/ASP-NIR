@@ -89,8 +89,16 @@ list-style-type:none;
 <script>
 
 function test_model() {
+    if({{ model }}=='PcaModel'){
     var spec_selected_id=$(".spectra_list input[type='radio']:checked").val();
     location.replace("{% url 'pca_match' %}?model={{ model }}&spec_from=spec_chosen&spec_id="+spec_selected_id);
+    }
+    else{
+    spectra=$("input[value^='s_']")
+    ids=''
+    spectra.each(function(index,elm) {if (elm.checked) {ids+=elm.value.replace('s_',',')}})
+    location.replace("{% url 'pls_test' %}?model={{ model }}&ids="+ids.replace(',','')+"&model_id={{ ids }}")}
+    }
 };
 
 $(document).ready(function(){
