@@ -335,7 +335,7 @@ class pca_test(TemplateView):
         data["verbose_name"]='PcaModel'
         data["verbose_name_plural"]="figure"
         # data['scartter']=True
-        # data["plot_mode"]=True
+        data["plot_mode"]=True
         data['scartter2'] = True
         data['title']='Testing set for the model:'
         data['index_text']= PcaModel.objects.get(id=data['model_id']).__str__() #not showing
@@ -374,28 +374,60 @@ class ScartterChartView(BaseLineChartView):
         # sort by profile color:
         color_ix={}
         colors, co_titles, colorset=get_title_color(content['labels'])
-        if 'pca_upload' in self.cont:
-           colors=colors[:-1]
-
         for i in range(len(colors)):
             datasets[i]['pointBackgroundColor']=colors[i]
             if colors[i] not in color_ix:
                 color_ix.update({datasets[i]['pointBackgroundColor']:i})
         for i in color_ix.values():
             datasets[i]['label']=co_titles[i].capitalize()
+        if 'pca_upload' in self.cont:
+            tr=self.cont['trans']
+            print(tr.shape)
+            ds=np.sum((tr[:-1,:2]-tr[-1,:2])**2,axis=1)**.5
+            print(ds.shape)
+            ds=ds.argmin()
+            # print(len(colors),len(datasets))
+            # colors=colors+[colors[-1][:-2]+'0.8)']
+            # co_titles=co_titles+[co_titles[-1]]
+            # print(co_titles[-2:])
+
+            datasets[-1]['pointStyle']='rect'
+            datasets[-1]['pointRadius']= 8
+            datasets[-1]['label']='Uploaded test - identified as '+ co_titles[ds].capitalize()
+            datasets[-1]['pointBackgroundColor']=datasets[ds]['pointBackgroundColor'][:-2]+'0.8)'
+            color_ix.update({datasets[-1]['pointBackgroundColor']:len(datasets)-1})
+            # print(datasets[ds-1:ds+2])
+        
         if 'selected_ln' in self.cont:
             ln=self.cont['selected_ln']
             sids=self.cont['selected_ids']
             oids=self.cont['obj_ids']
             sr=sorted(oids+sids)
             sr =[sr.index(i) for i in sids]
-            print('lst',sr,oids+sids)
+            # print('lst',sr,ln)
             # print(datasets)
-            for i in sr:#[:ln]: #range(len(datasets))[:ln-2]:
-                datasets[i]['pointStyle']='rect'
-                datasets[i]['pointRadius']= 5
-                datasets[i]['label']=datasets[i]['label']+'-selected test'
-                datasets[i]['pointBackgroundColor']=datasets[i]['pointBackgroundColor'][:-2]+'0.5)'
+            if ln > 1:
+                for i in sr:#[:ln]: #range(len(datasets))[:ln-2]:
+                    datasets[i]['pointStyle']='rect'
+                    datasets[i]['pointRadius']= 5
+                    datasets[i]['label']=datasets[i]['label']+'-selected test'
+                    datasets[i]['pointBackgroundColor']=datasets[i]['pointBackgroundColor'][:-2]+'0.5)'
+            else: # in case one selected
+                tr=self.cont['trans']
+                # print(tr.shape)
+                t1=tr[sr[0]]
+                tr=np.delete(tr,sr[0],0)
+                ds=np.sum((tr-t1)**2,axis=1)**.5
+                # print(ds.shape)
+                ds=ds.argmin()
+                ds = ds if ds<sr[0] else ds+1
+                datasets[sr[0]]['pointStyle']='rect'
+                datasets[sr[0]]['pointRadius']= 8
+                datasets[sr[0]]['label']='Selected test - identified as '+ co_titles[ds].capitalize()
+                datasets[sr[0]]['pointBackgroundColor']=datasets[ds]['pointBackgroundColor'][:-2]+'0.8)'
+                color_ix.update({datasets[sr[0]]['pointBackgroundColor']:sr[0]})
+                
+
             # if self.cont['pca_test']== 1:
             #     datasets[-1]['label']=datasets[-1]['label']+': identified as '+self.cont['msg'][-1] 
 
@@ -420,7 +452,7 @@ class ScartterChartView(BaseLineChartView):
         model_id= int(model_id) if model_id else model_id
         pca_upload= self.request.GET.get('pca_upload','')
         ids=list(map(int,self.request.GET.get('ids','').split(',')))
-        print(len(ids),pca_upload)
+        # print(len(ids),pca_upload)
         self.request.session['model']=model
         context=super(BaseLineChartView, self).get_context_data(**kwargs)
         if model == "NirProfile":  #nir_profile=np.objects.get(id=4))
@@ -444,14 +476,17 @@ class ScartterChartView(BaseLineChartView):
                 pca=PcaModel.objects.get(id=model_id)
                 oids=sorted([i.id for i in pca.calibration.all()])
                 if pca_upload:
-                    print(self.request.session['pca_upload'])
-                    spectra=list(pca.calibration.order_by('id'))
-                    spectra=spectra+[Spectrum(y_axis=str(self.request.session['pca_upload'])[1:-1])]
+                    # print(self.request.session['pca_upload'])
+                    # spectra=list(pca.calibration.order_by('id'))
+                    spectra=pca.calibration.order_by('id')
+                    # spectra=spectra+[Spectrum(y_axis=str(self.request.session['pca_upload'])[1:-1], origin='Unknown')]
                     ids=oids
+                    pca_upload=self.request.session['pca_upload']
+                    self.request.session.pop('pca_upload')
                     context.update({'pca_upload':1})
                 else:
                     spectra = Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in sorted(oids+ids))))
-                    print('1:',oids,ids,sorted(oids+ids))
+                    # print('1:',oids,ids,sorted(oids+ids))
                     context.update({'obj_ids':oids,'selected_ln':len(ids),'selected_ids':ids})
                     ids=[i.id for i in spectra]
                 
@@ -471,7 +506,10 @@ class ScartterChartView(BaseLineChartView):
         # PCA:
         if "pca" in locals():
             if model_id:
-                comp, trans, score=pca.apply('test',*ids)
+                if pca_upload:
+                    comp, trans, score=pca.apply('test_upload',*(ids+[pca_upload]))
+                else:
+                    comp, trans, score=pca.apply('test',*ids)
             else:
                 comp, trans, score=pca.comp(), pca.trans(), pca.score
         else:

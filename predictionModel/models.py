@@ -204,8 +204,8 @@ class PcaModel(models.Model):
         return y
     
     def apply(self,mode,*ids):
-        ids=sorted(ids)
         if mode=='calibration':
+            ids=sorted(ids)
             # new PCA of the selected Spectra
             # ids=[i.id for i in self.calibration.all()]
             y=self.scale_y() if not ids else self.scale_y(*ids)
@@ -220,10 +220,22 @@ class PcaModel(models.Model):
                 score = 00
             print('the calibration score:',score)
         else:
-            # test the comp on another Spectra ids
-            print('2:',ids)
-            y=self.scale_y(*ids)
-            y=np.array(y)
+            if mode == 'test_upload':
+                upld=ids[-1]
+                ids=sorted(ids[:-1])
+                y=self.scale_y(*ids)
+                
+                upld=to_wavelength_length_scale([upld])
+                print('le',len(upld),len(y),len(y[0]))
+                y=np.array(y)
+                y=np.c_[y.T,np.array(upld).T].T
+            else:
+                # test the comp on another Spectra ids
+                print('2:',ids)
+                y=self.scale_y(*sorted(ids))
+                y=np.array(y)
+            
+            print(y.shape)
             pca=PCA(n_components = 2)
             pca.n_components_=2
             pca.components_=self.comp()

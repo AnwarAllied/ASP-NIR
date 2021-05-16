@@ -247,7 +247,7 @@ class master_pca_element_chart(BaseLineChartView):
         else:
             id=int(self.request.session['id'])
             # print(id)
-            spectrum=Spectrum.objects.all()[id]
+            spectrum=Spectrum.objects.all().order_by('id')[id]
             nearest_spectra_ids_all=self.request.session['nearest_spectra_ids_all']
             nearest_spectra_ids=nearest_spectra_ids_all[id]
             # print('nearest ids:',nearest_spectra_ids)
@@ -308,7 +308,7 @@ class master_brix_chart(BaseLineChartView):
         nirprofile=NirProfile.objects.get(title='Grapes calibraition dataset - Alan Ames')
         spectra=[i for i in Spectrum.objects.filter(nir_profile_id=nirprofile.id)]
         # train pls model with Brix dataset
-        X_train=normalize_y([i.y().tolist() for i in Spectrum.objects.all()])
+        X_train=normalize_y([i.y().tolist() for i in Spectrum.objects.all().order_by(id)])
         Y_train=np.array([float(re.findall('\d[\d\.]*', i.origin)[0]) for i in spectra])
         pls=PLSRegression(n_components=10)
         pls.fit(X_train,Y_train)

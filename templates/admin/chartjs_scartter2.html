@@ -75,7 +75,7 @@
                         }
                     },
                     onClick: hide_by_color,
-                    reverse: true,
+                    // reverse: true,
                     
                 },
                 tooltips: {
@@ -111,7 +111,7 @@
         });
 
     });
-  
+    {% if not plot_mode %}
     function save_model() {
         $.get('{% url "pca_save" %}', function(data) {
             Sdata = data
@@ -121,6 +121,7 @@
         });
 
     };
+    {% endif %}
             
     function reverse() {
 			chart.data.datasets.forEach(function(dataset, index) {
