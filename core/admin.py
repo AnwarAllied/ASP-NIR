@@ -145,12 +145,16 @@ class NirProfileAdmin(admin.ModelAdmin):
 
     def response_change(self, request, obj, **kwargs):
         if 'upload_dataset' in request.FILES.keys():
-            dsFile=request.FILES['upload_dataset'].file
-            dsFile.seek(0)
-            uploaded,msg=datasheet2spec(file=dsFile, pk=obj.pk, filename=str(request.FILES['upload_dataset']) )
-            print(msg)
-            if not uploaded:
-                messages.error(request, 'Sorry, the uploaded file is not formated properly.')
+            # dsFile=request.FILES['upload_dataset'].file
+            # dsFile.seek(0)
+            files=request.FILES.getlist('upload_dataset')
+            # print('files:',files,dir(files))
+            for dsFile in files:
+                # print('dsfile:',dsFile.__str__())
+                uploaded,msg=datasheet2spec(file=dsFile, pk=obj.pk, filename=dsFile.__str__())
+                print(msg)
+                if not uploaded:
+                    messages.error(request, 'Sorry, the uploaded file is not formated properly.')
 
         # print('pk',obj.pk)
         # print(dir(request))
