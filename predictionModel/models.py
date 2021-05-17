@@ -226,16 +226,16 @@ class PcaModel(models.Model):
                 y=self.scale_y(*ids)
                 
                 upld=to_wavelength_length_scale([upld])
-                print('le',len(upld),len(y),len(y[0]))
+                # print('le',len(upld),len(y),len(y[0]))
                 y=np.array(y)
                 y=np.c_[y.T,np.array(upld).T].T
             else:
                 # test the comp on another Spectra ids
-                print('2:',ids)
+                # print('2:',len(ids))
                 y=self.scale_y(*sorted(ids))
                 y=np.array(y)
             
-            print(y.shape)
+            # print(y.shape)
             pca=PCA(n_components = 2)
             pca.n_components_=2
             pca.components_=self.comp()

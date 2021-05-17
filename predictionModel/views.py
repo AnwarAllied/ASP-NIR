@@ -403,18 +403,32 @@ class ScartterChartView(BaseLineChartView):
             sids=self.cont['selected_ids']
             oids=self.cont['obj_ids']
             sr=sorted(oids+sids)
+            # print('lst',sr)
             sr =[sr.index(i) for i in sids]
-            # print('lst',sr,ln)
-            # print(datasets)
+            # print('2nd',color_ix)
+            if len(datasets)<len(sids+oids): # handel duble selected ones
+                du=[a for a,b in enumerate(sids) if b in oids]
+                j=0
+                for i in du:
+                    datasets.insert(sr[i]+j,datasets[sr[i]+j].copy())
+                    for a in color_ix:
+                        ix=color_ix[a]
+                        if ix >= sr[i]+j:
+                            color_ix[a]=ix+j+1
+                    j+=1
+                # print('3nd',sr,ln,color_ix)
+
+            # print(datasets[54:56])
             if ln > 1:
                 for i in sr:#[:ln]: #range(len(datasets))[:ln-2]:
                     datasets[i]['pointStyle']='rect'
                     datasets[i]['pointRadius']= 5
                     datasets[i]['label']=datasets[i]['label']+'-selected test'
-                    datasets[i]['pointBackgroundColor']=datasets[i]['pointBackgroundColor'][:-2]+'0.5)'
+                    datasets[i]['pointBackgroundColor']=datasets[i]['pointBackgroundColor'][:-2]+'0.8)'
+                color_ix.update({datasets[sr[0]]['pointBackgroundColor']:sr[0]})
             else: # in case one selected
                 tr=self.cont['trans']
-                # print(tr.shape)
+                # print(tr[115])
                 t1=tr[sr[0]]
                 tr=np.delete(tr,sr[0],0)
                 ds=np.sum((tr-t1)**2,axis=1)**.5
@@ -487,8 +501,10 @@ class ScartterChartView(BaseLineChartView):
                     self.request.session.pop('pca_upload')
                     context.update({'pca_upload':1})
                 else:
+                    from itertools import chain
                     spectra = Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in sorted(oids+ids))))
-                    # print('1:',oids,ids,sorted(oids+ids))
+                    # spectra= chain(spectra,Spectrum.objects.filter(id=76))
+                    # print('1:',ids,len(sorted(oids+ids)),spectra.count())
                     context.update({'obj_ids':oids,'selected_ln':len(ids),'selected_ids':ids})
                     ids=[i.id for i in spectra]
                 
