@@ -183,20 +183,26 @@
 	// else if(method.slice(0,3)=='pca'){
         if(method.slice(0,3)=='pca'){
             $.get('{% url "spectraModelling:chart" match_id=match_id %}?id='+method.slice(-1)+'&model=match', function(data){
+                color=data.color_ix
                 Gdata = data
-                chart.data.datasets.forEach(function(dataset, index) {
-                    dataset.data = Gdata['datasets'][index]["data"];
-                    dataset.label = Gdata['datasets'][index]['label'];
-                });
+                chart.data=Gdata
+                // chart.data.datasets.forEach(function(dataset, index) {
+                //     dataset.data = Gdata['datasets'][index]["data"];
+                //     dataset.label = Gdata['datasets'][index]['label'];
+                // });
                 chart.update();
             });
         } else if(method.slice(0,3)=='lda'){
             $.get('{% url "spectraModelling:chart" match_id=match_id %}?id='+method.slice(-1)+'&model=match', function(data){
+                color=data.color_ix
                 Gdata = data
-                chart.data.datasets.forEach(function(dataset, index) {
-                    dataset.data = Gdata['datasets'][index]["data"];
-                    dataset.label = Gdata['datasets'][index]['label'];
-                });
+                chart.data=Gdata
+                // chart.data.datasets.forEach(function(dataset, index) {
+                //     dataset.data = Gdata['datasets'][index]["data"];
+                //     dataset.label = Gdata['datasets'][index]['label'];
+                // });
+                // chart.options.legend.labels.filter(function(item, chart){
+                //             return color.includes(item.datasetIndex);})
                 chart.update();
             });
 

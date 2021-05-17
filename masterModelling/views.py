@@ -100,10 +100,17 @@ class master_pca_chart(BaseLineChartView):
             datasets[ls]['pointStyle']='rect'
             datasets[ls]['pointRadius']= 12
 
-        # print(content['color_ix'])
+        # datasets[76]['pointBackgroundColor']='rgba(44, 31, 42, 1)'
+        # datasets[231]['pointBackgroundColor']='rgba(44, 31, 42, 1)'
+        # for a,i in enumerate(datasets):
+        #     if round(i['data'][0]['x']*100)==-1749:
+        #         print(i['pointBackgroundColor'],a)
+
         # print(datasets)
         content.update({"datasets": [datasets[-1]]+datasets[:-1],"color_ix":[0]+(np.array(color_ix)+1).tolist()[:-1]})
         # content.update({"datasets": datasets,"color_ix":color_ix})
+        # print(content['color_ix'])
+        # print(len(datasets),len(colors))
         context=self.cont
         context.update(content)
         return context
@@ -224,11 +231,13 @@ class master_pca_element_chart(BaseLineChartView):
             id=int(self.request.GET.get('id',''))
             spectrum = Match.objects.get(id=id)
             pca_method=self.request.GET.get('pca_method','')
+            print('23')
             if pca_method == 'pca':
                 sm=StaticModel.objects.filter(preprocessed='{}').first()
+                print('24')
             elif pca_method == 'pca_kmScaled': 
                 sm = StaticModel.objects.first()
-
+                print('25')
             tran=sm.transform(spectrum.y())
             trans = np.array(eval(sm.trans))
             distances=[((tran[0][0]-i[0])**2+(tran[1][0]-i[1])**2)**0.5 for i in trans]
@@ -247,7 +256,7 @@ class master_pca_element_chart(BaseLineChartView):
         else:
             id=int(self.request.session['id'])
             # print(id)
-            spectrum=Spectrum.objects.all().order_by('id')[id]
+            spectrum=Spectrum.objects.all()[id]
             nearest_spectra_ids_all=self.request.session['nearest_spectra_ids_all']
             nearest_spectra_ids=nearest_spectra_ids_all[id]
             # print('nearest ids:',nearest_spectra_ids)

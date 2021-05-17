@@ -475,6 +475,8 @@ class ScartterChartView(BaseLineChartView):
                 
                 pca=PcaModel.objects.get(id=model_id)
                 oids=sorted([i.id for i in pca.calibration.all()])
+                # m=eval(pca.meta)
+                # oids=m['sp_ids']
                 if pca_upload:
                     # print(self.request.session['pca_upload'])
                     # spectra=list(pca.calibration.order_by('id'))
