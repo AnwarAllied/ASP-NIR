@@ -261,17 +261,17 @@ def dict2obj(dct,obj):
             exec("obj."+i+"=val")
     return obj
 
-# auto update StaticModel whenever Spectrum created.
-def StaticModel_receiver(sender, instance, created, *args, **kwargs):
+# # auto update StaticModel whenever Spectrum created.
+# def StaticModel_receiver(sender, instance, created, *args, **kwargs):
     
-    if created and instance.y_axis:
-        id=instance.id
-        origin=instance.origin
-        profile=instance.nir_profile 
-        X=instance.y()
-        # mn=X.mean();st=X.std()
-        for sm in StaticModel.objects.all():
-            sm.add_last(id,origin,profile,X)
-            print(sm.title+': add(%s) successfully' % origin)
+#     if created and instance.y_axis:
+#         id=instance.id
+#         origin=instance.origin
+#         profile=instance.nir_profile 
+#         X=instance.y()
+#         # mn=X.mean();st=X.std()
+#         for sm in StaticModel.objects.all():
+#             sm.add_last(id,origin,profile,X)
+#             print(sm.title+': add(%s) successfully' % origin)
 
-post_save.connect(StaticModel_receiver, sender=Spectrum)
+# post_save.connect(StaticModel_receiver, sender=Spectrum)

@@ -163,17 +163,17 @@ class Match(models.Model):
         verbose_name_plural = "Match history"
 
 
-# auto create and save poly whenever Spectrum created.
-def poly_receiver(sender, instance, created, *args, **kwargs):
+# # auto create and save poly whenever Spectrum created.
+# def poly_receiver(sender, instance, created, *args, **kwargs):
     
-    if created and instance.y_axis:
-        poly = Poly(spectrum = instance)
-        poly.obtain()
-        poly.save()
-        poly.update_similar()
-        print(poly.slug()+' created & saved successfully')
+#     if created and instance.y_axis:
+#         poly = Poly(spectrum = instance)
+#         poly.obtain()
+#         poly.save()
+#         poly.update_similar()
+#         print(poly.slug()+' created & saved successfully')
 
-post_save.connect(poly_receiver, sender=Spectrum)
+# post_save.connect(poly_receiver, sender=Spectrum)
 
 def poly_for_all(m): # process it one time to get poly of existing spectra
     for i in Spectrum.objects.all()[0:m]:

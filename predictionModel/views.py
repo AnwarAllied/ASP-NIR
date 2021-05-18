@@ -382,9 +382,9 @@ class ScartterChartView(BaseLineChartView):
             datasets[i]['label']=co_titles[i].capitalize()
         if 'pca_upload' in self.cont:
             tr=self.cont['trans']
-            print(tr.shape)
+            # print(tr.shape)
             ds=np.sum((tr[:-1,:2]-tr[-1,:2])**2,axis=1)**.5
-            print(ds.shape)
+            # print(ds.shape)
             ds=ds.argmin()
             # print(len(colors),len(datasets))
             # colors=colors+[colors[-1][:-2]+'0.8)']
@@ -392,9 +392,10 @@ class ScartterChartView(BaseLineChartView):
             # print(co_titles[-2:])
 
             datasets[-1]['pointStyle']='rect'
-            datasets[-1]['pointRadius']= 8
+            datasets[-1]['pointRadius']= 9
             datasets[-1]['label']='Uploaded test - identified as '+ co_titles[ds].capitalize()
-            datasets[-1]['pointBackgroundColor']=datasets[ds]['pointBackgroundColor'][:-2]+'0.8)'
+            # datasets[-1]['pointBackgroundColor']=datasets[ds]['pointBackgroundColor'][:-2]+'0.8)'
+            datasets[-1]['pointBackgroundColor']='rgba(20, 20, 20, 1)'
             color_ix.update({datasets[-1]['pointBackgroundColor']:len(datasets)-1})
             # print(datasets[ds-1:ds+2])
         
@@ -422,7 +423,7 @@ class ScartterChartView(BaseLineChartView):
             if ln > 1:
                 for i in sr:#[:ln]: #range(len(datasets))[:ln-2]:
                     datasets[i]['pointStyle']='rect'
-                    datasets[i]['pointRadius']= 5
+                    datasets[i]['pointRadius']= 7
                     datasets[i]['label']=datasets[i]['label']+'-selected test'
                     datasets[i]['pointBackgroundColor']=datasets[i]['pointBackgroundColor'][:-2]+'0.8)'
                 color_ix.update({datasets[sr[0]]['pointBackgroundColor']:sr[0]})
@@ -436,9 +437,10 @@ class ScartterChartView(BaseLineChartView):
                 ds=ds.argmin()
                 ds = ds if ds<sr[0] else ds+1
                 datasets[sr[0]]['pointStyle']='rect'
-                datasets[sr[0]]['pointRadius']= 8
+                datasets[sr[0]]['pointRadius']= 9
                 datasets[sr[0]]['label']='Selected test - identified as '+ co_titles[ds].capitalize()
-                datasets[sr[0]]['pointBackgroundColor']=datasets[ds]['pointBackgroundColor'][:-2]+'0.8)'
+                # datasets[sr[0]]['pointBackgroundColor']=datasets[ds]['pointBackgroundColor'][:-2]+'0.8)'
+                datasets[sr[0]]['pointBackgroundColor']='rgba(20, 20, 20, 1)'
                 color_ix.update({datasets[sr[0]]['pointBackgroundColor']:sr[0]})
                 
 

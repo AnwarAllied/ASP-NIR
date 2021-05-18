@@ -52,6 +52,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# SESSION_COOKIE_SECURE = False
 ROOT_URLCONF = 'ASP_NIR.urls'
 
 TEMPLATES = [
