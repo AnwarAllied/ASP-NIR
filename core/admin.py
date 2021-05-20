@@ -147,9 +147,9 @@ class NirProfileAdmin(admin.ModelAdmin):
             # if not uploaded:
             #     messages.error(request, 'Sorry, the uploaded file is not formated properly.')
             files=request.FILES.getlist('upload_dataset')
-            # print('files:',files,dir(files))
+            print('files:',files,dir(files))
             for dsFile in files:
-                # print('dsfile:',dsFile.__str__())
+                print('dsfile:',dsFile.__str__())
                 uploaded,msg=datasheet2spec(file=dsFile, pk=obj.pk, filename=dsFile.__str__())
                 print(msg)
                 if not uploaded:

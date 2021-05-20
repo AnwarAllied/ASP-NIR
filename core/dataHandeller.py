@@ -8,30 +8,32 @@ def datasheet2spec(file,pk,filename):
     profile=NirProfile.objects.get(pk=pk)
     filetype=filename.split('.')[-1]
     if filetype in ['xlsx','xls']:
-        try:
-            exf=pd.ExcelFile(file)
-            # upload the data from the 1st sheet: 
-            sh1 = pd.read_excel(exf, exf.sheet_names[0],index_col=False)
-            x_axis=list(map(float,list(sh1)[1:]))
-            label1=sh1[list(sh1)[0]]
-            dataset=np.array([sh1[list(sh1)[i+1]].values.tolist() for i in range(len(x_axis))]).T
-            color_generator =next_color()
-            xmin=min(x_axis)
-            xmax=max(x_axis)
-            for i in range(len(dataset)):
-                S = Spectrum(
-                    origin = '%s %s %s %s' % (filename.split('-')[0],label1[i],list(sh1)[0],filename.split('-')[-1].split('.')[0]),
-                    code = 'WM%dV%dX%dN%d' % (np.mean(dataset[i]),np.var(dataset[i]),np.max(dataset[i]),np.min(dataset[i])),
-                    color = '#%02X%02X%02X' % tuple(next(color_generator)),
-                    y_axis = str(dataset[i].tolist())[1:-1],
-                    x_range_max = xmax,
-                    x_range_min = xmin,
-                    nir_profile = profile
-                )
-                S.save()
-                print("spectrum",i, 'saved')
-        except Exception as e:
-            return False , 'Error while processing '+filename+ ' :'+e.__str__()
+        # try:
+        print(dir(file),file)
+        exf=pd.ExcelFile(file)
+        print('exf:',exf)
+        # upload the data from the 1st sheet: 
+        sh1 = pd.read_excel(exf, exf.sheet_names[0],index_col=False)
+        x_axis=list(map(float,list(sh1)[1:]))
+        label1=sh1[list(sh1)[0]]
+        dataset=np.array([sh1[list(sh1)[i+1]].values.tolist() for i in range(len(x_axis))]).T
+        color_generator =next_color()
+        xmin=min(x_axis)
+        xmax=max(x_axis)
+        for i in range(len(dataset)):
+            S = Spectrum(
+                origin = '%s %s %s %s' % (filename.split('-')[0],label1[i],list(sh1)[0],filename.split('-')[-1].split('.')[0]),
+                code = 'WM%dV%dX%dN%d' % (np.mean(dataset[i]),np.var(dataset[i]),np.max(dataset[i]),np.min(dataset[i])),
+                color = '#%02X%02X%02X' % tuple(next(color_generator)),
+                y_axis = str(dataset[i].tolist())[1:-1],
+                x_range_max = xmax,
+                x_range_min = xmin,
+                nir_profile = profile
+            )
+            S.save()
+            print("spectrum",i, 'saved')
+        # except Exception as e:
+        #     return False , 'Error while processing '+filename+ ' :'+e.__str__()
     elif filetype=='csv':
         try:
             sh1 = pd.read_csv(file)
@@ -53,7 +55,8 @@ def datasheet2spec(file,pk,filename):
             xmin=min(x_axis)
             xmax=max(x_axis)
             S = Spectrum(
-                origin = '%s %s' % (filename.split('_')[0],filename.split('_')[-1].split('.')[0]),
+                # origin = '%s %s' % (filename.split('_')[0],filename.split('_')[-1].split('.')[0]),
+                origin='%s %s' % (filename.split('_')[0], filename.split('_')[-1][:-4]),
                 code = 'WM%dV%dX%dN%d' % (np.mean(y_axis),np.var(y_axis),np.max(y_axis),np.min(y_axis)),
                 color = '#%02X%02X%02X' % tuple(next(color_generator)),
                 y_axis = str(y_axis)[1:-1],
