@@ -84,6 +84,9 @@ class SpectrumAdmin(admin.ModelAdmin):
 
         # cutomize the changelist page of spectrum
     def changelist_view(self, request, extra_context=None):
+
+
+
         response = super().changelist_view(request, extra_context=None)
         try:
             qs = response.context_data['cl'].queryset  # get_queryset

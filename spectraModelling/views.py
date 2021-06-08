@@ -19,6 +19,7 @@ from django.contrib import messages
 from .forms import MatchForm
 from .admin import myMatchAdmin
 from .models import Match
+from django.views.decorators.csrf import csrf_exempt
 import re
 # Create your views here.
 
@@ -38,8 +39,42 @@ def match(request):
     }
     return HttpResponse(template.render(context, request))
 
+# @csrf_exempt
+# def get_match_upload(request):
+    # print('get_upload_test:',request.get_full_path())
+    # y_axis=request.GET.get('y_axis','')
+    # # print('y_axis:',y_axis)
+    # y_axis_n = request.POST.get('y_axis','')
+    # xmin = request.POST.get('xmin','')
+    # xmax = request.POST.get('xmax','')
+    # s = Spectrum()
+    # s.origin = 'test_upload_auto'
+    # s.color = 'red'
+    # s.y_axis = y_axis_n
+    # s.x_range_max = xmax
+    # s.x_range_min = xmin
+
+    # for ISC SDK
+    # file_name = request.POST.get('file_name','')
+    # print('file_name:',file_name)
+    # x_received = request.POST.get('x_data', '')
+    # y_received = request.POST.get('y_data', '')
+    # print('data:',x_received)
+    # if file_name and x_received and y_received:
+    #     x_received = x_received[1:-1].split(',')
+    #     s.x_range_min = x_received[0]
+    #     s.x_range_max = x_received[len(x_received) - 1]
+    #     s.y_axis = str(y_received)[1:-1]
+    #     s.origin = file_name
+    # s.save()
+    # msg = "Data successfully received by Nirvascan"
+    # return HttpResponse(msg)
+
+@csrf_exempt
 def match_upload(request):
     print('file:',request.FILES.keys())
+    print('content:', dir(request.FILES['form_field_name']))
+    print('read:', request.FILES['form_field_name'].read())
     if 'select_a_spectrum' in request.FILES.keys():
         dsFile=request.FILES['select_a_spectrum'].file
         dsFile.seek(0)

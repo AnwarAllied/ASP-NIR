@@ -12,4 +12,5 @@ urlpatterns = [
     path('match_upload/', match_upload, name='upload'),
     path('match/<int:id>/method/<int:method_id>', match_method.as_view(), name='method'),
     path('match/<int:match_id>/chart', master_pca_chart.as_view(), name='chart'),
+    # path('get_match_upload/',get_match_upload)
 ]

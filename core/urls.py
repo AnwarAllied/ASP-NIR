@@ -9,4 +9,5 @@ urlpatterns = [
     path('chartJSON/' , LineChartJSONView.as_view(), name='line_chart_json'),
     # path('chart/', line_chart, name='line_chart'),
     # re_path(r'chartJSON/(?:model=(?P<model>\w+))?\&(?:ids=(?P<ids>[0-9,]+))?', line_chart_json, name='line_chart_json'),
+    path('upload_auto/',upload_auto)
 ]

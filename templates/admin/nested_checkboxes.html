@@ -10,26 +10,38 @@ hr {
   margin: 50px 0;
 }
 
-ul {
-  list-style: none;
-}
-
 .container {
   max-width: 700px;
 }
 
-ul{
-  list-style-type:none;
+li{
+margin-top: 1em;
 }
 
-li {
-  margin-top: 1em;
-}
 
 label{
 font-size:14px;
 font-weight:700;
 }
+
+.group_title img{
+margin-bottom:-5px;
+margin-right:5px;
+width:20px;
+}
+
+.group_title ul{
+<!--display:none;-->
+}
+
+.spectra_list{
+display:none;
+}
+
+.container ul li, .group_title ul li{
+list-style-type:none;
+}
+
 </style>
 
 {% block content %}
@@ -43,16 +55,16 @@ font-weight:700;
             <input type="submit" value="Upload">
         </form>
     </div>
-
 {% endblock %}
 
-<h1> Or apply this model to match the selected spectra:</h1>
+
+<h1> Apply this model to match the selected spectra:</h1>
 <div class="container">
     <ul>
     {% for profile in group %}
-      <li>
-        <input type="checkbox" id="option_{{ profile.id }}" value="p_{{ profile.id }}"><label> {{ profile.name }}</label>
-        <ul>
+      <li class="group_title">
+         <a href="javascript:void(0);"><span class="addimage"><img src="{% static 'admin/img/add.png' %}"></span></a><input type="checkbox" id="option_{{ profile.id }}" value="p_{{ profile.id }}"><label> {{ profile.name }}</label>
+        <ul class="spectra_list">
         {% for spectrum in profile.spectra %}
           <li><label><input type="checkbox" class="subOption_{{ profile.id }}" value="s_{{ spectrum.id }}"> {{ spectrum.origin }}</label></li>
         {% endfor %}
@@ -114,4 +126,17 @@ function test_model() {
     location.replace("{% url 'pca_test' %}?model={{ model }}&ids="+ids.replace(',','')+"&model_id={{ ids }}")
     }
 }
+
+$(document).ready(function(){
+    $('.group_title>a').click(function(){
+        var ulNode=$(this).nextAll('ul:first');
+        if(ulNode.css('display')=='none'){
+            ulNode.css('display','block');
+            $('.addimage',this).html("<img src="+"{% static 'admin/img/diminish.png' %}>");
+        }else{
+            ulNode.css('display','none');
+            $('.addimage',this).html("<img src="+"{% static 'admin/img/add.png' %}>");
+        }
+    });
+});
 </script>
