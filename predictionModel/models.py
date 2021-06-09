@@ -34,7 +34,8 @@ class PlsModel(models.Model):
                 fname= "%s, %s and %d others, score: %s, mse: %s" % (origin_list[0], origin_list[1],self.calibration.count()-2, "{:0.2f}".format(self.score), "{:0.2f}".format(self.mse))
         else:
             fname = "%s, score: %s, score: %s" % (fname, "{:0.2f}".format(self.score), "{:0.2f}".format(self.mse))
-        fname= fname + ' - SG filtred' if self.preprocessed else fname
+        print(self.preprocessed)
+        fname= fname + (' -%s SG filtred' % self.get_sg_len()) if self.preprocessed else fname
         return fname
 
     def trans(self):
@@ -57,6 +58,13 @@ class PlsModel(models.Model):
 
     def ypred(self):
         return np.array(eval("["+self.y_pred+"]"))
+
+    def get_sg_len(self):
+        id=self.preprocessed.split(',')[-1]
+        if id:
+            return SgFilter.objects.get(id=int(id)).window_length
+        else:
+            return 13
 
     def obtain(self, ids, trans, components, score, mse, xrots, xmean, ymean, plscoef, xstd, ypred, preprocessed):
         self.score = score

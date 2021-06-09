@@ -7,6 +7,7 @@ from django.contrib.flatpages.models import FlatPage
 from django.core import serializers
 from django.db.models import Q
 # from django.utils.html import html_safe, mark_safe
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from chartjs.views.lines import BaseLineChartView
 from .models import Spectrum, NirProfile
@@ -78,6 +79,25 @@ def download_xlsx(request):
             return response
         os.remove(path)  # not trigered, need Signal.
     raise Http404
+
+@csrf_exempt
+def upload_auto(request):
+    s = Spectrum()
+    # for ISC SDK
+    file_name = request.POST.get('file_name', '')
+    x_received = request.POST.get('x_data', '')
+    y_received = request.POST.get('y_data','')
+    n_device = request.POST.get('n_device','')
+    if file_name and x_received and y_received and n_device:
+        s.origin = file_name.split('.')[0]
+        x_received = x_received[1:-1].split(',')
+        s.x_range_min = x_received[0]
+        s.x_range_max = x_received[len(x_received) - 1]
+        s.y_axis = str(y_received)[1:-1]
+        s.code = n_device
+    s.save()
+    msg = "Data successfully received by Nirvascan"
+    return HttpResponse(msg)
 
 class plot(TemplateView):
     template_name = "admin/index_plot.html"

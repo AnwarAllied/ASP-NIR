@@ -37,8 +37,8 @@ def plot(x,*arg):
             _=plt.plot(x);plt.title(arg[0]);plt.ylabel(arg[1]);plt.xlabel(arg[2]);plt.show()
 
 
-# q=Spectrum.objects.filter(nir_profile=10)
-# X=min_max_scal(np.array([i.y().tolist() for i in q.all()]))
+q=Spectrum.objects.filter(nir_profile=10)
+X=min_max_scal(np.array([i.y().tolist() for i in q.all()]))
 # x_axis=np.reshape(q.first().x(),(228,1))
 # y=np.array([float(re.sub('[^\d\.]+','',i.origin)) for i in q.all()])
 # X2s=np.array(scal([i.y().tolist() for i in q2.all()]))
@@ -64,8 +64,8 @@ def plot(x,*arg):
 # V=np.array([[i]+sh1[i].values.tolist() for i in list(sh1)[1:]])
 
 #PCA:
-# pca = PCA(n_components=10)
-# pca.fit(X)
+pca = PCA(n_components=10)
+pca.fit(X)
 # C1=pca.components_  # principle component
 # C=P.dot(X.T)      # Coefficient
 # T=pca.transform(X)
