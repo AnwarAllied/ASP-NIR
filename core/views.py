@@ -47,12 +47,14 @@ def upload_auto(request):
     file_name = request.POST.get('file_name', '')
     x_received = request.POST.get('x_data', '')
     y_received = request.POST.get('y_data','')
-    if file_name and x_received and y_received:
+    n_device = request.POST.get('n_device','')
+    if file_name and x_received and y_received and n_device:
         s.origin = file_name.split('.')[0]
         x_received = x_received[1:-1].split(',')
         s.x_range_min = x_received[0]
         s.x_range_max = x_received[len(x_received) - 1]
         s.y_axis = str(y_received)[1:-1]
+        s.code = n_device
     s.save()
     msg = "Data successfully received by Nirvascan"
     return HttpResponse(msg)
