@@ -149,7 +149,8 @@ class NirProfileAdmin(admin.ModelAdmin):
             files=request.FILES.getlist('upload_dataset')
             print('files:',files,dir(files))
             for dsFile in files:
-                print('dsfile:',dsFile.__str__())
+                # print('path:',dir(files))
+                # print('dsfile:',dsFile.__str__())
                 uploaded,msg=datasheet2spec(file=dsFile, pk=obj.pk, filename=dsFile.__str__())
                 print(msg)
                 if not uploaded:

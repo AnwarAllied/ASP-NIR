@@ -1,4 +1,6 @@
 # import matplotlib.pyplot as plt
+import os.path
+
 import pandas as pd
 import numpy as np
 from .models import Spectrum, NirProfile
@@ -7,33 +9,33 @@ from chartjs.colors import next_color
 def datasheet2spec(file,pk,filename):
     profile=NirProfile.objects.get(pk=pk)
     filetype=filename.split('.')[-1]
+
     if filetype in ['xlsx','xls']:
-        # try:
-        print(dir(file),file)
-        exf=pd.ExcelFile(file)
-        print('exf:',exf)
-        # upload the data from the 1st sheet: 
-        sh1 = pd.read_excel(exf, exf.sheet_names[0],index_col=False)
-        x_axis=list(map(float,list(sh1)[1:]))
-        label1=sh1[list(sh1)[0]]
-        dataset=np.array([sh1[list(sh1)[i+1]].values.tolist() for i in range(len(x_axis))]).T
-        color_generator =next_color()
-        xmin=min(x_axis)
-        xmax=max(x_axis)
-        for i in range(len(dataset)):
-            S = Spectrum(
-                origin = '%s %s %s %s' % (filename.split('-')[0],label1[i],list(sh1)[0],filename.split('-')[-1].split('.')[0]),
-                code = 'WM%dV%dX%dN%d' % (np.mean(dataset[i]),np.var(dataset[i]),np.max(dataset[i]),np.min(dataset[i])),
-                color = '#%02X%02X%02X' % tuple(next(color_generator)),
-                y_axis = str(dataset[i].tolist())[1:-1],
-                x_range_max = xmax,
-                x_range_min = xmin,
-                nir_profile = profile
-            )
-            S.save()
-            print("spectrum",i, 'saved')
-        # except Exception as e:
-        #     return False , 'Error while processing '+filename+ ' :'+e.__str__()
+        try:
+            exf=pd.ExcelFile(file)
+            # upload the data from the 1st sheet:
+            sh1 = pd.read_excel(file, exf.sheet_names[0],index_col=None)
+            x_axis=list(map(float,list(sh1)[1:]))
+            # print('x:',x_axis)
+            label1=sh1[list(sh1)[0]]
+            dataset=np.array([sh1[list(sh1)[i+1]].values.tolist() for i in range(len(x_axis))]).T
+            color_generator =next_color()
+            xmin=min(x_axis)
+            xmax=max(x_axis)
+            for i in range(len(dataset)):
+                S = Spectrum(
+                    origin = '%s %s %s %s' % (filename.split('-')[0],label1[i],list(sh1)[0],filename.split('-')[-1].split('.')[0]),
+                    code = 'WM%dV%dX%dN%d' % (np.mean(dataset[i]),np.var(dataset[i]),np.max(dataset[i]),np.min(dataset[i])),
+                    color = '#%02X%02X%02X' % tuple(next(color_generator)),
+                    y_axis = str(dataset[i].tolist())[1:-1],
+                    x_range_max = xmax,
+                    x_range_min = xmin,
+                    nir_profile = profile
+                )
+                S.save()
+                print("spectrum",i, 'saved')
+        except Exception as e:
+            return False , 'Error while processing '+filename+ ' :'+e.__str__()
     elif filetype=='csv':
         try:
             sh1 = pd.read_csv(file)
@@ -41,38 +43,76 @@ def datasheet2spec(file,pk,filename):
             if len(sh1.index)==256:
                 file.seek(0)
                 sh2 = pd.read_csv(file,header=1)
-                print('sh2-index:',sh2.index)
+                # print('sh2-index:',sh2.index)
                 # print('values:',sh1['Column 1'][27:].values.tolist())
                 y_axis = list(map(float, sh2['Column 1'][27:].values.tolist()))
                 x_axis = list(map(float, sh2['Scan Config Name:'][27:].values.tolist()))
             # label1=sh1[list(sh1)[0]]
             # dataset=np.array([sh1[list(sh1)[i+1]].values.tolist() for i in range(len(x_axis))]).T
             # print('n-dataset:',len(dataset))
-            else:
+
+                color_generator = next_color()
+                xmin = min(x_axis)
+                xmax = max(x_axis)
+                S = Spectrum(
+                    origin='%s %s' % (filename.split('_')[0], filename.split('_')[-1].split('.')[0]),
+                    code='WM%dV%dX%dN%d' % (np.mean(y_axis), np.var(y_axis), np.max(y_axis), np.min(y_axis)),
+                    color='#%02X%02X%02X' % tuple(next(color_generator)),
+                    y_axis=str(y_axis)[1:-1],
+                    x_range_max=xmax,
+                    x_range_min=xmin,
+                    nir_profile=profile
+                )
+                S.save()
+
+            elif len(sh1.index)==249:
                 y_axis = list(map(float, sh1['Column 1'][21:].values.tolist()))
                 x_axis = list(map(float, sh1['Method:'][21:].values.tolist()))
-            color_generator =next_color()
-            xmin=min(x_axis)
-            xmax=max(x_axis)
-            S = Spectrum(
-                # origin = '%s %s' % (filename.split('_')[0],filename.split('_')[-1].split('.')[0]),
-                origin='%s %s' % (filename.split('_')[0], filename.split('_')[-1][:-4]),
-                code = 'WM%dV%dX%dN%d' % (np.mean(y_axis),np.var(y_axis),np.max(y_axis),np.min(y_axis)),
-                color = '#%02X%02X%02X' % tuple(next(color_generator)),
-                y_axis = str(y_axis)[1:-1],
-                x_range_max = xmax,
-                x_range_min = xmin,
-                nir_profile = profile
-            )
-            S.save()
+
+                color_generator =next_color()
+                xmin=min(x_axis)
+                xmax=max(x_axis)
+                S = Spectrum(
+                    origin = '%s %s' % (filename.split('_')[0],filename.split('_')[-1].split('.')[0]),
+                    code = 'WM%dV%dX%dN%d' % (np.mean(y_axis),np.var(y_axis),np.max(y_axis),np.min(y_axis)),
+                    color = '#%02X%02X%02X' % tuple(next(color_generator)),
+                    y_axis = str(y_axis)[1:-1],
+                    x_range_max = xmax,
+                    x_range_min = xmin,
+                    nir_profile = profile
+                )
+                S.save()
+
+            else:
+                x_axis = list(map(float, list(sh1)[1:]))
+                # print('x:', x_axis)
+                label1 = sh1[list(sh1)[0]]
+                dataset = np.array([sh1[list(sh1)[i + 1]].values.tolist() for i in range(len(x_axis))]).T
+                color_generator = next_color()
+                xmin = min(x_axis)
+                xmax = max(x_axis)
+                for i in range(len(dataset)):
+                    S = Spectrum(
+                        origin='%s %s %s %s' % (
+                        filename.split('-')[0], label1[i], list(sh1)[0], filename.split('-')[-1].split('.')[0]),
+                        code='WM%dV%dX%dN%d' % (
+                        np.mean(dataset[i]), np.var(dataset[i]), np.max(dataset[i]), np.min(dataset[i])),
+                        color='#%02X%02X%02X' % tuple(next(color_generator)),
+                        y_axis=str(dataset[i].tolist())[1:-1],
+                        x_range_max=xmax,
+                        x_range_min=xmin,
+                        nir_profile=profile
+                    )
+                    S.save()
+                    # print("spectrum", i, 'saved')
         except Exception as e:
-            return False , 'Error while processing '+filename+ ' :'+e.__str__()
+            return False, 'Error while processing ' + filename + ' :' + e.__str__()
+
     return True, 'successfuly uploads'
 
 def detect_xls_profile(xls):
     """
     To detect the format of the spectral content in the xls file:
-
     The file name format: "ORIGIN ORIGINSUB1 ORIGINSUB2 ... - LABLE1 LABLE2 ... - REFFERANCE Note... .xlsx"
     ORIGIN: Wheat, Soybean
     ORIGINSUB1: Granded, Flour
@@ -84,7 +124,6 @@ def detect_xls_profile(xls):
     B: One sheet & one index format: 1st row for x-axis data and 1st col for label (e.g. protein level).
     C: One sheet & multi index formats (for labels): as B and 2nd, 3rd col for lables (e.g. protein and moisture).
     D: Multi-sheet format
-
     """
     # extract all the infos from the file name
     # xls = 'Wheat Granded Flour-Protein Brix Moisture-ASP Alan_Ames-1_20201126_120750.xls'
@@ -101,6 +140,7 @@ def detect_xls_profile(xls):
     tb = pd.ExcelFile(xls, engine='openpyxl')
     sheet_names = tb.sheet_names
     df = pd.read_excel(tb, sheet_names, header=None)
+    print('df:',df)
     for sheet in sheet_names:  # we assume there are several sheets
         if pd.read_excel(tb, tb.sheet).values[:]:
             if str(df[sheet].loc[1, 1]).isalpha():
@@ -118,8 +158,8 @@ def detect_xls_profile(xls):
                 X_dataset.append(df[sheet].values[0, 1:])  # we assume cell[0,0] stocks (label\x-data)
                 Y_sepctra_dataset.append(df[sheet].values[1:, 1:])
 
-def figure_2(*args):
-    print(args)
-    fig, ax = plt.subplots()
-    ax.plot([1, 3, 4], [3, 2, 5])
-    return fig
+# def figure_2(*args):
+#     print(args)
+#     fig, ax = plt.subplots()
+#     ax.plot([1, 3, 4], [3, 2, 5])
+#     return fig
