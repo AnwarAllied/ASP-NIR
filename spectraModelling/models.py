@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save
 from django.db import models
-from core.models import Spectrum
+from core.models import Spectrum, Owner
 import numpy as np
 from scipy import signal
 from datetime import datetime
@@ -105,6 +105,8 @@ class Match(models.Model):
     mse = models.FloatField(blank=True, null=True)
     order = models.IntegerField(blank=True, null=True)
     poly=models.ManyToManyField(Poly)
+    owner=models.ForeignKey(
+        Owner, on_delete=models.SET_NULL, blank=True, null=True, editable=False)
 
     def __str__(self):
         return str(self.created_at)[:-13]
@@ -129,7 +131,7 @@ class Match(models.Model):
     def param(self):
         return np.array(eval("["+self.parameter+"]"))
 
-    def obtain(self):
+    def obtain(self,owner_id=1):
         ms=1;pm=50
         df=pm-ms;ordr=4
         yn=to_wavelength_length_norm(self.y())
@@ -147,6 +149,7 @@ class Match(models.Model):
         self.order=ordr
         self.mse=ms
         self.parameter=str(param.tolist())[1:-1]
+        self.owner_id=owner_id
         q=Poly.objects.filter(order=ordr)
         # self.id=Match.objects.last().id+1
         self.clean()

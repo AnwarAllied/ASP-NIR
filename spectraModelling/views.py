@@ -11,7 +11,7 @@ from django.views.generic import TemplateView
 from django.contrib import messages
 from .forms import MatchForm
 from .admin import myMatchAdmin
-from .models import Match
+from .models import Match, Owner
 
 # Create your views here.
 
@@ -36,7 +36,7 @@ def match_upload(request):
     if 'select_a_spectrum' in request.FILES.keys():
         dsFile=request.FILES['select_a_spectrum'].file
         dsFile.seek(0)
-        uploaded,msg=datasheet4matching(file=dsFile, filename=str(request.FILES['select_a_spectrum']))
+        uploaded,msg=datasheet4matching(file=dsFile, filename=str(request.FILES['select_a_spectrum']), owner_id=Owner.o.get_id(request.user))
         print('name :',str(request.FILES['select_a_spectrum']))
         if not uploaded:
             print('uploaded :',uploaded)

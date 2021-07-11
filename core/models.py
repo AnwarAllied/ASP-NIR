@@ -77,7 +77,9 @@ class Spectrum(models.Model):
                                  blank=True, null=True, verbose_name='Upload pic')
     nir_profile = models.ForeignKey(
         'NirProfile', on_delete=models.SET_NULL, blank=True, null=True)
-        
+    owner=models.ForeignKey(
+        'Owner', on_delete=models.SET_NULL, blank=True, null=True, editable=False)
+
     def __str__(self):
         return self.origin
 
@@ -141,6 +143,8 @@ class NirProfile(models.Model):
     reference_type= models.CharField(max_length=1, choices=REFERANCE_CHOICES, default="A")
     reference_title = models.CharField(max_length=100)
     reference_link = models.CharField(max_length=100)
+    owner=models.ForeignKey(
+        'Owner', on_delete=models.SET_NULL, blank=True, null=True, editable=False)
 
     def __str__(self):
         return self.title
@@ -153,3 +157,43 @@ class NirProfile(models.Model):
 
     def slug(self):
         return '_'.join(self.title.split())
+
+class OwnerManager(models.Manager):
+    def owner_obj(self,user,query):
+        user_eml=user.email
+        model_name = query.model._meta.model_name
+        if not user_eml: # return only open obj if no email
+            return self.get_open_obj(model_name)
+        user_org=user_eml.split('@')[1].split('.')[0]
+        return get_org_obj(model_name,user_org)
+    
+    def get_open_obj(self,model_name):
+        op=super().get_queryset().get(orgnization='open')
+        return eval("op."+model_name+"_set.all().order_by('id')")
+
+    def get_org_obj(self,model_name,orgnization):
+        obj, created=super().get_queryset().get_or_create(orgnization=orgnization)
+        if created:
+            obj.save()
+        return eval("obj."+model_name+"_set.all().order_by('id')") #| self.get_open_obj(model_name)
+
+    def get_id(self,user):
+        user_eml=user.email
+        if user_eml:
+            user_org=user_eml.split('@')[1].split('.')[0]
+            obj, created=super().get_queryset().get_or_create(orgnization=user_org)
+            if created:
+                obj.save()
+            return obj.id
+        else:
+            return 1 # return open owner id
+
+class Owner(models.Model):
+    orgnization=models.CharField(max_length=100,default='open')
+    o=OwnerManager()
+
+    def __str__(self):
+        return self.orgnization
+
+    # u=User.objects.all()
+    # e=[i.email.split('@')[1].split('.')[0] for i in u if i.email]

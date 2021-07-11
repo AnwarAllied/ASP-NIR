@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Spectrum, NirProfile
+from .models import Spectrum, NirProfile, Owner
 from predictionModel.admin import PcaModel, myPcaModelAdmin, PlsModel, myPlsModelAdmin
 from spectraModelling.admin import Poly, Match, myMatchAdmin, myPolyAdmin
 from masterModelling.admin import StaticModel, IngredientsModel, StaticModelAdmin, IngredientsModelAdmin
@@ -47,8 +47,11 @@ class SpectrumAdmin(admin.ModelAdmin):
     # list_per_page = 300
     # change_list_template = 'admin/spectra_display_list.html'
     list_display = ('__str__','spec_image')
+    # list_filter = ('owner',)
 
     def save_model(self, request, obj, form, change):
+        # assign owner of obj:
+        obj.owner_id=Owner.o.get_id(request.user)
         # change the delimiter to ", "
         delimiter=re.findall("[^\d\,\.\- E]+",obj.y_axis[:100])
         if delimiter:
@@ -91,14 +94,9 @@ class SpectrumAdmin(admin.ModelAdmin):
                 response.context_data['is_big_pic'] = False
             else:
                 response.context_data['is_big_pic'] = True
-
-            # To over-ride change-list-results:
-            # if 'context_data' in dir(response):
-            #     if 'cl' in response.context_data.keys():
-            #         cl=response.context_data['cl']
-            #         qs = cl.queryset
-            #         result=list(results(cl))   # this is the results found in the changelist_results html.
-            #         response.context_data['items']=[[i for i in r]+[q.spec_image()] for r,q in zip(result,qs.all())]
+            
+            # # To over-ride change-list-results:
+            response = owner_change_list(request,response)
             return response
 
 
@@ -124,6 +122,11 @@ class NirProfileAdmin(admin.ModelAdmin):
             'fields': ("upload_dataset","upload_picture"),
         }),
     )
+    
+    def save_model(self,request, obj, form, change):
+        # assign owner to obj:
+        obj.owner_id=Owner.o.get_id(request.user)
+        super().save_model(request, obj, form, change)
 
     def response_change(self, request, obj, **kwargs):
         if 'upload_picture' in request.FILES.keys():
@@ -176,7 +179,9 @@ class NirProfileAdmin(admin.ModelAdmin):
 
         # to remove action Download:
     def changelist_view(self, request):
-        return remove_action(super().changelist_view(request), remove = ['Download_as_excel_file'])
+        response = remove_action(super().changelist_view(request), remove = ['Download_as_excel_file'])
+        response = owner_change_list(request,response)
+        return response
 
 class MyAdminSite(admin.AdminSite):
     default_site = 'myproject.admin.MyAdminSite'
@@ -210,9 +215,12 @@ class MyAdminSite(admin.AdminSite):
     def pls_export_selected_objects(self, request, queryset):
         model=queryset.model.__name__
         selected = queryset.values_list('pk', flat=True)
+        components= request.POST['component']
+        components= '&components='+components if components else ''
+
         ct =eval(model+".objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in selected)))")
-        return HttpResponseRedirect('/pls/?model=%s&ids=%s' % (
-            model, ','.join(str(pk) for pk in selected),
+        return HttpResponseRedirect('/pls/?model=%s&ids=%s%s' % (
+            model, ','.join(str(pk) for pk in selected),components
         ))
 
     def xlsx_export_selected_objects(self, request, queryset):
@@ -286,6 +294,38 @@ def getDropboxImgUrl():
         url = rn['url'].replace('www.dropbox.com', 'dl.dropboxusercontent.com')
         url = url.replace('?dl=0', '')
     return url
+
+def owner_change_list(request,response):
+ # To over-ride change-list-results:
+    if 'context_data' in dir(response) and any(request.user.groups.all()):
+        if 'cl' in response.context_data.keys():
+            user=request.user
+            if user.groups.first().name == 'customer':
+                owner_id = Owner.o.get_id(user)
+                p=request.GET.get('p','')
+                p= int(p) if p else ''
+                cl=response.context_data['cl']
+                qs = cl.root_queryset.filter(owner_id__in=[1,owner_id]).order_by('-id')
+                lpp=cl.list_per_page
+                if p:
+                    cl.result_list=qs[0+(p*lpp):lpp+(p*lpp)]
+                else:
+                    cl.result_list=qs[:lpp]
+                cl.queryset=qs
+                cl.result_count=qs.count()
+                cl.full_result_count=qs.count()
+                cl.paginator.object_list=qs
+                cl.paginator.count=qs.count()
+                cl.paginator.num_pages=0 if qs.count()<=lpp else round(qs.count()/lpp)+1
+                # response.context_data['cl'].list_filter=()
+                cl.has_filters=False
+                # qs = cl.queryset[1:6]
+                # print('qs:',qs)
+                result=list(results(cl))[1:6]   # this is the results found in the changelist_results html.
+                response.context_data['items']=[[i for i in r]+[q.spec_image()] for r,q in zip(result,qs.all())]
+                # print('res:',response.context_data['cl'].__dict__)
+                # print('res:',p,cl.paginator.__dict__)
+    return response
 
 admin_site = MyAdminSite(name='myadmin')
 # Re-register FlatPageAdmin

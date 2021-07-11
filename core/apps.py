@@ -7,4 +7,3 @@ class FlatPagesConfig(AppConfig):
 class CoreConfig(AppConfig):
     name = 'core'
     verbose_name = 'NIR'
-

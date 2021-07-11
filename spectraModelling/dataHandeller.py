@@ -5,7 +5,7 @@ from .models import Poly, Match
 from core.models import Spectrum
 from chartjs.colors import next_color
 
-def datasheet4matching(file,filename):
+def datasheet4matching(file,filename,owner_id):
     # profile=NirProfile.objects.get(pk=pk)
     filetype=filename.split('.')[-1]
     try:
@@ -26,7 +26,7 @@ def datasheet4matching(file,filename):
         xmax=max(x_axis)
         match = Match(y_axis = str(y_axis)[1:-1])
         print('match :',match.y_axis[:5],match.y_axis[-5:])
-        match.obtain()  # match.save()
+        match.obtain(owner_id)  # match.save()
         print("Match",match.id, 'saved')
         return match, 'successfuly uploaded'
     except Exception as e:
