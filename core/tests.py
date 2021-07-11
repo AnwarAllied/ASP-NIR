@@ -6,17 +6,17 @@ from spectraModelling.models import Match
 from django.contrib.admin.templatetags.admin_list import results, items_for_result
 # Create your tests here.
 # exec(open('core/tests.py','r').read())
-c = Client()
-response = c.post('/admin/login/', {'username': 'admin', 'password': 'password'})
-response.status_code
-response = c.get('/admin/core/spectrum/')
-response.content
+# c = Client()
+# response = c.post('/admin/login/', {'username': 'admin', 'password': 'password'})
+# response.status_code
+# response = c.get('/admin/core/spectrum/')
+# response.content
 
 
-cl=response.context_data['cl']
-qs = cl.queryset
-result=list(results(cl))   # this is the results found in the changelist_results html.
-it=[[i for i in r]+[q.spec_image()] for r,q in zip(result,qs.all())]
+# cl=response.context_data['cl']
+# qs = cl.queryset
+# result=list(results(cl))   # this is the results found in the changelist_results html.
+# it=[[i for i in r]+[q.spec_image()] for r,q in zip(result,qs.all())]
 
 #
 def ini_owner():
@@ -32,8 +32,8 @@ def ini_owner():
         obj, created=Owner.o.get_or_create(orgnization=i.lower())
         if created:
             obj.save()
-    asp_id=Owner.get_id(ua)
-    nirva_id=Owner.get_id(un)
+    asp_id=Owner.o.get_id(ua)
+    nirva_id=Owner.o.get_id(un)
     for i in Spectrum.objects.all():
         if i.nir_profile:
             if i.nir_profile.id<16:

@@ -317,12 +317,12 @@ def owner_change_list(request,response):
                 cl.paginator.object_list=qs
                 cl.paginator.count=qs.count()
                 cl.paginator.num_pages=0 if qs.count()<=lpp else round(qs.count()/lpp)+1
-                # response.context_data['cl'].list_filter=()
                 cl.has_filters=False
-                # qs = cl.queryset[1:6]
-                # print('qs:',qs)
                 result=list(results(cl))[1:6]   # this is the results found in the changelist_results html.
-                response.context_data['items']=[[i for i in r]+[q.spec_image()] for r,q in zip(result,qs.all())]
+                if qs.model._meta.model_name == 'spectrum':
+                    response.context_data['items']=[[i for i in r]+[q.spec_image()] for r,q in zip(result,qs.all())]
+                else:
+                    response.context_data['items']=result
                 # print('res:',response.context_data['cl'].__dict__)
                 # print('res:',p,cl.paginator.__dict__)
     return response
