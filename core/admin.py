@@ -199,7 +199,15 @@ class MyAdminSite(admin.AdminSite):
     def plot_export_selected_objects(self, request, queryset):
         model=queryset.model.__name__
         selected = queryset.values_list('pk', flat=True)
-        ct =eval(model+".objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in selected)))")
+        # spc_num=sum([i.spectrum_set.count() for i in queryset])
+        # # Restrict plotting to 100 spectra:
+        # if spc_num >100:
+        #     spc_ids=[]
+        #     model='Spectrum'
+        #     _=[spc_ids.extend(list(i.spectrum_set.all().values_list('pk', flat=True))) for i in queryset]
+        #     # print('spc_ids',spc_ids)
+        #     selected=spc_ids[:100]
+        # ct =eval(model+".objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in selected)))")
         return HttpResponseRedirect('/plot/?model=%s&ids=%s' % (
             model, ','.join(str(pk) for pk in selected),
         ))
@@ -207,7 +215,7 @@ class MyAdminSite(admin.AdminSite):
     def pca_export_selected_objects(self, request, queryset):
         model=queryset.model.__name__
         selected = queryset.values_list('pk', flat=True)
-        ct =eval(model+".objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in selected)))")
+        # ct =eval(model+".objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in selected)))")
         return HttpResponseRedirect('/pca/?model=%s&ids=%s' % (
             model, ','.join(str(pk) for pk in selected),
         ))
@@ -218,7 +226,7 @@ class MyAdminSite(admin.AdminSite):
         components= request.POST['component']
         components= '&components='+components if components else ''
 
-        ct =eval(model+".objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in selected)))")
+        # ct =eval(model+".objects.filter(eval('|'.join('Q(pk='+str(pk)+')' for pk in selected)))")
         return HttpResponseRedirect('/pls/?model=%s&ids=%s%s' % (
             model, ','.join(str(pk) for pk in selected),components
         ))

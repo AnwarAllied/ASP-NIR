@@ -161,7 +161,12 @@ class LineChartJSONView(BaseLineChartView):
             spectra=Spectrum.objects.filter(nir_profile= nirprofiles[0])
             for obj in nirprofiles[1:]:
                 spectra |=Spectrum.objects.filter(nir_profile= obj)
-
+            # Restrict plotting to 100 spectra:
+            if spectra.count()>100:
+                # print('spectra count:',spectra.count())
+                selected = spectra.values_list('pk', flat=True)[:100]
+                spectra=spectra.filter(id__in=selected)
+                # print('reduced count:',spectra.count())
         elif model == 'Spectrum':
             spectra=Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
         elif model == 'Poly':
