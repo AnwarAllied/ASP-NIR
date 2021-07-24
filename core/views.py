@@ -20,7 +20,9 @@ from django.http import HttpResponse, Http404
 from itertools import chain
 import numpy as np
 import pandas as pd
-
+import logging
+logger = logging.getLogger(__name__)
+# logger.error('testing logging!')
 
 # def index(request):
 #     return HttpResponse("Hello, world. You're at the core index.")
@@ -162,10 +164,12 @@ class LineChartJSONView(BaseLineChartView):
             for obj in nirprofiles[1:]:
                 spectra |=Spectrum.objects.filter(nir_profile= obj)
             # Restrict plotting to 100 spectra:
-            if spectra.count()>100:
+            if spectra.count()>80:
                 # print('spectra count:',spectra.count())
-                selected = spectra.values_list('pk', flat=True)[:100]
+                logger.error('spectra count:'+str(spectra.count()))
+                selected = spectra.values_list('pk', flat=True)[:80]
                 spectra=spectra.filter(id__in=selected)
+                logger.error('spectra count:'+str(spectra.count()))
                 # print('reduced count:',spectra.count())
         elif model == 'Spectrum':
             spectra=Spectrum.objects.filter(eval('|'.join('Q(id='+str(pk)+')' for pk in ids)))
