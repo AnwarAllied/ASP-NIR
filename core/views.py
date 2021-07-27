@@ -163,11 +163,11 @@ class LineChartJSONView(BaseLineChartView):
             spectra=Spectrum.objects.filter(nir_profile= nirprofiles[0])
             for obj in nirprofiles[1:]:
                 spectra |=Spectrum.objects.filter(nir_profile= obj)
-            # Restrict plotting to 100 spectra:
-            if spectra.count()>80:
+            # Restrict plotting to 200 spectra:
+            if spectra.count()>200:
                 # print('spectra count:',spectra.count())
                 logger.error('spectra count:'+str(spectra.count()))
-                selected = spectra.values_list('pk', flat=True)[:80]
+                selected = spectra.values_list('pk', flat=True)[:200]
                 spectra=spectra.filter(id__in=selected)
                 logger.error('spectra count:'+str(spectra.count()))
                 # print('reduced count:',spectra.count())
