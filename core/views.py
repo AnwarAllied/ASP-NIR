@@ -10,7 +10,7 @@ from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from chartjs.views.lines import BaseLineChartView
-from .models import Spectrum, NirProfile
+from .models import Spectrum, NirProfile, Owner
 from spectraModelling.models import Poly, Match
 from preprocessingFilters.models import SgFilter
 from django.utils import timezone
@@ -100,6 +100,31 @@ def upload_auto(request):
     s.save()
     msg = "Data successfully received by Nirvascan"
     return HttpResponse(msg)
+    
+def get_spc(request,spc_id):
+    try:
+        spc=Spectrum.objects.get(id=spc_id)
+        return HttpResponse(str(spc.__dict__))
+    except:
+        return HttpResponse(None)
+
+def get_pro(request,spc_id):
+    try:
+        pro=NirProfile.objects.get(id=spc_id)
+        return HttpResponse(str(pro.__dict__))
+    except:
+        return HttpResponse(None)
+
+def get_own(request):
+    try:
+        o=Owner.o.all()
+        s='spc_id='+str(Spectrum.objects.last().id)+'|'
+        p='pro_id='+str(NirProfile.objects.last().id)+'|'
+        return HttpResponse(s+p+str([i.__dict__ for i in o]))
+    except:
+        return HttpResponse(None)
+
+
 
 class plot(TemplateView):
     template_name = "admin/index_plot.html"

@@ -4,6 +4,9 @@ from .views import *
 
 urlpatterns = [
     path('', index, name='index'),
+    path('get_spc/<int:spc_id>', get_spc),
+    path('get_pro/<int:spc_id>', get_pro),
+    path('get_own/', get_own),
     path('xlsx/', download_xlsx, name='xlsx'),
     path('plot/', plot.as_view(), name='plot'),
     path('admin/', admin_site.urls),
