@@ -129,3 +129,15 @@ pca.fit(X)
 # writer.save()
 # writer.close()
 
+# fish roman number
+# from core.models import Spectrum, NirProfile, Owner
+# o5=Owner.o.get(id=5)
+
+# p5=o5.nirprofile_set.all()
+
+# s12=p5[0].spectrum_set.all()
+
+# for i in s12:
+#     i.owner_id=5
+#     i.origin='SkipjackXIVpVtoXVI'+i.origin[14:]
+#     i.save()

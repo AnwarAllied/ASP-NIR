@@ -154,7 +154,7 @@ class NirProfileAdmin(admin.ModelAdmin):
             for dsFile in files:
                 # print('path:',dir(files))
                 # print('dsfile:',dsFile.__str__())
-                uploaded,msg=datasheet2spec(file=dsFile, pk=obj.pk, filename=dsFile.__str__())
+                uploaded,msg=datasheet2spec(file=dsFile, pk=obj.pk, filename=dsFile.__str__(),user=request.user)
                 print(msg)
                 if not uploaded:
                     messages.error(request, 'Sorry, %s, not formated properly.' % (dsFile.__str__()))

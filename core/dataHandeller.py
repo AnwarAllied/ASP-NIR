@@ -3,10 +3,10 @@ import os.path
 
 import pandas as pd
 import numpy as np
-from .models import Spectrum, NirProfile
+from .models import Spectrum, NirProfile,Owner
 from chartjs.colors import next_color
 
-def datasheet2spec(file,pk,filename):
+def datasheet2spec(file,pk,filename,user):
     profile=NirProfile.objects.get(pk=pk)
     filetype=filename.split('.')[-1]
 
@@ -32,6 +32,8 @@ def datasheet2spec(file,pk,filename):
                     x_range_min = xmin,
                     nir_profile = profile
                 )
+                
+                S.owner_id=Owner.o.get_id(user)
                 S.save()
                 print("spectrum",i, 'saved')
         except Exception as e:
@@ -63,8 +65,9 @@ def datasheet2spec(file,pk,filename):
                     x_range_min=xmin,
                     nir_profile=profile
                 )
+                
+                S.owner_id=Owner.o.get_id(user)
                 S.save()
-
             elif len(sh1.index)==249:
                 y_axis = list(map(float, sh1['Column 1'][21:].values.tolist()))
                 x_axis = list(map(float, sh1['Method:'][21:].values.tolist()))
@@ -82,7 +85,7 @@ def datasheet2spec(file,pk,filename):
                     nir_profile = profile
                 )
                 S.save()
-
+                S.owner_id=Owner.o.get_id(user)
             else:
                 x_axis = list(map(float, list(sh1)[1:]))
                 # print('x:', x_axis)
@@ -103,6 +106,8 @@ def datasheet2spec(file,pk,filename):
                         x_range_min=xmin,
                         nir_profile=profile
                     )
+                    
+                    S.owner_id=Owner.o.get_id(user)
                     S.save()
                     # print("spectrum", i, 'saved')
         except Exception as e:
