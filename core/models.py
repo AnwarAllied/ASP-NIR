@@ -76,7 +76,7 @@ class Spectrum(models.Model):
     spec_pic = ResizedImageField(crop=['middle', 'center'], upload_to='nirpics',storage=myStorage(),
                                  blank=True, null=True, verbose_name='Upload pic')
     nir_profile = models.ForeignKey(
-        'NirProfile', on_delete=models.SET_NULL, blank=True, null=True)
+        'NirProfile', on_delete=models.CASCADE, blank=True, null=True)
     owner=models.ForeignKey(
         'Owner', on_delete=models.SET_NULL, blank=True, null=True, editable=False)
 
